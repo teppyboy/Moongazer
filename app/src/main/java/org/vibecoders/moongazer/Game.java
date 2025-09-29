@@ -11,28 +11,38 @@ import org.vibecoders.moongazer.scene.*;
 public class Game extends ApplicationAdapter {
     private static final Logger log = LoggerFactory.getLogger(Game.class);
     public static State state = State.INTRO;
+    public static Transition transition = null;
     SpriteBatch batch;
     Texture logo;
     Scene currentScene;
     Scene introScene;
+    public static Scene mainMenuScene;
 
     @Override
     public void create() {
-        log.info("Loading assets...");
-        Assets.loadAll();
-        log.info("Assets loaded successfully.");
+        log.info("Loading intro assets...");
+        Assets.loadIntroAndWait();
+        log.info("Intro assets loaded successfully.");
         batch = new SpriteBatch();
         currentScene = introScene = new Intro();
+        mainMenuScene = new MainMenu();
     }
 
     @Override
     public void render() {
+        // Handle transition if any
+        if (transition != null) {
+            batch.begin();
+            transition.render(batch);
+            batch.end();
+            return;
+        }
         switch (Game.state) {
             case INTRO:
                 currentScene = introScene;
                 break;
             case MAIN_MENU:
-                // Render main menu scene
+                currentScene = mainMenuScene;
                 break;
             case IN_GAME:
                 // Render in-game scene
@@ -48,6 +58,7 @@ public class Game extends ApplicationAdapter {
     @Override
     public void dispose() {
         introScene.dispose();
+        mainMenuScene.dispose();
         Assets.dispose();
         log.debug("Resources disposed");
     }
