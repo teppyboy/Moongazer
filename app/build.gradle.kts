@@ -5,6 +5,8 @@
  * For more details on building Java & JVM projects, please refer to https://docs.gradle.org/9.0.0/userguide/building_java_projects.html in the Gradle documentation.
  */
 
+val libgdxVersion = "1.13.5"
+
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     application
@@ -29,6 +31,27 @@ dependencies {
 
     // This dependency is used by the application.
     implementation(libs.guava)
+
+    // ----- LibGDX Core / Extras -----
+    implementation("com.badlogicgames.gdx:gdx:$libgdxVersion")
+    implementation("com.badlogicgames.gdx:gdx-box2d:$libgdxVersion")
+    implementation("com.badlogicgames.gdx:gdx-freetype:$libgdxVersion")
+    implementation("com.badlogicgames.ashley:ashley:1.7.4")
+
+    // ----- LibGDX Desktop (LWJGL3 + natives) -----
+    implementation("com.badlogicgames.gdx:gdx-backend-lwjgl3:$libgdxVersion")
+    implementation("com.badlogicgames.gdx:gdx-platform:$libgdxVersion:natives-desktop")
+    implementation("com.badlogicgames.gdx:gdx-box2d-platform:$libgdxVersion:natives-desktop")
+    implementation("com.badlogicgames.gdx:gdx-freetype-platform:$libgdxVersion:natives-desktop")
+
+    // Tools (exclude legacy LWJGL backend)
+    implementation("com.badlogicgames.gdx:gdx-tools:$libgdxVersion") {
+        exclude(group = "com.badlogicgames.gdx", module = "gdx-backend-lwjgl")
+    }
+
+    // Logging
+    implementation("org.slf4j:slf4j-api:2.1.0-alpha1")
+    implementation("ch.qos.logback:logback-classic:1.5.18")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -40,7 +63,12 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = "org.vibecoders.moongazer.App"
+    mainClass = "org.vibecoders.moongazer.Main"
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.encoding = "UTF-8"
+    options.release.set(23)
 }
 
 tasks.named<Test>("test") {
