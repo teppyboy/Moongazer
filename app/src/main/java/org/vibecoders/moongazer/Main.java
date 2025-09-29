@@ -17,7 +17,7 @@ public class Main {
         cfg.useVsync(true);
         cfg.setIdleFPS(10);
         cfg.setWindowIcon("icons/logo.png");
-        log.info("Starting game client");
+        log.info("Starting game client...");
         new Lwjgl3Application(new Game(), cfg);
     }
 }

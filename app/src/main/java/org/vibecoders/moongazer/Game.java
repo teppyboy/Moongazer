@@ -1,29 +1,54 @@
 package org.vibecoders.moongazer;
 
 import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.vibecoders.moongazer.Constants.*;
+import org.vibecoders.moongazer.scene.*;
 
 public class Game extends ApplicationAdapter {
     private static final Logger log = LoggerFactory.getLogger(Game.class);
+    public static State state = State.INTRO;
+    SpriteBatch batch;
+    Texture logo;
+    Scene currentScene;
+    Scene introScene;
 
     @Override
     public void create() {
-        log.debug("create stub");
+        log.info("Loading assets...");
+        Assets.loadAll();
+        log.info("Assets loaded successfully.");
+        batch = new SpriteBatch();
+        currentScene = introScene = new Intro();
     }
 
     @Override
     public void render() {
-        Gdx.gl.glClearColor(0, 0, 0, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        switch (Game.state) {
+            case INTRO:
+                currentScene = introScene;
+                break;
+            case MAIN_MENU:
+                // Render main menu scene
+                break;
+            case IN_GAME:
+                // Render in-game scene
+                break;
+            default:
+                log.warn("Unknown state: {}", state);
+        }
+        batch.begin();
+        currentScene.render(batch);
+        batch.end();
     }
 
     @Override
     public void dispose() {
-        log.debug("stub");
+        introScene.dispose();
+        Assets.dispose();
+        log.debug("Resources disposed");
     }
 }
-
