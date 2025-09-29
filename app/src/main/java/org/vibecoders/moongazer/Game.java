@@ -6,7 +6,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vibecoders.moongazer.scene.*;
+import org.vibecoders.moongazer.managers.Assets;
+import org.vibecoders.moongazer.scenes.*;
 
 public class Game extends ApplicationAdapter {
     private static final Logger log = LoggerFactory.getLogger(Game.class);

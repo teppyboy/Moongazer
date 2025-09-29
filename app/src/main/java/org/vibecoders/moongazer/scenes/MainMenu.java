@@ -1,4 +1,4 @@
-package org.vibecoders.moongazer.scene;
+package org.vibecoders.moongazer.scenes;
 
 import static org.vibecoders.moongazer.Constants.*;
 

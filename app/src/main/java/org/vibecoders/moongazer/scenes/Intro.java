@@ -1,12 +1,12 @@
-package org.vibecoders.moongazer.scene;
+package org.vibecoders.moongazer.scenes;
 
 import static org.vibecoders.moongazer.Constants.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vibecoders.moongazer.Assets;
 import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.State;
+import org.vibecoders.moongazer.managers.Assets;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;

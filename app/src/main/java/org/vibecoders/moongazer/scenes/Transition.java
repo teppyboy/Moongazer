@@ -1,4 +1,4 @@
-package org.vibecoders.moongazer.scene;
+package org.vibecoders.moongazer.scenes;
 
 import org.slf4j.Logger;
 import org.vibecoders.moongazer.Game;

@@ -1,4 +1,4 @@
-package org.vibecoders.moongazer.scene;
+package org.vibecoders.moongazer.scenes;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
