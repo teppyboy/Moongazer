@@ -10,12 +10,6 @@ val libgdxVersion = "1.13.5"
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     application
-    id("org.openjfx.javafxplugin") version "0.1.0"
-}
-
-javafx {
-    version = "23"
-    modules = listOf("javafx.controls")
 }
 
 repositories {
@@ -32,13 +26,13 @@ dependencies {
     // This dependency is used by the application.
     implementation(libs.guava)
 
-    // ----- LibGDX Core / Extras -----
+    // libGDX core
     implementation("com.badlogicgames.gdx:gdx:$libgdxVersion")
     implementation("com.badlogicgames.gdx:gdx-box2d:$libgdxVersion")
     implementation("com.badlogicgames.gdx:gdx-freetype:$libgdxVersion")
     implementation("com.badlogicgames.ashley:ashley:1.7.4")
 
-    // ----- LibGDX Desktop (LWJGL3 + natives) -----
+    // libGDX Desktop (LWJGL3 + natives)
     implementation("com.badlogicgames.gdx:gdx-backend-lwjgl3:$libgdxVersion")
     implementation("com.badlogicgames.gdx:gdx-platform:$libgdxVersion:natives-desktop")
     implementation("com.badlogicgames.gdx:gdx-box2d-platform:$libgdxVersion:natives-desktop")
