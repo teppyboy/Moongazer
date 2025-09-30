@@ -1,4 +1,6 @@
-package org.vibecoders.moongazer.buttons;
+package org.vibecoders.moongazer.ui;
+
+import org.vibecoders.moongazer.managers.Assets;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
@@ -10,9 +12,10 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 
 public class MenuButton extends BaseButton {
     private TextButton textButton;
+    private Texture buttonTexture;
 
     public MenuButton(String text, BitmapFont font) {
-        Texture buttonTexture = new Texture(Gdx.files.internal("icons/MenuIcon.png"));
+        buttonTexture = Assets.getAsset("textures/ui/menu_button.png", Texture.class);
         TextureRegionDrawable buttonDrawable = new TextureRegionDrawable(new TextureRegion(buttonTexture));
 
         TextButton.TextButtonStyle style = new TextButton.TextButtonStyle();

@@ -88,6 +88,7 @@ public class Assets {
         // Load all assets here
         assetManager.load("textures/main_menu/background.png", Texture.class);
         assetManager.load("textures/main_menu/title.png", Texture.class);
+        assetManager.load("textures/ui/menu_button.png", Texture.class);
     }
 
     public static boolean isLoadedAll() {

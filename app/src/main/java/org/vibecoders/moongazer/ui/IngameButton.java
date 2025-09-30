@@ -1,4 +1,4 @@
-package org.vibecoders.moongazer.buttons;
+package org.vibecoders.moongazer.ui;
 
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 
