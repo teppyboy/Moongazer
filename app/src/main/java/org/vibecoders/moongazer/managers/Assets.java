@@ -71,8 +71,6 @@ public class Assets {
      */
     public static void loadIntroAndWait() {
         assetManager.load("icons/logo.png", Texture.class);
-        assetManager.load("main menu/background.png", Texture.class);
-        assetManager.load("main menu/title.png", Texture.class);
         waitUntilLoaded();
     }
 
@@ -87,6 +85,9 @@ public class Assets {
         assetManager.setLoader(com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.class,
                 new FreeTypeFontGeneratorLoader(resolver));
         assetManager.setLoader(BitmapFont.class, ".ttf", new FreetypeFontLoader(resolver));
+        // Load all assets here
+        assetManager.load("texture/main_menu/background.png", Texture.class);
+        assetManager.load("texture/main_menu/title.png", Texture.class);
     }
 
     public static boolean isLoadedAll() {
