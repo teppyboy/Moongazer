@@ -1,8 +1,11 @@
 package org.vibecoders.moongazer;
 
 import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +17,10 @@ public class Game extends ApplicationAdapter {
     public static State state = State.INTRO;
     public static Transition transition = null;
     SpriteBatch batch;
-    Texture logo;
+    // UI stage
+    public Stage stage;
+    public Table root;
+    // Scenes
     Scene currentScene;
     Scene introScene;
     public static Scene mainMenuScene;
@@ -25,7 +31,14 @@ public class Game extends ApplicationAdapter {
         Assets.loadIntroAndWait();
         log.info("Intro assets loaded successfully.");
         batch = new SpriteBatch();
-        currentScene = introScene = new Intro();
+        // Stage for UI elements
+        stage = new Stage(new ScreenViewport(), batch);
+        Gdx.input.setInputProcessor(stage);
+        root = new Table();
+        root.setFillParent(true);
+        stage.addActor(root);
+        // Scene initialization
+        currentScene = introScene = new Intro(this);
         // By the end of the intro, the main menu scene will be created and assigned to Game.mainMenuScene
     }
 
@@ -36,6 +49,9 @@ public class Game extends ApplicationAdapter {
             batch.begin();
             transition.render(batch);
             batch.end();
+            // Handle stage drawing for UI elements
+            stage.act(Gdx.graphics.getDeltaTime());
+            stage.draw();
             return;
         }
         switch (Game.state) {
@@ -54,6 +70,9 @@ public class Game extends ApplicationAdapter {
         batch.begin();
         currentScene.render(batch);
         batch.end();
+        // Handle stage drawing for UI elements
+        stage.act(Gdx.graphics.getDeltaTime());
+        stage.draw();
     }
 
     @Override
@@ -61,6 +80,8 @@ public class Game extends ApplicationAdapter {
         introScene.dispose();
         mainMenuScene.dispose();
         Assets.dispose();
+        batch.dispose();
+        stage.dispose();
         log.debug("Resources disposed");
     }
 }

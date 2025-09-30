@@ -16,13 +16,15 @@ import com.badlogic.gdx.utils.ScreenUtils;
  */
 public class Intro extends Scene {
     private Texture logo;
+    private Game game;
     private long startTime;
     private long endTime = 0;
 
     /**
      * Initializes the intro scene, starts loading assets.
      */
-    public Intro() {
+    public Intro(Game game) {
+        this.game = game;
         logo = Assets.getAsset("icons/logo.png", Texture.class);
         startTime = System.currentTimeMillis() + 500;
         log.info("Starting to load all remaining assets...");
@@ -38,7 +40,7 @@ public class Intro extends Scene {
         if (System.currentTimeMillis() > endTime + 2000 && endTime != 0) {
             if (Game.transition == null) {
                 Assets.waitUntilLoaded();
-                Game.mainMenuScene = new MainMenu();
+                Game.mainMenuScene = new MainMenu(game);
                 Game.transition = new Transition(this, Game.mainMenuScene, State.MAIN_MENU, 1000);
             }
             batch.draw(TEXTURE_BLACK, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
