@@ -55,7 +55,6 @@ public class Game extends ApplicationAdapter {
             transition.render(batch);
             batch.end();
             // Handle stage drawing for UI elements
-            stage.act(Gdx.graphics.getDeltaTime());
             stage.draw();
             return;
         }

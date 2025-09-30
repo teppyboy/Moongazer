@@ -51,9 +51,11 @@ public class Transition extends Scene {
         log.trace("Transition opacities - from: {}, to: {}", fromOpacity, toOpacity);
         batch.setColor(1, 1, 1, fromOpacity);
         from.root.setVisible(true);
+        from.root.setColor(1, 1, 1, fromOpacity);
         from.render(batch);
         batch.setColor(1, 1, 1, toOpacity);
         to.root.setVisible(true);
+        to.root.setColor(1, 1, 1, toOpacity);
         to.render(batch);
     }
 }
