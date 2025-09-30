@@ -11,15 +11,19 @@ import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.Game;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 
-/**
- * Main menu scene.
- */
 public class MainMenu extends Scene {
-    Label textLabel;
+    private Label newGameLabel;
+    private Label loadGameLabel;
+    private Label settingsLabel;
+    private Label quitGameLabel;
+
+    private Texture backgroundTexture;
+    private Texture titleTexture;
 
     public MainMenu(Game game) {
         super(game);
@@ -82,14 +86,24 @@ public class MainMenu extends Scene {
         game.root.addActor(settingsButton.getActor());
         game.root.addActor(exitButton.getActor());
     }
-    /**
-     * Renders the main menu scene.
-     * @param batch The SpriteBatch to draw with.
-     */
+
     @Override
     public void render(SpriteBatch batch) {
-        batch.draw(TEXTURE_WHITE, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-        // Unneeded as using Scene2D Stage to render the label
-        // textLabel.draw(batch, 1.0f);
+        batch.draw(backgroundTexture, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+        float targetTitleWidth = 300f;
+        float originalWidth = titleTexture.getWidth();
+        float originalHeight = titleTexture.getHeight();
+        float scale = targetTitleWidth / originalWidth;
+        float titleWidth = originalWidth * scale;
+        float titleHeight = originalHeight * scale;
+        float titleX = (WINDOW_WIDTH - titleWidth) / 2f;
+        float titleY = WINDOW_HEIGHT * 0.58f;
+        batch.draw(titleTexture, titleX, titleY, titleWidth, titleHeight);
+
+        newGameLabel.draw(batch, 1.0f);
+        loadGameLabel.draw(batch, 1.0f);
+        settingsLabel.draw(batch, 1.0f);
+        quitGameLabel.draw(batch, 1.0f);
     }
 }
