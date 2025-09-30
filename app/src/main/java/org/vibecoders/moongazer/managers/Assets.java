@@ -83,8 +83,7 @@ public class Assets {
 
     public static void waitUntilLoaded() {
         assetManager.finishLoading();
-        if (startLoadAll) {
-            log.info("All assets loaded.");
+        if (startLoadAll) {;
             loadedAll = true;
         }
     }
