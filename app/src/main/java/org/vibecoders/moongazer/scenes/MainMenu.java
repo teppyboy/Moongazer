@@ -6,7 +6,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
 import org.vibecoders.moongazer.managers.Assets;
-import org.vibecoders.moongazer.ui.MenuButton;
+import org.vibecoders.moongazer.ui.UITextButton;
 import org.vibecoders.moongazer.Game;
 
 import com.badlogic.gdx.graphics.Texture;
@@ -22,10 +22,10 @@ public class MainMenu extends Scene {
         titleTexture = Assets.getAsset("textures/main_menu/title.png", Texture.class);
 
         var font = Assets.getFont("ui", 24);
-        MenuButton playButton = new MenuButton("Play", font);
-        MenuButton loadButton = new MenuButton("Load", font);
-        MenuButton settingsButton = new MenuButton("Settings", font);
-        MenuButton exitButton = new MenuButton("Exit", font);
+        UITextButton playButton = new UITextButton("Play", font);
+        UITextButton loadButton = new UITextButton("Load", font);
+        UITextButton settingsButton = new UITextButton("Settings", font);
+        UITextButton exitButton = new UITextButton("Exit", font);
 
         int buttonWidth = 220;
         int buttonHeight = 65;
@@ -43,33 +43,10 @@ public class MainMenu extends Scene {
         settingsButton.setPosition(centerX, startY - buttonSpacing * 2);
         exitButton.setPosition(centerX, startY - buttonSpacing * 3);
 
-        playButton.addEventListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                log.debug("Play clicked");
-            }
-        });
-
-        loadButton.addEventListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                log.debug("Load clicked");
-            }
-        });
-
-        settingsButton.addEventListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                log.debug("Settings clicked");
-            }
-        });
-
-        exitButton.addEventListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                log.debug("Exit clicked");
-            }
-        });
+        playButton.onClick(() -> log.debug("Play clicked"));
+        loadButton.onClick(() -> log.debug("Load clicked"));
+        settingsButton.onClick(() -> log.debug("Settings clicked"));
+        exitButton.onClick(() -> log.debug("Exit clicked"));
 
         root.addActor(playButton.getActor());
         root.addActor(loadButton.getActor());
