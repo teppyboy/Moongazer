@@ -38,13 +38,13 @@ public class Transition extends Scene {
     public void render(SpriteBatch batch) {
         var toOpacity = ((float) (System.currentTimeMillis() - startTime)) / duration;
         if (toOpacity >= 0.99) {
-            log.debug("Transition complete to state: {}", targetState);
+            log.trace("Transition complete to state: {}", targetState);
             Game.state = targetState;
             Game.transition = null;
             return;
         }
         var fromOpacity = 1 - toOpacity;
-        log.debug("Transition opacities - from: {}, to: {}", fromOpacity, toOpacity);
+        log.trace("Transition opacities - from: {}, to: {}", fromOpacity, toOpacity);
         batch.setColor(1, 1, 1, fromOpacity);
         from.render(batch);
         batch.setColor(1, 1, 1, toOpacity);
