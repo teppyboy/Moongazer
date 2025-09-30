@@ -45,7 +45,7 @@ public class Intro extends Scene {
                 log.info("All assets loaded successfully.");
                 game.transition = new Transition(game, this, game.mainMenuScene, State.MAIN_MENU, 1000);
             }
-            batch.draw(TEXTURE_BLACK, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+            batch.draw(Assets.getBlackTexture(), 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
             return;
         }
         ScreenUtils.clear(Color.BLACK);

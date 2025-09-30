@@ -30,7 +30,7 @@ public class MainMenu extends Scene {
      */
     @Override
     public void render(SpriteBatch batch) {
-        batch.draw(TEXTURE_WHITE, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        batch.draw(Assets.getWhiteTexture(), 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         // Unneeded as using Scene2D Stage to render the label
         // textLabel.draw(batch, 1.0f);
     }
