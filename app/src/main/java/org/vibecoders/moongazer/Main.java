@@ -2,6 +2,8 @@ package org.vibecoders.moongazer;
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration.GLEmulation;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.vibecoders.moongazer.Constants.*;
@@ -20,6 +22,7 @@ public class Main {
      */
     public static void main(String[] args) {
         Lwjgl3ApplicationConfiguration cfg = new Lwjgl3ApplicationConfiguration();
+        cfg.setOpenGLEmulation(GLEmulation.GL32, 3, 2);
         cfg.setTitle(WINDOW_TITLE);
         cfg.setWindowedMode(WINDOW_WIDTH, WINDOW_HEIGHT);
         cfg.useVsync(true);
