@@ -2,9 +2,11 @@ package org.vibecoders.moongazer.managers;
 
 import org.slf4j.Logger;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.FileHandleResolver;
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -13,18 +15,26 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGeneratorLoader;
 import com.badlogic.gdx.graphics.g2d.freetype.FreetypeFontLoader;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Assets {
     private static final AssetManager assetManager = new AssetManager();
     private static final FileHandleResolver resolver = new InternalFileHandleResolver();
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(Assets.class);
     private static final ArrayList<String> loadedFonts = new ArrayList<>();
+    private static final HashMap<String, FileHandle> loadedFiles = new HashMap<>();
     private static boolean startLoadAll = false;
     private static boolean loadedAll = false;
     private static Texture textureWhite;
     private static Texture textureBlack;
 
     public static <T> T getAsset(String fileName, Class<T> type) {
+        if (type == FileHandle.class) {
+            if (!loadedFiles.containsKey(fileName)) {
+                loadAny(fileName);
+            }
+            return type.cast(loadedFiles.get(fileName));
+        }
         try {
             if (!assetManager.isLoaded(fileName, type)) {
                 log.warn("Asset not loaded: {}", fileName);
@@ -41,10 +51,11 @@ public class Assets {
     /**
      * Loads and returns a BitmapFont of the specified size from the given TTF file.
      * <p>
-     * Special file name "ui" is mapped to "fonts/H7GBKHeavy.ttf" (Wuthering Waves UI font).
+     * Special file name "ui" is mapped to "fonts/H7GBKHeavy.ttf" (Wuthering Waves
+     * UI font).
      * 
      * @param fileName the font name
-     * @param size the font size
+     * @param size     the font size
      * @return the loaded BitmapFont
      */
     public static BitmapFont getFont(String fileName, int size) {
@@ -74,6 +85,19 @@ public class Assets {
         waitUntilLoaded();
     }
 
+    public static void loadAny(String fileName) {
+        FileHandle fh = Gdx.files.internal(fileName); 
+        if (!fh.exists()) {
+            log.error("File does not exist: {}", fileName);
+            return;
+        }
+        if (loadedFiles.containsKey(fileName)) {
+            return;
+        }
+        loadedFiles.put(fileName, fh);
+    }
+    
+
     public static void loadAll() {
         if (startLoadAll) {
             log.warn("loadAll() called multiple times!");
@@ -93,6 +117,8 @@ public class Assets {
         assetManager.load("textures/ui/UI_Icon_Setting.png", Texture.class);
         assetManager.load("textures/ui/ImgReShaSoundOn.png", Texture.class);
         assetManager.load("textures/ui/UI_Gcg_Icon_Close.png", Texture.class);
+        // "Load" unsupported file types as FileHandle
+        loadAny("videos/main_menu_background.webm");
     }
 
     public static boolean isLoadedAll() {
@@ -105,7 +131,7 @@ public class Assets {
 
     public static void waitUntilLoaded() {
         assetManager.finishLoading();
-        if (startLoadAll) {;
+        if (startLoadAll) {
             loadedAll = true;
         }
     }
@@ -120,7 +146,7 @@ public class Assets {
             pixmap.setColor(Color.WHITE);
             pixmap.fill();
             textureWhite = new Texture(pixmap);
-            pixmap.dispose(); // Important: dispose pixmap after creating texture
+            pixmap.dispose(); 
         }
         return textureWhite;
     }
@@ -137,6 +163,13 @@ public class Assets {
     }
 
     public static void dispose() {
+        for (var fontKey : loadedFonts) {
+            if (assetManager.isLoaded(fontKey, BitmapFont.class)) {
+                assetManager.unload(fontKey);
+            }
+        }
+        loadedFonts.clear();
+        loadedFiles.clear();
         assetManager.dispose();
         if (textureWhite != null) {
             textureWhite.dispose();
