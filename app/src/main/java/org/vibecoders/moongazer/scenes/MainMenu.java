@@ -2,6 +2,9 @@ package org.vibecoders.moongazer.scenes;
 
 import static org.vibecoders.moongazer.Constants.*;
 
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import org.vibecoders.moongazer.buttons.MenuButton;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.Game;
 
@@ -22,6 +25,9 @@ public class MainMenu extends Scene {
         textLabel = new Label("Moongazer", new LabelStyle(font, Color.BLACK));
         textLabel.setPosition(WINDOW_WIDTH / 2f - textLabel.getWidth() / 2f, WINDOW_HEIGHT / 2f - textLabel.getHeight() / 2f);
         game.root.addActor(textLabel);
+        MenuButton startButton = new MenuButton("Start", font);
+        startButton.getActor().setPosition(WINDOW_WIDTH / 2f, WINDOW_HEIGHT / 2f);
+        game.root.addActor(startButton.getActor());
     }
     /**
      * Renders the main menu scene.
@@ -29,7 +35,7 @@ public class MainMenu extends Scene {
      */
     @Override
     public void render(SpriteBatch batch) {
-        batch.draw(TEXTURE_WHITE, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        batch.draw(TEXTURE_BLACK, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         // Unneeded as using Scene2D Stage to render the label
         // textLabel.draw(batch, 1.0f);
     }
