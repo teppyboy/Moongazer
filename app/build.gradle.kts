@@ -6,6 +6,7 @@
  */
 
 val libgdxVersion = "1.13.5"
+val gdxVideoVersion = "1.3.3"
 
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
@@ -46,6 +47,10 @@ dependencies {
     // Logging
     implementation("org.slf4j:slf4j-api:2.1.0-alpha1")
     implementation("ch.qos.logback:logback-classic:1.5.18")
+
+    // gdx-video
+    implementation("com.badlogicgames.gdx-video:gdx-video:${gdxVideoVersion}")
+    implementation("com.badlogicgames.gdx-video:gdx-video-lwjgl3:${gdxVideoVersion}")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
