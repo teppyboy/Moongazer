@@ -3,6 +3,7 @@ package org.vibecoders.moongazer.scenes;
 import static org.vibecoders.moongazer.Constants.*;
 
 import org.vibecoders.moongazer.managers.Assets;
+import org.vibecoders.moongazer.ui.UIImageButton;
 import org.vibecoders.moongazer.ui.UITextButton;
 import org.vibecoders.moongazer.Game;
 
@@ -23,6 +24,19 @@ public class MainMenu extends Scene {
         UITextButton loadButton = new UITextButton("Load", font);
         UITextButton settingsButton = new UITextButton("Settings", font);
         UITextButton exitButton = new UITextButton("Exit", font);
+
+        UIImageButton settingButton = UIImageButton.settingButton();
+        UIImageButton exitImgButton = UIImageButton.exitButton();
+        UIImageButton soundButton = UIImageButton.soundButton();
+        UIImageButton closeButton = UIImageButton.closeButton();
+        settingButton.setSize(50, 50);
+        exitImgButton.setSize(50, 50);
+        soundButton.setSize(50, 50);
+        closeButton.setSize(50, 50);
+        settingButton.setPosition(20, WINDOW_HEIGHT - 70);
+        exitImgButton.setPosition(WINDOW_WIDTH - 70, WINDOW_HEIGHT - 70);
+        soundButton.setPosition(20, 20);
+        closeButton.setPosition(WINDOW_WIDTH - 70, 20);
 
         int buttonWidth = 220;
         int buttonHeight = 65;
@@ -45,6 +59,10 @@ public class MainMenu extends Scene {
         settingsButton.onClick(() -> log.debug("Settings clicked"));
         exitButton.onClick(() -> log.debug("Exit clicked"));
 
+        root.addActor(settingButton.getActor());
+        root.addActor(exitImgButton.getActor());
+        root.addActor(soundButton.getActor());
+        root.addActor(closeButton.getActor());
         root.addActor(playButton.getActor());
         root.addActor(loadButton.getActor());
         root.addActor(settingsButton.getActor());
