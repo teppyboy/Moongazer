@@ -21,7 +21,8 @@ public class MainMenu extends Scene {
         var font = Assets.getFont("ui", 24);
         textLabel = new Label("Moongazer", new LabelStyle(font, Color.BLACK));
         textLabel.setPosition(WINDOW_WIDTH / 2f - textLabel.getWidth() / 2f, WINDOW_HEIGHT / 2f - textLabel.getHeight() / 2f);
-        game.root.addActor(textLabel);
+        root.addActor(textLabel);
+        game.stage.addActor(root);
     }
     /**
      * Renders the main menu scene.

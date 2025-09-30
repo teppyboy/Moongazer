@@ -5,13 +5,16 @@ import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.managers.Assets;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 
 public abstract class Scene {
     protected final Logger log = org.slf4j.LoggerFactory.getLogger(getClass());
+    public Table root;
     public Scene(Game game) {
         this();
     }
     public Scene() {
+        root = new Table();
         if (!Assets.isLoadedAll() && Assets.isStartLoadAll()) {
             Assets.waitUntilLoaded();
         }
