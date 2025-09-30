@@ -21,14 +21,15 @@ public class MenuButton extends BaseButton {
         TextButton.TextButtonStyle style = new TextButton.TextButtonStyle();
         style.font = font;
         style.fontColor = Color.BLACK;
-        style.overFontColor = Color.BLUE;
+        style.overFontColor = Color.BLACK;
         style.downFontColor = Color.BLUE;
 
         style.up = buttonDrawable;
-        style.down = buttonDrawable;
-        style.over = buttonDrawable;
+        style.down = buttonDrawable.tint(new Color(0.8f, 0.8f, 0.8f, 1f));
+        style.over = buttonDrawable.tint(new Color(1f, 1f, 1f, 0.7f));
 
         textButton = new TextButton(text, style);
+        textButton.getColor().a = 0.7f;
         this.actor = textButton;
     }
 }
