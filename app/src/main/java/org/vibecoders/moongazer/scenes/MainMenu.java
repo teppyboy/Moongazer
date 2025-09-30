@@ -3,6 +3,7 @@ package org.vibecoders.moongazer.scenes;
 import static org.vibecoders.moongazer.Constants.*;
 
 import org.vibecoders.moongazer.managers.Assets;
+import org.vibecoders.moongazer.Game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
