@@ -6,7 +6,9 @@ import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.ui.UIImageButton;
 import org.vibecoders.moongazer.ui.UITextButton;
 import org.vibecoders.moongazer.Game;
+import org.vibecoders.moongazer.State;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
@@ -38,19 +40,6 @@ public class MainMenu extends Scene {
         UITextButton loadButton = new UITextButton("Load", font);
         UITextButton settingsButton = new UITextButton("Settings", font);
         UITextButton exitButton = new UITextButton("Exit", font);
-
-        UIImageButton settingButton = UIImageButton.settingButton();
-        UIImageButton exitImgButton = UIImageButton.exitButton();
-        UIImageButton soundButton = UIImageButton.soundButton();
-        UIImageButton closeButton = UIImageButton.closeButton();
-        settingButton.setSize(50, 50);
-        exitImgButton.setSize(50, 50);
-        soundButton.setSize(50, 50);
-        closeButton.setSize(50, 50);
-        settingButton.setPosition(20, WINDOW_HEIGHT - 70);
-        exitImgButton.setPosition(WINDOW_WIDTH - 70, WINDOW_HEIGHT - 70);
-        soundButton.setPosition(20, 20);
-        closeButton.setPosition(WINDOW_WIDTH - 70, 20);
       
         int buttonWidth = 300;
         int buttonHeight = 80;
@@ -71,17 +60,22 @@ public class MainMenu extends Scene {
 
         playButton.onClick(() -> log.debug("Play clicked"));
         loadButton.onClick(() -> log.debug("Load clicked"));
-        settingsButton.onClick(() -> log.debug("Settings clicked"));
-        exitButton.onClick(() -> log.debug("Exit clicked"));
+        settingsButton.onClick(() -> {
+            log.debug("Settings clicked");
+            if (game.transition == null) {
+                game.transition = new Transition(game, this, game.settingsScene, State.SETTINGS, 350);
+            }
+        });
+        exitButton.onClick(() -> {
+            log.debug("Exit clicked");
+            Gdx.app.exit();
+        });
 
-        root.addActor(settingButton.getActor());
-        root.addActor(exitImgButton.getActor());
-        root.addActor(soundButton.getActor());
-        root.addActor(closeButton.getActor());
         root.addActor(playButton.getActor());
         root.addActor(loadButton.getActor());
         root.addActor(settingsButton.getActor());
         root.addActor(exitButton.getActor());
+
         game.stage.addActor(root);
     }
 

@@ -29,8 +29,11 @@ public class Intro extends Scene {
         startTime = System.currentTimeMillis() + 500;
         log.info("Starting to load all remaining assets...");
         Assets.loadAll();
+        // Create scenes
         game.mainMenuScene = new MainMenu(game);
+        game.settingsScene = new Settings(game);
         game.gameScenes.add(game.mainMenuScene);
+        game.gameScenes.add(game.settingsScene);
     }
 
     /**
