@@ -1,10 +1,12 @@
 package org.vibecoders.moongazer.scenes;
 
+import org.slf4j.Logger;
 import org.vibecoders.moongazer.managers.Assets;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public abstract class Scene {
+    protected final Logger log = org.slf4j.LoggerFactory.getLogger(getClass());
     public Scene() {
         if (!Assets.isLoadedAll()) {
             Assets.waitUntilLoaded();

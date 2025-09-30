@@ -2,8 +2,6 @@ package org.vibecoders.moongazer.scenes;
 
 import static org.vibecoders.moongazer.Constants.*;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.State;
 import org.vibecoders.moongazer.managers.Assets;
@@ -20,7 +18,6 @@ public class Intro extends Scene {
     private Texture logo;
     private long startTime;
     private long endTime = 0;
-    private static final Logger log = LoggerFactory.getLogger(Intro.class);
 
     /**
      * Initializes the intro scene, starts loading assets.

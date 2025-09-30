@@ -1,6 +1,5 @@
 package org.vibecoders.moongazer.scenes;
 
-import org.slf4j.Logger;
 import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.State;
 
@@ -15,8 +14,6 @@ public class Transition extends Scene {
     private State targetState;
     private long startTime;
     private long duration;
-
-    private static final Logger log = org.slf4j.LoggerFactory.getLogger(Transition.class);
 
     /**
      * Creates a new transition between two scenes.
