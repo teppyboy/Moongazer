@@ -2,6 +2,11 @@ package org.vibecoders.moongazer.scenes;
 
 import static org.vibecoders.moongazer.Constants.*;
 
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import org.vibecoders.moongazer.buttons.MenuButton;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.Game;
 
@@ -22,32 +27,64 @@ public class MainMenu extends Scene {
 
     public MainMenu(Game game) {
         super(game);
-        backgroundTexture = Assets.getAsset("textures/main_menu/background.png", Texture.class);
-        titleTexture = Assets.getAsset("textures/main_menu/title.png", Texture.class);
-        initializeLabels();
-    }
+        var font = Assets.getFont("ui", 24);
+        textLabel = new Label("Moongazer", new LabelStyle(font, Color.BLACK));
+        textLabel.setPosition(WINDOW_WIDTH / 2f - textLabel.getWidth() / 2f, WINDOW_HEIGHT / 2f - textLabel.getHeight() / 2f);
 
-    private void initializeLabels() {
-        var menuFont = Assets.getFont("ui", 24);
+        MenuButton playButton = new MenuButton("Play", font);
+        MenuButton loadButton = new MenuButton("Load", font);
+        MenuButton settingsButton = new MenuButton("Settings", font);
+        MenuButton exitButton = new MenuButton("Exit", font);
 
-        newGameLabel = new Label("New Game", new LabelStyle(menuFont, Color.BLACK));
-        loadGameLabel = new Label("Load Game", new LabelStyle(menuFont, Color.BLACK));
-        settingsLabel = new Label("Settings", new LabelStyle(menuFont, Color.BLACK));
-        quitGameLabel = new Label("Quit Game", new LabelStyle(menuFont, Color.BLACK));
+        int buttonWidth = 220;
+        int buttonHeight = 65;
+        playButton.setSize(buttonWidth, buttonHeight);
+        loadButton.setSize(buttonWidth, buttonHeight);
+        settingsButton.setSize(buttonWidth, buttonHeight);
+        exitButton.setSize(buttonWidth, buttonHeight);
 
-        float centerX = WINDOW_WIDTH / 2f;
-        float startY = WINDOW_HEIGHT * 0.6f;
-        float menuSpacing = 60f;
+        int centerX = WINDOW_WIDTH / 2 - buttonWidth / 2;
+        int startY = WINDOW_HEIGHT / 2 - buttonHeight / 2;
+        int buttonSpacing = 50;
 
-        newGameLabel.setPosition(centerX - newGameLabel.getWidth() / 2f, startY);
-        loadGameLabel.setPosition(centerX - loadGameLabel.getWidth() / 2f, startY - menuSpacing);
-        settingsLabel.setPosition(centerX - settingsLabel.getWidth() / 2f, startY - menuSpacing * 2);
-        quitGameLabel.setPosition(centerX - quitGameLabel.getWidth() / 2f, startY - menuSpacing * 3);
+        playButton.setPosition(centerX, startY);
+        loadButton.setPosition(centerX, startY - buttonSpacing);
+        settingsButton.setPosition(centerX, startY - buttonSpacing * 2);
+        exitButton.setPosition(centerX, startY - buttonSpacing * 3);
 
-        root.addActor(newGameLabel);
-        root.addActor(loadGameLabel);
-        root.addActor(settingsLabel);
-        root.addActor(quitGameLabel);
+        playButton.getActor().addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                System.out.println("Play clicked");
+            }
+        });
+
+        loadButton.getActor().addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                System.out.println("Load clicked");
+            }
+        });
+
+        settingsButton.getActor().addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                System.out.println("Settings clicked");
+            }
+        });
+
+        exitButton.getActor().addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                System.out.println("Exit clicked");
+            }
+        });
+
+        game.root.addActor(textLabel);
+        game.root.addActor(playButton.getActor());
+        game.root.addActor(loadButton.getActor());
+        game.root.addActor(settingsButton.getActor());
+        game.root.addActor(exitButton.getActor());
     }
 
     @Override
