@@ -26,6 +26,7 @@ public class Game extends ApplicationAdapter {
     Scene currentScene;
     Scene introScene;
     public Scene mainMenuScene;
+    public Scene settingsScene;
     public ArrayList<Scene> gameScenes;
 
     @Override
@@ -44,7 +45,7 @@ public class Game extends ApplicationAdapter {
         gameScenes = new ArrayList<>();
         currentScene = introScene = new Intro(this);
         gameScenes.add(introScene);
-        // By the end of the intro, the main menu scene will be created and assigned to Game.mainMenuScene
+        // By the end of the intro, other secenes will be created and assigned to Game.mainMenuScene
     }
 
     @Override
@@ -64,6 +65,9 @@ public class Game extends ApplicationAdapter {
                 break;
             case MAIN_MENU:
                 currentScene = mainMenuScene;
+                break;
+            case SETTINGS:
+                currentScene = settingsScene;
                 break;
             case IN_GAME:
                 // Render in-game scene
