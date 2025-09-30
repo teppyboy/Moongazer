@@ -8,7 +8,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 public abstract class Scene {
     protected final Logger log = org.slf4j.LoggerFactory.getLogger(getClass());
     public Scene() {
-        if (!Assets.isLoadedAll()) {
+        if (!Assets.isLoadedAll() && Assets.isStartLoadAll()) {
             Assets.waitUntilLoaded();
         }
     }
