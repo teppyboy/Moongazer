@@ -89,6 +89,10 @@ public class Assets {
         assetManager.load("textures/main_menu/background.png", Texture.class);
         assetManager.load("textures/main_menu/title.png", Texture.class);
         assetManager.load("textures/ui/text_button.png", Texture.class);
+        assetManager.load("textures/ui/IconExitGame.png", Texture.class);
+        assetManager.load("textures/ui/UI_Icon_Setting.png", Texture.class);
+        assetManager.load("textures/ui/ImgReShaSoundOn.png", Texture.class);
+        assetManager.load("textures/ui/UI_Gcg_Icon_Close.png", Texture.class);
     }
 
     public static boolean isLoadedAll() {
