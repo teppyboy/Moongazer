@@ -60,8 +60,13 @@ public class Intro extends Scene {
             }
             currentOpacity = 1 - ((float) (System.currentTimeMillis() - endTime) / 1000);
         }
-        batch.setColor(1, 1, 1, currentOpacity);
+        // Multiply with any externally applied alpha (e.g., Transition)
+        float externalAlpha = batch.getColor().a; // alpha set by Transition before calling render
+        float finalAlpha = currentOpacity * externalAlpha;
+        batch.setColor(1, 1, 1, finalAlpha);
         batch.draw(logo, WINDOW_WIDTH / 2 - logo.getWidth() / 4, WINDOW_HEIGHT / 2 - logo.getHeight() / 4,
                 logo.getWidth() / 2, logo.getHeight() / 2);
+        // Reset color for safety (Transition will set again anyway)
+        batch.setColor(1,1,1,externalAlpha);
     }
 }
