@@ -26,7 +26,7 @@ public class Game extends ApplicationAdapter {
         log.info("Intro assets loaded successfully.");
         batch = new SpriteBatch();
         currentScene = introScene = new Intro();
-        mainMenuScene = new MainMenu();
+        // By the end of the intro, the main menu scene will be created and assigned to Game.mainMenuScene
     }
 
     @Override

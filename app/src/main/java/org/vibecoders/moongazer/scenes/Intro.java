@@ -39,8 +39,9 @@ public class Intro extends Scene {
     @Override
     public void render(SpriteBatch batch) {
         if (System.currentTimeMillis() > endTime + 2000 && endTime != 0) {
-            Assets.waitUntilLoaded();
             if (Game.transition == null) {
+                Assets.waitUntilLoaded();
+                Game.mainMenuScene = new MainMenu();
                 Game.transition = new Transition(this, Game.mainMenuScene, State.MAIN_MENU, 1000);
             }
             batch.draw(TEXTURE_BLACK, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
