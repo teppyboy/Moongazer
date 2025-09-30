@@ -11,29 +11,22 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 
 public class UITextButton extends UIButton {
     private Texture buttonTexture;
-    private Texture buttonDownTexture;
-    private Texture buttonOverTexture;
 
     public UITextButton(String text, BitmapFont font) {
-        buttonTexture = Assets.getAsset("textures/ui/menu_button.png", Texture.class);
-        buttonDownTexture = Assets.getAsset("textures/ui/menu_button_down.png", Texture.class);
-        buttonOverTexture = Assets.getAsset("textures/ui/menu_button_over.png", Texture.class);
+        buttonTexture = Assets.getAsset("textures/ui/text_button.png", Texture.class);
         TextureRegionDrawable buttonDrawable = new TextureRegionDrawable(new TextureRegion(buttonTexture));
-        TextureRegionDrawable buttonDownDrawable = new TextureRegionDrawable(new TextureRegion(buttonDownTexture));
-        TextureRegionDrawable buttonOverDrawable = new TextureRegionDrawable(new TextureRegion(buttonOverTexture));
 
         TextButton.TextButtonStyle style = new TextButton.TextButtonStyle();
-        // Text style
         style.font = font;
         style.fontColor = Color.BLACK;
         style.overFontColor = Color.BLACK;
         style.downFontColor = Color.BLACK;
-        // Button style
-        style.up = buttonDrawable;
-        style.down = buttonDownDrawable;
-        style.over = buttonOverDrawable;
+
+        style.up = buttonDrawable.tint(new Color(0.9f, 0.9f, 0.9f, 1f));
+        style.down = buttonDrawable.tint(new Color(0.8f, 0.8f, 0.8f, 1f));
+        style.over = buttonDrawable.tint(new Color(1f, 1f, 1f, 1f));
 
         this.button = new TextButton(text, style);
-        this.actor = button;
+        this.actor = this.button;
     }
 }

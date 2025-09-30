@@ -2,9 +2,6 @@ package org.vibecoders.moongazer.scenes;
 
 import static org.vibecoders.moongazer.Constants.*;
 
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.ui.UITextButton;
 import org.vibecoders.moongazer.Game;
