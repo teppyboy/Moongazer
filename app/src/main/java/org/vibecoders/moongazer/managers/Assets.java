@@ -71,8 +71,8 @@ public class Assets {
      */
     public static void loadIntroAndWait() {
         assetManager.load("icons/logo.png", Texture.class);
-        getBlackTexture();
-        getWhiteTexture();
+        assetManager.load("main menu/background.png", Texture.class);
+        assetManager.load("main menu/title.png", Texture.class);
         waitUntilLoaded();
     }
 
