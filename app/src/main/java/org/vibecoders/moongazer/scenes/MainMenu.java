@@ -22,8 +22,8 @@ public class MainMenu extends Scene {
 
     public MainMenu(Game game) {
         super(game);
-        backgroundTexture = Assets.getAsset("texture/main_menu/background.png", Texture.class);
-        titleTexture = Assets.getAsset("texture/main_menu/title.png", Texture.class);
+        backgroundTexture = Assets.getAsset("textures/main_menu/background.png", Texture.class);
+        titleTexture = Assets.getAsset("textures/main_menu/title.png", Texture.class);
         initializeLabels();
     }
 

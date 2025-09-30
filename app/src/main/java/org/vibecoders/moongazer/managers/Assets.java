@@ -86,8 +86,8 @@ public class Assets {
                 new FreeTypeFontGeneratorLoader(resolver));
         assetManager.setLoader(BitmapFont.class, ".ttf", new FreetypeFontLoader(resolver));
         // Load all assets here
-        assetManager.load("texture/main_menu/background.png", Texture.class);
-        assetManager.load("texture/main_menu/title.png", Texture.class);
+        assetManager.load("textures/main_menu/background.png", Texture.class);
+        assetManager.load("textures/main_menu/title.png", Texture.class);
     }
 
     public static boolean isLoadedAll() {
