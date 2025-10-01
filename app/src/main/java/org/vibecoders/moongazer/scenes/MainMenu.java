@@ -3,6 +3,8 @@ package org.vibecoders.moongazer.scenes;
 import static org.vibecoders.moongazer.Constants.*;
 
 import java.io.FileNotFoundException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.State;
@@ -24,6 +26,7 @@ public class MainMenu extends Scene {
     private FileHandle videoFileHandle;
     private Texture titleTexture;
     private UITextButton[] buttons;
+    private HashMap<Integer, Long> currentKeyDown = new HashMap<>();
     private float titleY, titleX, titleWidth, titleHeight;
     private boolean videoPrepared = false;
     private int currentChoice = -1;
@@ -129,33 +132,16 @@ public class MainMenu extends Scene {
         root.addListener(new InputListener() {
             @Override
             public boolean keyDown(InputEvent event, int keycode) {
-                log.trace("Key pressed: {}", keycode);
-                switch (keycode) {
-                    case Input.Keys.UP:
-                        currentChoice = (currentChoice - 1 + 4) % 4;
-                        break;
-                    case Input.Keys.DOWN:
-                        currentChoice = (currentChoice + 1) % 4;
-                        break;
-                    case Input.Keys.RIGHT:
-                    case Input.Keys.ENTER:
-                        if (currentChoice != -1) {
-                            buttons[currentChoice].click();
-                        }
-                        break;
-                    default:
-                        break;
-                }
-                if (currentChoice != -1) {
-                    log.trace("Current choice: {}", currentChoice);
-                    for (int i = 0; i < buttons.length; i++) {
-                        if (i == currentChoice) {
-                            buttons[i].hoverEnter();
-                        } else {
-                            buttons[i].hoverExit();
-                        }
-                    }
-                }
+                sKeyDown(event, keycode);
+                currentKeyDown.put(keycode, System.currentTimeMillis());
+                return true;
+            }
+        });
+
+        root.addListener(new InputListener() {
+            @Override
+            public boolean keyUp(InputEvent event, int keycode) {
+                currentKeyDown.remove(keycode);
                 return true;
             }
         });
@@ -173,8 +159,53 @@ public class MainMenu extends Scene {
         videoPrepared = true;
     }
 
+    /**
+     * The actual key down handler. ((s)cene key down)
+     * 
+     * @param event not used for now, can be null
+     * @param keycode the keycode of the pressed key
+     */
+    public void sKeyDown(InputEvent event, int keycode) {
+        log.trace("Key pressed: {}", keycode);
+        switch (keycode) {
+            case Input.Keys.UP:
+                currentChoice = (currentChoice - 1 + 4) % 4;
+                break;
+            case Input.Keys.DOWN:
+                currentChoice = (currentChoice + 1) % 4;
+                break;
+            case Input.Keys.RIGHT:
+            case Input.Keys.ENTER:
+                if (currentChoice != -1) {
+                    buttons[currentChoice].click();
+                }
+                break;
+            default:
+                break;
+        }
+        if (currentChoice != -1) {
+            log.trace("Current choice: {}", currentChoice);
+            for (int i = 0; i < buttons.length; i++) {
+                if (i == currentChoice) {
+                    buttons[i].hoverEnter();
+                } else {
+                    buttons[i].hoverExit();
+                }
+            }
+        }
+    }
+
     @Override
     public void render(SpriteBatch batch) {
+        // SDL way of handling key input XD
+        for (Map.Entry<Integer, Long> entry : currentKeyDown.entrySet()) {
+            Integer keyCode = entry.getKey();
+            Long timeStamp = entry.getValue();
+            if (System.currentTimeMillis() - timeStamp > 100) {
+                sKeyDown(null, keyCode);
+                currentKeyDown.put(keyCode, System.currentTimeMillis());
+            }
+        }
         startVideoOnce();
         videoPlayer.update();
         Texture videoTexture = videoPlayer.getTexture();
