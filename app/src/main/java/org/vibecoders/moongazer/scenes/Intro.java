@@ -6,6 +6,7 @@ import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.State;
 import org.vibecoders.moongazer.managers.Assets;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -17,8 +18,8 @@ import com.badlogic.gdx.utils.ScreenUtils;
 public class Intro extends Scene {
     private Texture logo;
     private Game game;
-    private long startTime;
-    private long endTime = 0;
+    private float totalTime = 0;
+    private boolean end = false;
 
     /**
      * Initializes the intro scene, starts loading assets.
@@ -26,7 +27,6 @@ public class Intro extends Scene {
     public Intro(Game game) {
         this.game = game;
         logo = Assets.getAsset("icons/logo.png", Texture.class);
-        startTime = System.currentTimeMillis() + 500;
         log.info("Starting to load all remaining assets...");
         Assets.loadAll();
         // Create scenes
@@ -42,7 +42,9 @@ public class Intro extends Scene {
      */
     @Override
     public void render(SpriteBatch batch) {
-        if (System.currentTimeMillis() > endTime + 2000 && endTime != 0) {
+        totalTime += Gdx.graphics.getDeltaTime();
+        log.trace("Intro total time: {}", totalTime);
+        if (totalTime > 5f) {
             if (game.transition == null) {
                 Assets.waitUntilLoaded();
                 log.info("All assets loaded successfully.");
@@ -53,12 +55,12 @@ public class Intro extends Scene {
         }
         ScreenUtils.clear(Color.BLACK);
         // log.debug("Rendering logo at position: ({}, {})", WINDOW_WIDTH / 2 - logo.getWidth() / 4, WINDOW_HEIGHT / 2 - logo.getHeight() / 4);
-        var currentOpacity = (float) (System.currentTimeMillis() - startTime) / 1000;
+        var currentOpacity = totalTime;
         if (currentOpacity > 1) {
-            if (endTime == 0) {
-                endTime = System.currentTimeMillis() + 2000;
+            if (!end) {
+                end = true;
             }
-            currentOpacity = 1 - ((float) (System.currentTimeMillis() - endTime) / 1000);
+            currentOpacity = 5f - totalTime;
         }
         // Multiply with any externally applied alpha (e.g., Transition)
         float externalAlpha = batch.getColor().a;

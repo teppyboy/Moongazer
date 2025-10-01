@@ -18,6 +18,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.video.VideoPlayer;
 import com.badlogic.gdx.video.VideoPlayerCreator;
 
@@ -133,7 +134,7 @@ public class MainMenu extends Scene {
             @Override
             public boolean keyDown(InputEvent event, int keycode) {
                 sKeyDown(event, keycode);
-                currentKeyDown.put(keycode, System.currentTimeMillis());
+                currentKeyDown.put(keycode, TimeUtils.millis());
                 return true;
             }
         });
@@ -201,9 +202,9 @@ public class MainMenu extends Scene {
         for (Map.Entry<Integer, Long> entry : currentKeyDown.entrySet()) {
             Integer keyCode = entry.getKey();
             Long timeStamp = entry.getValue();
-            if (System.currentTimeMillis() - timeStamp > 100) {
+            if (TimeUtils.millis() - timeStamp > 100) {
                 sKeyDown(null, keyCode);
-                currentKeyDown.put(keyCode, System.currentTimeMillis());
+                currentKeyDown.put(keyCode, TimeUtils.millis());
             }
         }
         startVideoOnce();
