@@ -83,11 +83,6 @@ public class Game extends ApplicationAdapter {
                 scene.root.setVisible(false);
             }
         }
-
-        if (!currentScene.root.isVisible()) {
-            log.trace("Showing current scene: {}", currentScene.getClass().getSimpleName());
-            currentScene.root.setVisible(true);
-        }
         
         batch.begin();
         currentScene.render(batch);

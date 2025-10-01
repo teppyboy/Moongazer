@@ -44,6 +44,10 @@ public class Transition extends Scene {
             log.trace("Transition complete to state: {}", targetState);
             game.state = targetState;
             game.transition = null;
+            // Set keyboard focus to the new scene's root
+            from.root.setVisible(false);
+            to.root.setVisible(true);
+            game.stage.setKeyboardFocus(to.root);
             return;
         }
         var fromOpacity = 1 - toOpacity;
