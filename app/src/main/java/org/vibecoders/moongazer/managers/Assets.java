@@ -117,6 +117,8 @@ public class Assets {
         assetManager.load("textures/ui/UI_Icon_Setting.png", Texture.class);
         assetManager.load("textures/ui/ImgReShaSoundOn.png", Texture.class);
         assetManager.load("textures/ui/UI_Gcg_Icon_Close.png", Texture.class);
+        assetManager.load("textures/ui/arrow-button-left.png", Texture.class);
+        assetManager.load("textures/ui/arrow-button-right.png", Texture.class);
         // "Load" unsupported file types as FileHandle
         loadAny("videos/main_menu_background.webm");
     }
