@@ -17,7 +17,6 @@ import com.badlogic.gdx.video.VideoPlayer;
 import com.badlogic.gdx.video.VideoPlayerCreator;
 
 public class MainMenu extends Scene {
-    private final Game game;
     private VideoPlayer videoPlayer;
     private FileHandle videoFileHandle;
     private Texture titleTexture;
@@ -26,7 +25,6 @@ public class MainMenu extends Scene {
 
     public MainMenu(Game game) {
         super(game);
-        this.game = game;
         initVideo();
         initUI();
     }

@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
  * Handles transitions between scenes with a linear transition effect.
  */
 public class Transition extends Scene {
-    private Game game;
     private Scene from;
     private Scene to;
     private State targetState;
@@ -25,8 +24,8 @@ public class Transition extends Scene {
      */
     public Transition(Game game, Scene from, Scene to, State targetState, long duration) {
         // Transition does not need to render UI elements
+        super(game);
         this.root = null;
-        this.game = game;
         this.from = from;
         this.to = to;
         this.targetState = targetState;

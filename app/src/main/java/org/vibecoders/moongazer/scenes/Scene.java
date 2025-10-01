@@ -10,8 +10,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 public abstract class Scene {
     protected final Logger log = org.slf4j.LoggerFactory.getLogger(getClass());
     public Table root;
+    public Game game;
     public Scene(Game game) {
         this();
+        this.game = game;
     }
     public Scene() {
         root = new Table();
