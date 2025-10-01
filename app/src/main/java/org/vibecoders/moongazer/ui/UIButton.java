@@ -1,12 +1,15 @@
 package org.vibecoders.moongazer.ui;
 
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.EventListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
 public abstract class UIButton {
-    protected Actor actor;
-    protected Button button;
+    public Actor actor;
+    public Button button;
 
     public Actor getActor() {
         return actor;
@@ -24,11 +27,64 @@ public abstract class UIButton {
         actor.addListener(eventListener);
     }
 
+    public void click() {
+        // Thx ChatGPT
+        InputEvent down = new InputEvent();
+        down.setType(InputEvent.Type.touchDown);
+        down.setButton(Input.Buttons.LEFT);
+        down.setStageX(button.getX());
+        down.setStageY(button.getY());
+        button.fire(down);
+
+        InputEvent up = new InputEvent();
+        up.setType(InputEvent.Type.touchUp);
+        up.setButton(Input.Buttons.LEFT);
+        up.setStageX(button.getX());
+        up.setStageY(button.getY());
+        button.fire(up);
+    }
+
+    public void hoverEnter() {
+        InputEvent e = new InputEvent();
+        e.setType(InputEvent.Type.enter);
+        e.setPointer(-1);
+        button.fire(e);
+    }
+
+    public void hoverExit() {
+        InputEvent e = new InputEvent();
+        e.setType(InputEvent.Type.exit);
+        e.setPointer(-1);
+        button.fire(e);
+    }
+
     public void onClick(Runnable action) {
-        button.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
+        button.addListener(new ClickListener() {
             @Override
-            public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
+            public void clicked(InputEvent event, float x, float y) {
                 action.run();
+            }
+        });
+    }
+
+    public void onHoverEnter(Runnable action) {
+        button.addListener(new ClickListener() {
+            @Override
+            public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
+                if (pointer == -1) {
+                    action.run();
+                }
+            }
+        });
+    }
+
+    public void onHoverExit(Runnable action) {
+        button.addListener(new ClickListener() {
+            @Override
+            public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
+                if (pointer == -1) {
+                    action.run();
+                }
             }
         });
     }
