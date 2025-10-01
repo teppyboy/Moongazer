@@ -44,7 +44,7 @@ public class Intro extends Scene {
     public void render(SpriteBatch batch) {
         totalTime += Gdx.graphics.getDeltaTime();
         log.trace("Intro total time: {}", totalTime);
-        if (totalTime > 5f) {
+        if (totalTime > 4f) {
             if (game.transition == null) {
                 Assets.waitUntilLoaded();
                 log.info("All assets loaded successfully.");
@@ -60,7 +60,7 @@ public class Intro extends Scene {
             if (!end) {
                 end = true;
             }
-            currentOpacity = 5f - totalTime;
+            currentOpacity = 4f - totalTime;
         }
         // Multiply with any externally applied alpha (e.g., Transition)
         float externalAlpha = batch.getColor().a;
