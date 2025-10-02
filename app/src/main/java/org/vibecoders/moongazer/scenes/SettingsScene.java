@@ -5,9 +5,11 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
@@ -18,9 +20,12 @@ import org.vibecoders.moongazer.Settings;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.ui.UICloseButton;
 import org.vibecoders.moongazer.ui.UITextButton;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.scenes.scene2d.ui.Slider.SliderStyle;
 
 import java.util.HashMap;
 
+import static com.badlogic.gdx.scenes.scene2d.ui.Slider.*;
 import static org.vibecoders.moongazer.Constants.*;
 
 public class SettingsScene extends Scene {
@@ -28,6 +33,7 @@ public class SettingsScene extends Scene {
     private UITextButton currentEditingButton = null;
     private String currentKeybindAction = "";
     private HashMap<String, UITextButton> keybindButtons = new HashMap<>();
+    private Slider musicSlider;
 
     public SettingsScene(Game game) {
         super(game);
@@ -46,6 +52,18 @@ public class SettingsScene extends Scene {
         mainPanel.add(title).colspan(2).padTop(60).padBottom(40);
         mainPanel.row();
 
+
+        // slider placeholders
+        Texture sliderBgTexture = Assets.getAsset("textures/ui/UI_SliderBg2.png", Texture.class);
+        Texture sliderKnobTexture = Assets.getAsset("textures/ui/UI_SliderKnob.png", Texture.class);
+        Texture sliderKnobOverTexture = Assets.getAsset("textures/ui/UI_SliderBg.png", Texture.class);
+
+        SliderStyle sliderStyle = new SliderStyle();
+        sliderStyle.background = new TextureRegionDrawable(new TextureRegion(sliderBgTexture));
+        sliderStyle.knob = new TextureRegionDrawable(new TextureRegion(sliderKnobTexture));
+        sliderStyle.knobBefore = new TextureRegionDrawable(new TextureRegion(sliderKnobOverTexture));
+        sliderStyle.knobAfter = new TextureRegionDrawable(new TextureRegion(sliderBgTexture));
+
         // Volume settings
         TextureRegionDrawable bg = new TextureRegionDrawable(Assets.getWhiteTexture());
         var tintedBg = bg.tint(new Color(0.2f, 0.2f, 0.2f, 0.3f));
@@ -55,7 +73,9 @@ public class SettingsScene extends Scene {
             Table row = new Table();
             row.setBackground(tintedBg);
             row.add(new Label(volume, labelStyle)).expandX().left().padLeft(40).pad(15);
-            row.add(new Label("[Slider Placeholder]", labelStyle)).right().padRight(40);
+            musicSlider = new Slider(0f, 1f, 0.01f, false, sliderStyle);
+            musicSlider.setValue(0.5f);
+            row.add(musicSlider).width(300).right().padRight(40);
             mainPanel.add(row).width(700).height(60).padBottom(5);
             mainPanel.row();
         }

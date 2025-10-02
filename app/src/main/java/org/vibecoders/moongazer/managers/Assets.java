@@ -123,6 +123,9 @@ public class Assets {
         assetManager.load("textures/ui/close.png", Texture.class);
         assetManager.load("textures/ui/close_hover.png", Texture.class);
         assetManager.load("textures/ui/close_clicked.png", Texture.class);
+        assetManager.load("textures/ui/UI_SliderKnob.png", Texture.class);
+        assetManager.load("textures/ui/UI_SliderBg.png", Texture.class);
+        assetManager.load("textures/ui/UI_SliderBg2.png", Texture.class);
         // "Load" unsupported file types as FileHandle
         loadingThread = new Thread(() -> {
             loadAny("videos/main_menu_background.webm");
