@@ -25,6 +25,7 @@ public class Assets {
     private static final HashMap<String, FileHandle> loadedFiles = new HashMap<>();
     private static boolean startLoadAll = false;
     private static boolean loadedAll = false;
+    private static Thread loadingThread = null;
     private static Texture textureWhite;
     private static Texture textureBlack;
 
@@ -119,8 +120,14 @@ public class Assets {
         assetManager.load("textures/ui/UI_Gcg_Icon_Close.png", Texture.class);
         assetManager.load("textures/ui/arrow-button-left.png", Texture.class);
         assetManager.load("textures/ui/arrow-button-right.png", Texture.class);
+        assetManager.load("textures/ui/close.png", Texture.class);
+        assetManager.load("textures/ui/close_hover.png", Texture.class);
+        assetManager.load("textures/ui/close_clicked.png", Texture.class);
         // "Load" unsupported file types as FileHandle
-        loadAny("videos/main_menu_background.webm");
+        loadingThread = new Thread(() -> {
+            loadAny("videos/main_menu_background.webm");
+        });
+        loadingThread.start();
     }
 
     public static boolean isLoadedAll() {
@@ -133,6 +140,14 @@ public class Assets {
 
     public static void waitUntilLoaded() {
         assetManager.finishLoading();
+        if (loadingThread != null) {
+            try {
+                loadingThread.join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            loadingThread = null;
+        }
         if (startLoadAll) {
             loadedAll = true;
         }

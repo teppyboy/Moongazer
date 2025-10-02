@@ -16,7 +16,7 @@ import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.State;
 import org.vibecoders.moongazer.Settings;
 import org.vibecoders.moongazer.managers.Assets;
-import org.vibecoders.moongazer.ui.UIImageButton;
+import org.vibecoders.moongazer.ui.UICloseButton;
 import org.vibecoders.moongazer.ui.UITextButton;
 
 import java.util.HashMap;
@@ -102,7 +102,7 @@ public class SettingsScene extends Scene {
         mainPanel.row();
 
         // Back button
-        UIImageButton backButton = new UIImageButton("textures/ui/UI_Gcg_Icon_Close.png");
+        UICloseButton backButton = new UICloseButton();
         backButton.setSize(40, 40);
         backButton.setPosition(Gdx.graphics.getWidth() - 80, Gdx.graphics.getHeight() - 80);
         backButton.onClick(() -> {
