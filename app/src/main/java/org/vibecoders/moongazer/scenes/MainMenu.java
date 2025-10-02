@@ -62,15 +62,17 @@ public class MainMenu extends Scene {
         var font = Assets.getFont("ui", 24);
         UITextButton playButton = new UITextButton("Play", font);
         UITextButton loadButton = new UITextButton("Load", font);
+        UITextButton leaderboardButton = new UITextButton("Leaderboard", font);
         UITextButton settingsButton = new UITextButton("Settings", font);
         UITextButton exitButton = new UITextButton("Exit", font);
-        buttons = new UITextButton[] { playButton, loadButton, settingsButton, exitButton };
+        buttons = new UITextButton[] { playButton, loadButton, leaderboardButton, settingsButton, exitButton };
 
         int buttonWidth = 300;
         int buttonHeight = 80;
 
         playButton.setSize(buttonWidth, buttonHeight);
         loadButton.setSize(buttonWidth, buttonHeight);
+        leaderboardButton.setSize(buttonWidth, buttonHeight);
         settingsButton.setSize(buttonWidth, buttonHeight);
         exitButton.setSize(buttonWidth, buttonHeight);
 
@@ -82,14 +84,17 @@ public class MainMenu extends Scene {
         playButton.setPosition(centerX, startY);
         loadButton.setSize(buttonWidth, buttonHeight);
         loadButton.setPosition(centerX, startY - spacing);
+        leaderboardButton.setSize(buttonWidth, buttonHeight);
+        leaderboardButton.setPosition(centerX, startY - spacing * 2);
         settingsButton.setSize(buttonWidth, buttonHeight);
-        settingsButton.setPosition(centerX, startY - spacing * 2);
+        settingsButton.setPosition(centerX, startY - spacing * 3);
         exitButton.setSize(buttonWidth, buttonHeight);
-        exitButton.setPosition(centerX, startY - spacing * 3);
+        exitButton.setPosition(centerX, startY - spacing * 4);
 
         // Mouse click handlers
         playButton.onClick(() -> log.debug("Play clicked"));
         loadButton.onClick(() -> log.debug("Load clicked"));
+        leaderboardButton.onClick(() -> log.debug("Leaderboard clicked"));
         settingsButton.onClick(() -> {
             log.debug("Settings clicked");
             if (game.transition == null) {
@@ -103,6 +108,7 @@ public class MainMenu extends Scene {
 
         root.addActor(playButton.getActor());
         root.addActor(loadButton.getActor());
+        root.addActor(leaderboardButton.getActor());
         root.addActor(settingsButton.getActor());
         root.addActor(exitButton.getActor());
 
@@ -170,10 +176,10 @@ public class MainMenu extends Scene {
         log.trace("Key pressed: {}", keycode);
         switch (keycode) {
             case Input.Keys.UP:
-                currentChoice = (currentChoice - 1 + 4) % 4;
+                currentChoice = (currentChoice - 1 + buttons.length) % buttons.length;
                 break;
             case Input.Keys.DOWN:
-                currentChoice = (currentChoice + 1) % 4;
+                currentChoice = (currentChoice + 1) % buttons.length;
                 break;
             case Input.Keys.RIGHT:
             case Input.Keys.ENTER:
