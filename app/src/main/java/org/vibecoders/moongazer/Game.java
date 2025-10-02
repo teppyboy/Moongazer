@@ -94,6 +94,9 @@ public class Game extends ApplicationAdapter {
 
     @Override
     public void dispose() {
+        // Save settings
+        Settings.saveSettings();
+        // Dispose resources
         introScene.dispose();
         mainMenuScene.dispose();
         Assets.dispose();

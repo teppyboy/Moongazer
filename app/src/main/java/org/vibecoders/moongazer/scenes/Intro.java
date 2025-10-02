@@ -31,7 +31,7 @@ public class Intro extends Scene {
         Assets.loadAll();
         // Create scenes
         game.mainMenuScene = new MainMenu(game);
-        game.settingsScene = new Settings(game);
+        game.settingsScene = new SettingsScene(game);
         game.gameScenes.add(game.mainMenuScene);
         game.gameScenes.add(game.settingsScene);
     }
