@@ -93,7 +93,14 @@ public class MainMenu extends Scene {
         exitButton.setPosition(centerX, startY - spacing * 4);
 
         // Mouse click handlers
-        playButton.onClick(() -> log.debug("Play clicked"));
+        playButton.onClick(() -> {
+            log.debug("Play clicked");
+            // Create transition to DialogueScene
+            if (game.transition == null) {
+                DialogueScene dialogueScene = new DialogueScene(game);
+                game.transition = new DialogueTransition(game, this, dialogueScene, 500);
+            }
+        });
         loadButton.onClick(() -> log.debug("Load clicked"));
         leaderboardButton.onClick(() -> log.debug("Leaderboard clicked"));
         settingsButton.onClick(() -> {
