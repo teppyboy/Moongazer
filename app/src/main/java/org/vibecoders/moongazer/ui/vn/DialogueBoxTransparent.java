@@ -1,4 +1,4 @@
-package org.vibecoders.moongazer.vn;
+package org.vibecoders.moongazer.ui.vn;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;

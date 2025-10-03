@@ -98,7 +98,7 @@ public class MainMenu extends Scene {
             // Create transition to DialogueScene
             if (game.transition == null) {
                 DialogueScene dialogueScene = new DialogueScene(game);
-                game.transition = new DialogueTransition(game, this, dialogueScene, 500);
+                game.transition = new Transition(game, this, dialogueScene, State.IN_GAME, 500);
             }
         });
         loadButton.onClick(() -> log.debug("Load clicked"));
