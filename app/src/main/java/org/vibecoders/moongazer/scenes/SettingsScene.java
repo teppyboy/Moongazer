@@ -5,11 +5,9 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
@@ -20,12 +18,10 @@ import org.vibecoders.moongazer.Settings;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.ui.UICloseButton;
 import org.vibecoders.moongazer.ui.UITextButton;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.scenes.scene2d.ui.Slider.SliderStyle;
+import org.vibecoders.moongazer.ui.UISlider;
 
 import java.util.HashMap;
 
-import static com.badlogic.gdx.scenes.scene2d.ui.Slider.*;
 import static org.vibecoders.moongazer.Constants.*;
 
 public class SettingsScene extends Scene {
@@ -33,15 +29,17 @@ public class SettingsScene extends Scene {
     private UITextButton currentEditingButton = null;
     private String currentKeybindAction = "";
     private HashMap<String, UITextButton> keybindButtons = new HashMap<>();
-    private Slider musicSlider;
+    private UISlider masterVolSlider;
+    private UISlider musicSlider;
+    private UISlider sfxSlider;
 
     public SettingsScene(Game game) {
         super(game);
-        
+
         root.setFillParent(true);
         BitmapFont font = Assets.getFont("ui", 24);
         Label.LabelStyle labelStyle = new Label.LabelStyle(font, Color.WHITE);
-        
+
         // Main panel
         Table mainPanel = new Table();
         mainPanel.setSize(800, 600);
@@ -52,30 +50,35 @@ public class SettingsScene extends Scene {
         mainPanel.add(title).colspan(2).padTop(60).padBottom(40);
         mainPanel.row();
 
-
-        // slider placeholders
-        Texture sliderBgTexture = Assets.getAsset("textures/ui/UI_SliderBg2.png", Texture.class);
-        Texture sliderKnobTexture = Assets.getAsset("textures/ui/UI_SliderKnob.png", Texture.class);
-        Texture sliderKnobOverTexture = Assets.getAsset("textures/ui/UI_SliderBg.png", Texture.class);
-
-        SliderStyle sliderStyle = new SliderStyle();
-        sliderStyle.background = new TextureRegionDrawable(new TextureRegion(sliderBgTexture));
-        sliderStyle.knob = new TextureRegionDrawable(new TextureRegion(sliderKnobTexture));
-        sliderStyle.knobBefore = new TextureRegionDrawable(new TextureRegion(sliderKnobOverTexture));
-        sliderStyle.knobAfter = new TextureRegionDrawable(new TextureRegion(sliderBgTexture));
-
         // Volume settings
         TextureRegionDrawable bg = new TextureRegionDrawable(Assets.getWhiteTexture());
         var tintedBg = bg.tint(new Color(0.2f, 0.2f, 0.2f, 0.3f));
 
-        String[] volumes = {"Master Volume", "Music Volume", "SFX Volume"};
+        String[] volumes = { "Master Volume", "Music Volume", "SFX Volume" };
+        // TODO: implement audio manager
         for (String volume : volumes) {
             Table row = new Table();
             row.setBackground(tintedBg);
             row.add(new Label(volume, labelStyle)).expandX().left().padLeft(40).pad(15);
-            musicSlider = new Slider(0f, 1f, 0.01f, false, sliderStyle);
-            musicSlider.setValue(0.5f);
-            row.add(musicSlider).width(300).right().padRight(40);
+            if (volume.equals("Master Volume")) {
+                masterVolSlider = new UISlider();
+                masterVolSlider.onChanged(() -> {
+                    Settings.setMasterVolume(masterVolSlider.getValue());
+                });
+                row.add(masterVolSlider.slider).width(300).right().padRight(40);
+            } else if (volume.equals("Music Volume")) {
+                musicSlider = new UISlider();
+                musicSlider.onChanged(() -> {
+                    Settings.setMusicVolume(musicSlider.getValue());
+                });
+                row.add(musicSlider.slider).width(300).right().padRight(40);
+            } else if (volume.equals("SFX Volume")) {
+                sfxSlider = new UISlider();
+                sfxSlider.onChanged(() -> {
+                    Settings.setSfxVolume(sfxSlider.getValue());
+                });
+                row.add(sfxSlider.slider).width(300).right().padRight(40);
+            }
             mainPanel.add(row).width(700).height(60).padBottom(5);
             mainPanel.row();
         }
@@ -88,10 +91,10 @@ public class SettingsScene extends Scene {
         section.row();
 
         // Player keybinds
-        String[] players = {"Player 1", "Player 2"};
-        String[] prefixes = {"p1", "p2"};
-        String[] actions = {"_left", "_right"};
-        String[] labels = {"    Move Left", "    Move Right"};
+        String[] players = { "Player 1", "Player 2" };
+        String[] prefixes = { "p1", "p2" };
+        String[] actions = { "_left", "_right" };
+        String[] labels = { "    Move Left", "    Move Right" };
 
         for (int p = 0; p < players.length; p++) {
             section.add(new Label("  " + players[p], labelStyle)).colspan(2).left()
@@ -108,7 +111,7 @@ public class SettingsScene extends Scene {
                             isEditingKeybind = true;
                             currentEditingButton = button;
                             currentKeybindAction = action;
-                            ((TextButton)(button.button)).setText("Press Key...");
+                            ((TextButton) (button.button)).setText("Press Key...");
                         }
                     }
                 });
@@ -143,7 +146,8 @@ public class SettingsScene extends Scene {
                 if (isEditingKeybind && currentEditingButton != null) {
                     if (keycode == Input.Keys.ESCAPE) {
                         if (currentEditingButton != null) {
-                            ((TextButton)(currentEditingButton.button)).setText(getKeyName(Settings.getKeybind(currentKeybindAction)));
+                            ((TextButton) (currentEditingButton.button))
+                                    .setText(getKeyName(Settings.getKeybind(currentKeybindAction)));
                         }
                         isEditingKeybind = false;
                         currentEditingButton = null;
@@ -151,13 +155,13 @@ public class SettingsScene extends Scene {
                         return true;
                     }
                     if (isKeybindAlreadyUsed(keycode, currentKeybindAction)) {
-                        ((TextButton)(currentEditingButton.button)).setText("Key in use!");
+                        ((TextButton) (currentEditingButton.button)).setText("Key in use!");
                         new Thread(() -> {
                             try {
                                 Thread.sleep(1000);
                                 Gdx.app.postRunnable(() -> {
                                     if (isEditingKeybind && currentEditingButton != null) {
-                                        ((TextButton)(currentEditingButton.button)).setText("Press Key...");
+                                        ((TextButton) (currentEditingButton.button)).setText("Press Key...");
                                     }
                                 });
                             } catch (InterruptedException e) {
@@ -167,7 +171,7 @@ public class SettingsScene extends Scene {
                         return true;
                     }
                     Settings.keybinds.put(currentKeybindAction, keycode);
-                    ((TextButton)(currentEditingButton.button)).setText(getKeyName(keycode));
+                    ((TextButton) (currentEditingButton.button)).setText(getKeyName(keycode));
                     isEditingKeybind = false;
                     currentEditingButton = null;
                     currentKeybindAction = "";
