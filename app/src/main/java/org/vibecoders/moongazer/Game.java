@@ -29,6 +29,7 @@ public class Game extends ApplicationAdapter {
     public Scene mainMenuScene;
     public Scene settingsScene;
     public ArrayList<Scene> gameScenes;
+    private boolean usingCustomScene = false;
 
     @Override
     public void create() {
@@ -60,34 +61,42 @@ public class Game extends ApplicationAdapter {
             stage.draw();
             return;
         }
-        switch (this.state) {
-            case INTRO:
-                currentScene = introScene;
-                break;
-            case MAIN_MENU:
-                currentScene = mainMenuScene;
-                break;
-            case SETTINGS:
-                currentScene = settingsScene;
-                break;
-            case IN_GAME:
-                // Render in-game scene
-                break;
-            default:
-                log.warn("Unknown state: {}", state);
+
+        // Only use state-based scene switching if not using custom scene
+        if (!usingCustomScene) {
+            switch (this.state) {
+                case INTRO:
+                    currentScene = introScene;
+                    break;
+                case MAIN_MENU:
+                    currentScene = mainMenuScene;
+                    break;
+                case SETTINGS:
+                    currentScene = settingsScene;
+                    break;
+                case IN_GAME:
+                    // Render in-game scene
+                    break;
+                default:
+                    log.warn("Unknown state: {}", state);
+            }
         }
 
         for (var scene : gameScenes) {
             // log.trace("Checking scene visibility: {}", scene.getClass().getSimpleName());
-            if (scene != currentScene && scene.root.isVisible()) {
+            if (scene != currentScene && scene.root != null && scene.root.isVisible()) {
                 log.trace("Hiding scene: {}", scene.getClass().getSimpleName());
                 scene.root.setVisible(false);
             }
         }
         
-        batch.begin();
-        currentScene.render(batch);
-        batch.end();
+        // Only render if currentScene is not null
+        if (currentScene != null) {
+            batch.begin();
+            currentScene.render(batch);
+            batch.end();
+        }
+
         // Handle stage drawing for UI elements
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
@@ -107,5 +116,87 @@ public class Game extends ApplicationAdapter {
         batch.dispose();
         stage.dispose();
         log.debug("Resources disposed");
+    }
+
+    /**
+     * Sets the current scene directly (for VN and other non-state-based scenes).
+     *
+     * @param scene the scene to switch to
+     */
+    public void setScene(Scene scene) {
+        if (currentScene != null && currentScene.root != null) {
+            currentScene.root.setVisible(false);
+        }
+        currentScene = scene;
+        usingCustomScene = true;
+        if (scene.root != null) {
+            scene.root.setVisible(true);
+            if (!gameScenes.contains(scene)) {
+                gameScenes.add(scene);
+                if (scene.root.getStage() == null) {
+                    stage.addActor(scene.root);
+                }
+            }
+        }
+        log.debug("Scene switched to: {}", scene.getClass().getSimpleName());
+    }
+
+    /**
+     * Sets the game state and returns to state-based scene switching.
+     *
+     * @param newState the new game state
+     */
+    public void setState(State newState) {
+        this.state = newState;
+        this.usingCustomScene = false;
+        // Reset input processor to main stage
+        Gdx.input.setInputProcessor(stage);
+        log.debug("State changed to: {}", newState);
+    }
+
+    /**
+     * Sets the current scene and state (used by transitions).
+     *
+     * @param scene the scene to set as current
+     * @param newState the new state
+     */
+    public void setCurrentSceneAndState(Scene scene, State newState) {
+        this.currentScene = scene;
+        this.state = newState;
+        this.usingCustomScene = false;
+        if (scene.root != null) {
+            scene.root.setVisible(true);
+        }
+        Gdx.input.setInputProcessor(stage);
+        log.debug("Current scene set to: {}, state: {}", scene.getClass().getSimpleName(), newState);
+    }
+
+    /**
+     * Returns to main menu from a custom scene.
+     */
+    public void returnToMainMenu() {
+        // Create transition from DialogueScene to MainMenu instead of direct switch
+        if (currentScene != null && usingCustomScene && currentScene instanceof DialogueScene) {
+            log.debug("Creating transition from DialogueScene to MainMenu");
+            DialogueScene dialogueScene = (DialogueScene) currentScene;
+            dialogueScene.enterTransition(); // Mark as entering transition to stop rendering
+            transition = new DialogueToMenuTransition(this, dialogueScene, mainMenuScene, 500);
+            return;
+        }
+
+        // Fallback for other custom scenes
+        if (currentScene != null && usingCustomScene) {
+            log.debug("Disposing custom scene: {}", currentScene.getClass().getSimpleName());
+            currentScene.dispose();
+            currentScene = null;
+        }
+
+        setState(State.MAIN_MENU);
+        currentScene = mainMenuScene;
+        if (mainMenuScene.root != null) {
+            mainMenuScene.root.setVisible(true);
+        }
+        Gdx.input.setInputProcessor(stage);
+        log.debug("Returned to main menu, state={}, usingCustomScene={}", state, usingCustomScene);
     }
 }
