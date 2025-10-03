@@ -16,6 +16,7 @@ import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.State;
 import org.vibecoders.moongazer.Settings;
 import org.vibecoders.moongazer.managers.Assets;
+import org.vibecoders.moongazer.managers.Audio;
 import org.vibecoders.moongazer.ui.UICloseButton;
 import org.vibecoders.moongazer.ui.UITextButton;
 import org.vibecoders.moongazer.ui.UISlider;
@@ -64,12 +65,14 @@ public class SettingsScene extends Scene {
                 masterVolSlider = new UISlider();
                 masterVolSlider.onChanged(() -> {
                     Settings.setMasterVolume(masterVolSlider.getValue());
+                    Audio.musicSetVolume();
                 });
                 row.add(masterVolSlider.slider).width(300).right().padRight(40);
             } else if (volume.equals("Music Volume")) {
                 musicSlider = new UISlider();
                 musicSlider.onChanged(() -> {
                     Settings.setMusicVolume(musicSlider.getValue());
+                    Audio.musicSetVolume();
                 });
                 row.add(musicSlider.slider).width(300).right().padRight(40);
             } else if (volume.equals("SFX Volume")) {

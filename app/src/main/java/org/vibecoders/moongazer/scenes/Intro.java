@@ -5,6 +5,7 @@ import static org.vibecoders.moongazer.Constants.*;
 import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.State;
 import org.vibecoders.moongazer.managers.Assets;
+import org.vibecoders.moongazer.managers.Audio;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
@@ -29,6 +30,8 @@ public class Intro extends Scene {
         logo = Assets.getAsset("icons/logo.png", Texture.class);
         log.info("Starting to load all remaining assets...");
         Assets.loadAll();
+        Audio.init();
+        Audio.musicSetVolume();
         // Create scenes
         game.mainMenuScene = new MainMenu(game);
         game.settingsScene = new SettingsScene(game);
@@ -38,6 +41,7 @@ public class Intro extends Scene {
 
     /**
      * Renders the intro scene.
+     * 
      * @param batch The SpriteBatch to draw with.
      */
     @Override
@@ -54,7 +58,8 @@ public class Intro extends Scene {
             return;
         }
         ScreenUtils.clear(Color.BLACK);
-        // log.debug("Rendering logo at position: ({}, {})", WINDOW_WIDTH / 2 - logo.getWidth() / 4, WINDOW_HEIGHT / 2 - logo.getHeight() / 4);
+        // log.debug("Rendering logo at position: ({}, {})", WINDOW_WIDTH / 2 -
+        // logo.getWidth() / 4, WINDOW_HEIGHT / 2 - logo.getHeight() / 4);
         var currentOpacity = totalTime;
         if (currentOpacity > 1) {
             if (!end) {

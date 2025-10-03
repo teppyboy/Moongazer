@@ -129,6 +129,7 @@ public class Assets {
         // "Load" unsupported file types as FileHandle
         loadingThread = new Thread(() -> {
             loadAny("videos/main_menu_background.webm");
+            loadAny("audio/I Once Praised the Day.mp3");
         });
         loadingThread.start();
     }

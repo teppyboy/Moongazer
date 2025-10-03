@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibecoders.moongazer.managers.Assets;
+import org.vibecoders.moongazer.managers.Audio;
 import org.vibecoders.moongazer.scenes.*;
 
 public class Game extends ApplicationAdapter {
@@ -96,10 +97,13 @@ public class Game extends ApplicationAdapter {
     public void dispose() {
         // Save settings
         Settings.saveSettings();
-        // Dispose resources
+        // Dispose scenes
         introScene.dispose();
         mainMenuScene.dispose();
+        // Dispose resources
+        Audio.dispose();
         Assets.dispose();
+        // Dispose batch and stage
         batch.dispose();
         stage.dispose();
         log.debug("Resources disposed");
