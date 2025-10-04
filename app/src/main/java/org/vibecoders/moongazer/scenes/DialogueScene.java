@@ -13,9 +13,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.State;
 import org.vibecoders.moongazer.managers.Assets;
-import org.vibecoders.moongazer.ui.vn.CharacterActor;
-import org.vibecoders.moongazer.ui.vn.ChoiceBox;
-import org.vibecoders.moongazer.ui.vn.DialogueBoxTransparent;
+import org.vibecoders.moongazer.ui.novel.CharacterActor;
+import org.vibecoders.moongazer.ui.novel.ChoiceBox;
+import org.vibecoders.moongazer.ui.novel.DialogueBoxTransparent;
 
 public class DialogueScene extends Scene {
     private final CharacterActor character;
@@ -109,7 +109,7 @@ public class DialogueScene extends Scene {
                 var font = Assets.getFont("ui", 18);
                 choice = new ChoiceBox(font, new String[] { "New game", "Back to Main Menu" }, idx -> {
                     if (idx == 0) {
-                        dialogue.setDialogue("Iuno", "Toi yeu tretrauit...");  // :thumbsup:
+                        dialogue.setDialogue("Owari Da", "Toi yeu tretrauit...");  // :thumbsup:
                         step = 2;
                     } else {
                         game.transition = new Transition(game, this, game.mainMenuScene, State.MAIN_MENU, 500);
