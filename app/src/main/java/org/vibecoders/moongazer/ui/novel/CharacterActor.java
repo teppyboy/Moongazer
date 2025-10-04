@@ -1,4 +1,4 @@
-package org.vibecoders.moongazer.ui.vn;
+package org.vibecoders.moongazer.ui.novel;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;

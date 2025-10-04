@@ -1,4 +1,4 @@
-package org.vibecoders.moongazer.ui.vn;
+package org.vibecoders.moongazer.ui.novel;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -91,7 +91,8 @@ public class DialogueBoxTransparent extends Group {
     @Override
     public void act(float delta) {
         super.act(delta);
-        if (done || fullText == null) return;
+        if (done || fullText == null)
+            return;
 
         shown += charPerSec * delta;
         int n = Math.min(fullText.length(), (int) shown);
