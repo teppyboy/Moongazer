@@ -101,7 +101,12 @@ public class MainMenu extends Scene {
                 game.transition = new Transition(game, this, dialogueScene, State.IN_GAME, 500);
             }
         });
-        loadButton.onClick(() -> log.debug("Load clicked"));
+        loadButton.onClick(() -> {
+            log.debug("Load clicked");
+            if (game.transition == null) {
+                game.transition = new Transition(game, this, game.loadScene, State.LOAD_GAME, 350);
+            }
+        });
         leaderboardButton.onClick(() -> log.debug("Leaderboard clicked"));
         settingsButton.onClick(() -> {
             log.debug("Settings clicked");
