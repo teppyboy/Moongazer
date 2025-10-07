@@ -133,7 +133,6 @@ public class SettingsScene extends Scene {
         backButton.setPosition(Gdx.graphics.getWidth() - 80, Gdx.graphics.getHeight() - 80);
         backButton.onClick(() -> {
             if (game.transition == null && !isEditingKeybind) {
-                Audio.playSfxReturn();
                 game.transition = new Transition(game, this, game.mainMenuScene,
                         State.MAIN_MENU, 350);
             }

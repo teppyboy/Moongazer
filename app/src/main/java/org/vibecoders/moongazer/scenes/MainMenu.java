@@ -95,34 +95,28 @@ public class MainMenu extends Scene {
         // Mouse click handlers
         playButton.onClick(() -> {
             log.debug("Play clicked");
-            Audio.playSfxSelect();
-            // Create transition to DialogueScene
             if (game.transition == null) {
                 DialogueScene dialogueScene = new DialogueScene(game);
                 game.transition = new Transition(game, this, dialogueScene, State.IN_GAME, 500);
             }
         });
         loadButton.onClick(() -> {
-            Audio.playSfxSelect();
             log.debug("Load clicked");
             if (game.transition == null) {
                 game.transition = new Transition(game, this, game.loadScene, State.LOAD_GAME, 350);
             }
         });
         leaderboardButton.onClick(() -> {
-            Audio.playSfxSelect();
             log.debug("Leaderboard clicked");
         });
         settingsButton.onClick(() -> {
             log.debug("Settings clicked");
-            Audio.playSfxSelect();
             if (game.transition == null) {
                 game.transition = new Transition(game, this, game.settingsScene, State.SETTINGS, 350);
             }
         });
         exitButton.onClick(() -> {
             log.debug("Exit clicked");
-            Audio.playSfxSelect();
             Gdx.app.exit();
         });
 
@@ -190,7 +184,7 @@ public class MainMenu extends Scene {
     /**
      * The actual key down handler. ((s)cene key down)
      * 
-     * @param event not used for now, can be null
+     * @param event   not used for now, can be null
      * @param keycode the keycode of the pressed key
      */
     public void sKeyDown(InputEvent event, int keycode) {

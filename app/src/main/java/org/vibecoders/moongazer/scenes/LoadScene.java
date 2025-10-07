@@ -37,7 +37,6 @@ public class LoadScene extends Scene {
         Label.LabelStyle labelStyle = new Label.LabelStyle(font, Color.WHITE);
         Label.LabelStyle smallLabelStyle = new Label.LabelStyle(smallFont, Color.LIGHT_GRAY);
 
-        // Main panel
         Table mainPanel = new Table();
         mainPanel.setSize(900, 700);
         mainPanel.setPosition((Gdx.graphics.getWidth() - 900) / 2f,
@@ -48,30 +47,23 @@ public class LoadScene extends Scene {
         mainPanel.row();
 
         TextureRegionDrawable bg = new TextureRegionDrawable(Assets.getWhiteTexture());
-        Drawable tintedBg = bg.tint(new Color(0.2f, 0.2f, 0.2f, 0.3f));
+        bg.setMinWidth(0);
+        bg.setMinHeight(0);
 
         Table saveList = new Table();
         saveList.top();
-
-        // TODO: Load actual save files
-        // For now, display placeholder save slots
-        createSaveSlots(saveList, tintedBg, font, smallLabelStyle);
+        createSaveSlots(saveList, bg, font, smallLabelStyle);
 
         scrollPane = new ScrollPane(saveList);
         scrollPane.setScrollingDisabled(true, false);
         scrollPane.setFadeScrollBars(false);
         scrollPane.setScrollBarPositions(false, false);
 
-        // Add ScrollPane and custom scrollbar side by side
         mainPanel.add(scrollPane).width(750).height(500).pad(10);
-
-        // Create custom scrollbar
         customScrollbar = new UIScrollbar(scrollPane, 12, 500);
         mainPanel.add(customScrollbar.getActor()).width(40).height(500).padLeft(10);
-
         mainPanel.row();
 
-        // Back button
         UICloseButton backButton = new UICloseButton();
         backButton.setSize(40, 40);
         backButton.setPosition(Gdx.graphics.getWidth() - 80, Gdx.graphics.getHeight() - 80);
@@ -86,7 +78,6 @@ public class LoadScene extends Scene {
         root.addActor(backButton.getActor());
         game.stage.addActor(root);
 
-        // ESC and Arrow keys listener
         root.addListener(new InputListener() {
             @Override
             public boolean keyDown(InputEvent event, int keycode) {
@@ -96,13 +87,13 @@ public class LoadScene extends Scene {
                 } else if (keycode == Input.Keys.UP) {
                     if (!isKeyScrollingUp) {
                         isKeyScrollingUp = true;
-                        scrollUp(KEYBOARD_CLICK_SCROLL); // Immediate scroll on first press
+                        scroll(-KEYBOARD_CLICK_SCROLL);
                     }
                     return true;
                 } else if (keycode == Input.Keys.DOWN) {
                     if (!isKeyScrollingDown) {
                         isKeyScrollingDown = true;
-                        scrollDown(KEYBOARD_CLICK_SCROLL); // Immediate scroll on first press
+                        scroll(KEYBOARD_CLICK_SCROLL);
                     }
                     return true;
                 }
@@ -126,15 +117,21 @@ public class LoadScene extends Scene {
     }
 
     private void createSaveSlots(Table saveList, Drawable bg, BitmapFont font, Label.LabelStyle smallLabelStyle) {
-        //Placeholder
+        Label.LabelStyle slotLabelStyle = new Label.LabelStyle(font, Color.WHITE);
+        StringBuilder sb = new StringBuilder();
+        Color bgColor = new Color(0.2f, 0.2f, 0.2f, 0.3f);
+
         for (int i = 1; i <= 100; i++) {
             Table saveSlot = new Table();
             saveSlot.setBackground(bg);
+            saveSlot.setColor(bgColor);
 
             Table infoTable = new Table();
             infoTable.left();
 
-            Label slotLabel = new Label("Save Slot " + i, new Label.LabelStyle(font, Color.WHITE));
+            sb.setLength(0);
+            sb.append("Save Slot ").append(i);
+            Label slotLabel = new Label(sb.toString(), slotLabelStyle);
             Label dateLabel = new Label("Empty Slot", smallLabelStyle);
 
             infoTable.add(slotLabel).left().padLeft(20);
@@ -143,11 +140,9 @@ public class LoadScene extends Scene {
 
             UITextButton loadButton = new UITextButton("Load", font);
             loadButton.setSize(150, 50);
-            // TODO: Implement actual load functionality
             int slotNumber = i;
             loadButton.onClick(() -> {
                 log.debug("Loading save slot " + slotNumber);
-                // Future: Load game from save file
             });
 
             saveSlot.add(infoTable).expandX().left().pad(15);
@@ -158,41 +153,21 @@ public class LoadScene extends Scene {
         }
     }
 
-    private void scrollUp(float amount) {
-        float currentScroll = scrollPane.getScrollY();
-        float newScroll = Math.max(0, currentScroll - amount);
-        scrollPane.setScrollY(newScroll);
-    }
-
-    private void scrollDown(float amount) {
-        float currentScroll = scrollPane.getScrollY();
-        float maxScroll = scrollPane.getMaxY();
-        float newScroll = Math.min(maxScroll, currentScroll + amount);
-        scrollPane.setScrollY(newScroll);
+    private void scroll(float amount) {
+        float newScroll = scrollPane.getScrollY() + amount;
+        scrollPane.setScrollY(Math.max(0, Math.min(scrollPane.getMaxY(), newScroll)));
     }
 
     @Override
     public void render(SpriteBatch batch) {
-        float delta = com.badlogic.gdx.Gdx.graphics.getDeltaTime();
+        float delta = Gdx.graphics.getDeltaTime();
+        customScrollbar.update(delta);
 
-        // Update scrollbar for continuous scrolling when holding buttons
-        if (customScrollbar != null) {
-            customScrollbar.update(delta);
-        }
-
-        // Handle continuous keyboard scrolling when holding arrow keys
-        if (isKeyScrollingUp) {
+        if (isKeyScrollingUp || isKeyScrollingDown) {
             keyScrollAccumulator += KEYBOARD_SCROLL_SPEED * delta;
             if (keyScrollAccumulator >= 1f) {
                 float scrollAmount = (int) keyScrollAccumulator;
-                scrollUp(scrollAmount);
-                keyScrollAccumulator -= scrollAmount;
-            }
-        } else if (isKeyScrollingDown) {
-            keyScrollAccumulator += KEYBOARD_SCROLL_SPEED * delta;
-            if (keyScrollAccumulator >= 1f) {
-                float scrollAmount = (int) keyScrollAccumulator;
-                scrollDown(scrollAmount);
+                scroll(isKeyScrollingUp ? -scrollAmount : scrollAmount);
                 keyScrollAccumulator -= scrollAmount;
             }
         }
@@ -201,10 +176,5 @@ public class LoadScene extends Scene {
         batch.setColor(0, 0, 0, 0.8f);
         batch.draw(Assets.getWhiteTexture(), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batch.setColor(Color.WHITE);
-    }
-
-    @Override
-    public void dispose() {
-        super.dispose();
     }
 }

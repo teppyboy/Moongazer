@@ -23,10 +23,10 @@ public class Audio {
         }
         initialized = true;
         menuMusic = Gdx.audio.newMusic(Assets.getAsset("audio/I Once Praised the Day.mp3", FileHandle.class));
-        selectSfx = Gdx.audio.newSound(Assets.getAsset("audio/selectsfx.mp3", FileHandle.class));
-        returnSfx = Gdx.audio.newSound(Assets.getAsset("audio/returnsfx.mp3", FileHandle.class));
-        confirmSfx = Gdx.audio.newSound(Assets.getAsset("audio/confirmsfx.mp3", FileHandle.class));
-        quitGameSfx = Gdx.audio.newSound(Assets.getAsset("audio/quitgamesfx.mp3", FileHandle.class));
+        selectSfx = Gdx.audio.newSound(Assets.getAsset("audio/sfx/select.mp3", FileHandle.class));
+        returnSfx = Gdx.audio.newSound(Assets.getAsset("audio/sfx/return.mp3", FileHandle.class));
+        confirmSfx = Gdx.audio.newSound(Assets.getAsset("audio/sfx/confirm.mp3", FileHandle.class));
+        quitGameSfx = Gdx.audio.newSound(Assets.getAsset("audio/sfx/quit.mp3", FileHandle.class));
         log.info("Audio manager initialized");
     }
 

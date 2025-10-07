@@ -2,9 +2,12 @@ package org.vibecoders.moongazer.ui;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import org.vibecoders.moongazer.managers.Assets;
+import org.vibecoders.moongazer.managers.Audio;
 
 public class UICloseButton extends UIButton {
     public UICloseButton() {
@@ -20,5 +23,16 @@ public class UICloseButton extends UIButton {
         style.imageOver = hoverDrawable;
         this.button = new ImageButton(style);
         this.actor = button;
+    }
+
+    @Override
+    public void onClick(Runnable action) {
+        button.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                Audio.playSfxReturn();
+                action.run();
+            }
+        });
     }
 }

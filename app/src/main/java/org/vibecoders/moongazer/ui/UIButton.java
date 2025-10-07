@@ -6,10 +6,19 @@ import com.badlogic.gdx.scenes.scene2d.EventListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.Pool;
 
 public abstract class UIButton {
     public Actor actor;
     public Button button;
+
+    // Object pool for InputEvent to reduce garbage collection
+    private static final Pool<InputEvent> eventPool = new Pool<InputEvent>() {
+        @Override
+        protected InputEvent newObject() {
+            return new InputEvent();
+        }
+    };
 
     public Actor getActor() {
         return actor;
@@ -28,34 +37,38 @@ public abstract class UIButton {
     }
 
     public void click() {
-        // Thx ChatGPT
-        InputEvent down = new InputEvent();
+        // Use pooled objects to avoid garbage collection
+        InputEvent down = eventPool.obtain();
         down.setType(InputEvent.Type.touchDown);
         down.setButton(Input.Buttons.LEFT);
         down.setStageX(button.getX());
         down.setStageY(button.getY());
         button.fire(down);
+        eventPool.free(down);
 
-        InputEvent up = new InputEvent();
+        InputEvent up = eventPool.obtain();
         up.setType(InputEvent.Type.touchUp);
         up.setButton(Input.Buttons.LEFT);
         up.setStageX(button.getX());
         up.setStageY(button.getY());
         button.fire(up);
+        eventPool.free(up);
     }
 
     public void hoverEnter() {
-        InputEvent e = new InputEvent();
+        InputEvent e = eventPool.obtain();
         e.setType(InputEvent.Type.enter);
         e.setPointer(-1);
         button.fire(e);
+        eventPool.free(e);
     }
 
     public void hoverExit() {
-        InputEvent e = new InputEvent();
+        InputEvent e = eventPool.obtain();
         e.setType(InputEvent.Type.exit);
         e.setPointer(-1);
         button.fire(e);
+        eventPool.free(e);
     }
 
     public void onClick(Runnable action) {
