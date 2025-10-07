@@ -2,6 +2,8 @@ package org.vibecoders.moongazer.ui;
 
 import static org.vibecoders.moongazer.Constants.*;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -33,6 +35,7 @@ public class UIDialogue {
     }
 
     public Table container;
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UIDialogue.class);
     private HashMap<String, CharacterActor> characters;
     private DialogueBoxTransparent dialogue;
     private ChoiceBox choice;
@@ -40,10 +43,17 @@ public class UIDialogue {
     private int currentStep = 0;
     private Runnable onComplete;
     private ExitCallback onExit;
+    private HashMap<String, List<DialogueStep>> dialogueBranches;
+    // UI 
+    private float currentOpacity = 0;
+    private Image background;
+    private Image overlay;
     private Texture overlayTexture;
     private Texture dialogBackgroundTexture;
-    private HashMap<String, List<DialogueStep>> dialogueBranches;
+    private TextureRegion dialogBg;
+    private TextureRegion separator;
     private boolean started = false;
+    private boolean isEnding = false;
 
     public UIDialogue(HashMap<String, List<DialogueStep>> dialogueBranches) {
         this(dialogueBranches, "default");
@@ -58,7 +68,7 @@ public class UIDialogue {
         container.setFillParent(true);
 
         Texture bgTexture = Assets.getAsset("textures/main_menu/background.png", Texture.class);
-        Image background = new Image(bgTexture);
+        background = new Image(bgTexture);
         background.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         background.setColor(0.5f, 0.5f, 0.5f, 1f);
         container.addActor(background);
@@ -68,12 +78,12 @@ public class UIDialogue {
         overlayPixmap.fill();
         overlayTexture = new Texture(overlayPixmap);
         overlayPixmap.dispose();
-        Image overlay = new Image(overlayTexture);
+        overlay = new Image(overlayTexture);
         overlay.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         container.addActor(overlay);
 
-        TextureRegion dialogBg = createDialogBackground();
-        TextureRegion separator = new TextureRegion(Assets.getAsset("textures/vn_scene/separator.png", Texture.class));
+        dialogBg = createDialogBackground();
+        separator = new TextureRegion(Assets.getAsset("textures/vn_scene/separator.png", Texture.class));
 
         var font = Assets.getFont("ui", 20);
         dialogue = new DialogueBoxTransparent(font, dialogBg, separator, WINDOW_WIDTH - 100);
@@ -98,12 +108,20 @@ public class UIDialogue {
                 return false;
             }
         });
+        container.setVisible(false);
     }
 
     public void start() {
         if (!started) {
             started = true;
+            container.setVisible(true);
             showStep(currentBranch, 0);
+        }
+    }
+
+    public void end() {
+        if (started && !isEnding) {
+            isEnding = true;
         }
     }
 
@@ -273,7 +291,45 @@ public class UIDialogue {
         this.onExit = onExit;
     }
 
+    public void render() {
+        if (isEnding && currentOpacity > 0f) {
+            currentOpacity -= Gdx.graphics.getDeltaTime() * 3;
+            var opacity = new Color(1f, 1f, 1f, currentOpacity);
+            container.setColor(opacity);
+            background.setColor(opacity);
+            overlay.setColor(opacity);
+            dialogue.setColor(opacity);
+            for (CharacterActor actor : characters.values()) {
+                actor.setColor(opacity);
+            }
+            if (choice != null) {
+                choice.setColor(opacity);
+            }
+            if (currentOpacity <= 0f) {
+                started = false;
+                isEnding = false;
+                dispose();
+            }
+            return;
+        }
+        if (started && currentOpacity < 1f) {
+            currentOpacity += Gdx.graphics.getDeltaTime() * 3;
+            var opacity = new Color(1f, 1f, 1f, currentOpacity);
+            container.setColor(opacity);
+            background.setColor(opacity);
+            overlay.setColor(opacity);
+            dialogue.setColor(opacity);
+            for (CharacterActor actor : characters.values()) {
+                actor.setColor(opacity);
+            }
+            if (choice != null) {
+                choice.setColor(opacity);
+            }
+        }
+    }
+
     public void dispose() {
+        container.setVisible(false);
         if (overlayTexture != null) {
             overlayTexture.dispose();
             overlayTexture = null;
@@ -282,5 +338,29 @@ public class UIDialogue {
             dialogBackgroundTexture.dispose();
             dialogBackgroundTexture = null;
         }
+        if (background != null) {
+            background.remove();
+            background = null;
+        }
+        if (overlay != null) {
+            overlay.remove();
+            overlay = null;
+        }
+        for (CharacterActor actor : characters.values()) {
+            actor.clear();
+        }
+        characters.clear();
+        dialogue.clear();
+        if (container != null) {
+            var stage = container.getStage();
+            container.clear();
+            container.remove();
+            container = null;
+            if (stage != null) {
+                log.trace("Forcing stage update after dialogue end");
+                stage.act(0);
+            }
+        }
+        log.trace("Dialogue disposed");
     }
 }

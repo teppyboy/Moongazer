@@ -1,14 +1,15 @@
 package org.vibecoders.moongazer.scenes;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
 import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.State;
+import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.ui.UIDialogue;
 import org.vibecoders.moongazer.ui.novel.DialogueStep;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class InGameScene extends Scene {
@@ -43,6 +44,15 @@ public class InGameScene extends Scene {
             switch (reason) {
                 case ACTION_EXIT:
                     log.trace("Dialogue reached Action.EXIT at " + branch + ":" + step);
+                    // Defer cleanup until after event processing completes
+                    Gdx.app.postRunnable(() -> {
+                        dialogue.end();
+                        if (branch.equals("good_end")) {
+                            game.transition = new Transition(game, this, game.mainMenuScene, State.MAIN_MENU, 500);
+                        } else if (branch.equals("bad_end")) {
+                            log.trace("Bad end - dialogue cleaned up");
+                        }
+                    });
                     break;
                 case END_OF_BRANCH:
                     log.trace("Reached end of branch: " + branch);
@@ -51,7 +61,6 @@ public class InGameScene extends Scene {
                     log.trace("User selected exit choice at " + branch + ":" + step);
                     break;
             }
-            game.transition = new Transition(game, this, game.mainMenuScene, State.MAIN_MENU, 500);
         });
         dialogue.setOnComplete(() -> {
             log.trace("Dialogue complete callback triggered.");
@@ -65,5 +74,7 @@ public class InGameScene extends Scene {
             dialogue.start();
             started = true;
         }
+        dialogue.render();
+        batch.draw(Assets.getWhiteTexture(), 0, 0);
     }
 }
