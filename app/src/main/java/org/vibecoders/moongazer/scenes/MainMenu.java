@@ -95,22 +95,31 @@ public class MainMenu extends Scene {
         // Mouse click handlers
         playButton.onClick(() -> {
             log.debug("Play clicked");
+            Audio.playSfxSelect();
             // Create transition to DialogueScene
             if (game.transition == null) {
                 DialogueScene dialogueScene = new DialogueScene(game);
                 game.transition = new Transition(game, this, dialogueScene, State.IN_GAME, 500);
             }
         });
-        loadButton.onClick(() -> log.debug("Load clicked"));
-        leaderboardButton.onClick(() -> log.debug("Leaderboard clicked"));
+        loadButton.onClick(() -> {
+            Audio.playSfxSelect();
+            log.debug("Load clicked");
+        });
+        leaderboardButton.onClick(() -> {
+            Audio.playSfxSelect();
+            log.debug("Leaderboard clicked");
+        });
         settingsButton.onClick(() -> {
             log.debug("Settings clicked");
+            Audio.playSfxSelect();
             if (game.transition == null) {
                 game.transition = new Transition(game, this, game.settingsScene, State.SETTINGS, 350);
             }
         });
         exitButton.onClick(() -> {
             log.debug("Exit clicked");
+            Audio.playSfxSelect();
             Gdx.app.exit();
         });
 
