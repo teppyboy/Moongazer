@@ -105,6 +105,9 @@ public class MainMenu extends Scene {
         loadButton.onClick(() -> {
             Audio.playSfxSelect();
             log.debug("Load clicked");
+            if (game.transition == null) {
+                game.transition = new Transition(game, this, game.loadScene, State.LOAD_GAME, 350);
+            }
         });
         leaderboardButton.onClick(() -> {
             Audio.playSfxSelect();

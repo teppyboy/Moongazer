@@ -28,6 +28,7 @@ public class Game extends ApplicationAdapter {
     Scene introScene;
     public Scene mainMenuScene;
     public Scene settingsScene;
+    public Scene loadScene;
     public Scene inGameScene;
     public ArrayList<Scene> gameScenes;
 
@@ -72,6 +73,9 @@ public class Game extends ApplicationAdapter {
                 break;
             case SETTINGS:
                 currentScene = settingsScene;
+                break;
+            case LOAD_GAME:
+                currentScene = loadScene;
                 break;
             case IN_GAME:
                 currentScene = inGameScene;
