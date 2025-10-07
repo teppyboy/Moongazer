@@ -47,12 +47,13 @@ public class LoadScene extends Scene {
         mainPanel.row();
 
         TextureRegionDrawable bg = new TextureRegionDrawable(Assets.getWhiteTexture());
-        bg.setMinWidth(0);
-        bg.setMinHeight(0);
+        Drawable tintedBg = bg.tint(new Color(0.2f, 0.2f, 0.2f, 0.3f));
+        // bg.setMinWidth(0);
+        // bg.setMinHeight(0);
 
         Table saveList = new Table();
         saveList.top();
-        createSaveSlots(saveList, bg, font, smallLabelStyle);
+        createSaveSlots(saveList, tintedBg, font, smallLabelStyle);
 
         scrollPane = new ScrollPane(saveList);
         scrollPane.setScrollingDisabled(true, false);
@@ -119,12 +120,10 @@ public class LoadScene extends Scene {
     private void createSaveSlots(Table saveList, Drawable bg, BitmapFont font, Label.LabelStyle smallLabelStyle) {
         Label.LabelStyle slotLabelStyle = new Label.LabelStyle(font, Color.WHITE);
         StringBuilder sb = new StringBuilder();
-        Color bgColor = new Color(0.2f, 0.2f, 0.2f, 0.3f);
 
         for (int i = 1; i <= 100; i++) {
             Table saveSlot = new Table();
             saveSlot.setBackground(bg);
-            saveSlot.setColor(bgColor);
 
             Table infoTable = new Table();
             infoTable.left();
