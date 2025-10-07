@@ -127,7 +127,7 @@ public class Assets {
         assetManager.load("textures/ui/UI_SliderBg.png", Texture.class);
         assetManager.load("textures/ui/UI_SliderBg2.png", Texture.class);
         // VN scene textures
-        assetManager.load("textures/vn_scene/char_base.png", Texture.class);
+        assetManager.load("textures/vn_scene/iuno.png", Texture.class);
         assetManager.load("textures/vn_scene/separator.png", Texture.class);
         // "Load" unsupported file types as FileHandle
         loadingThread = new Thread(() -> {

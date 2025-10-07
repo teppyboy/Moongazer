@@ -96,8 +96,14 @@ public class MainMenu extends Scene {
         playButton.onClick(() -> {
             log.debug("Play clicked");
             if (game.transition == null) {
-                DialogueScene dialogueScene = new DialogueScene(game);
-                game.transition = new Transition(game, this, dialogueScene, State.IN_GAME, 500);
+                if (game.inGameScene != null) {
+                    game.gameScenes.remove(game.inGameScene);
+                    game.inGameScene.dispose();
+                    game.inGameScene = null;
+                } 
+                game.inGameScene = new InGameScene(game);
+                game.gameScenes.add(game.inGameScene);
+                game.transition = new Transition(game, this, game.inGameScene, State.IN_GAME, 500);
             }
         });
         loadButton.onClick(() -> {
