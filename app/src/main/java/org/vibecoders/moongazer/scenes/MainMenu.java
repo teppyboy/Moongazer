@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.vibecoders.moongazer.Game;
-import org.vibecoders.moongazer.State;
+import org.vibecoders.moongazer.enums.State;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.managers.Audio;
 import org.vibecoders.moongazer.ui.UITextButton;
@@ -96,14 +96,8 @@ public class MainMenu extends Scene {
         playButton.onClick(() -> {
             log.debug("Play clicked");
             if (game.transition == null) {
-                if (game.inGameScene != null) {
-                    game.gameScenes.remove(game.inGameScene);
-                    game.inGameScene.dispose();
-                    game.inGameScene = null;
-                } 
-                game.inGameScene = new InGameScene(game);
-                game.gameScenes.add(game.inGameScene);
-                game.transition = new Transition(game, this, game.inGameScene, State.IN_GAME, 500);
+                game.recreateScene(game.testInGameScene, () -> new TestInGameScene(game), scene -> game.testInGameScene = scene);
+                game.transition = new Transition(game, this, game.testInGameScene, State.TEST_IN_GAME, 500);
             }
         });
         loadButton.onClick(() -> {

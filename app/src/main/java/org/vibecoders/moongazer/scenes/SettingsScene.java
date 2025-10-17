@@ -13,8 +13,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import org.vibecoders.moongazer.Game;
-import org.vibecoders.moongazer.State;
 import org.vibecoders.moongazer.Settings;
+import org.vibecoders.moongazer.enums.State;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.managers.Audio;
 import org.vibecoders.moongazer.ui.UICloseButton;
@@ -56,7 +56,6 @@ public class SettingsScene extends Scene {
         var tintedBg = bg.tint(new Color(0.2f, 0.2f, 0.2f, 0.3f));
 
         String[] volumes = { "Master Volume", "Music Volume", "SFX Volume" };
-        // TODO: implement audio manager
         for (String volume : volumes) {
             Table row = new Table();
             row.setBackground(tintedBg);

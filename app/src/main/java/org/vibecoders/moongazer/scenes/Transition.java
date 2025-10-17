@@ -1,7 +1,7 @@
 package org.vibecoders.moongazer.scenes;
 
 import org.vibecoders.moongazer.Game;
-import org.vibecoders.moongazer.State;
+import org.vibecoders.moongazer.enums.State;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;

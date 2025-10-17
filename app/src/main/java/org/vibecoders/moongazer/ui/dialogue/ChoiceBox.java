@@ -1,4 +1,4 @@
-package org.vibecoders.moongazer.ui.novel;
+package org.vibecoders.moongazer.ui.dialogue;
 
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.scenes.scene2d.Group;

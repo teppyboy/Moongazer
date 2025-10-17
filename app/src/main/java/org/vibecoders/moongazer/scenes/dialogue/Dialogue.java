@@ -1,50 +1,52 @@
-package org.vibecoders.moongazer.ui;
+package org.vibecoders.moongazer.scenes.dialogue;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.vibecoders.moongazer.Game;
+import org.vibecoders.moongazer.dialogue.DialogueStep;
+import org.vibecoders.moongazer.managers.Assets;
+import org.vibecoders.moongazer.managers.Audio;
+import org.vibecoders.moongazer.scenes.Scene;
+import org.vibecoders.moongazer.ui.dialogue.CharacterActor;
+import org.vibecoders.moongazer.ui.dialogue.ChoiceBox;
+import org.vibecoders.moongazer.ui.dialogue.DialogueBoxTransparent;
 import static org.vibecoders.moongazer.Constants.*;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 
-import org.vibecoders.moongazer.managers.Assets;
-import org.vibecoders.moongazer.managers.Audio;
-import org.vibecoders.moongazer.ui.novel.CharacterActor;
-import org.vibecoders.moongazer.ui.novel.ChoiceBox;
-import org.vibecoders.moongazer.ui.novel.DialogueBoxTransparent;
-import org.vibecoders.moongazer.ui.novel.DialogueStep;
-
-import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
-
-public class UIDialogue {
+public abstract class Dialogue extends Scene {
     public interface ExitCallback {
         void onExit(ExitReason reason, String branch, int step);
     }
 
     public enum ExitReason {
-        ACTION_EXIT,      // DialogueStep with Action.EXIT
-        END_OF_BRANCH,    // Reached end of dialogue branch
-        CHOICE_EXIT       // Choice selected with targetStep -1
+        ACTION_EXIT, // DialogueStep with Action.EXIT
+        END_OF_BRANCH, // Reached end of dialogue branch
+        CHOICE_EXIT // Choice selected with targetStep -1
     }
 
+    // Dialogue data
+    protected HashMap<String, List<DialogueStep>> dialogueBranches;
+    protected HashMap<String, CharacterActor> characters;
+    protected ChoiceBox choice;
+    protected String currentBranch;
+    protected int currentStep = 0;
+    protected Runnable onComplete;
+    protected ExitCallback onExit;
+    // UI
     public Table container;
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UIDialogue.class);
-    private HashMap<String, CharacterActor> characters;
-    private DialogueBoxTransparent dialogue;
-    private ChoiceBox choice;
-    private String currentBranch;
-    private int currentStep = 0;
-    private Runnable onComplete;
-    private ExitCallback onExit;
-    private HashMap<String, List<DialogueStep>> dialogueBranches;
-    // UI 
+    protected DialogueBoxTransparent dialogue;
     private float currentOpacity = 0;
     private Image background;
     private Image overlay;
@@ -55,15 +57,9 @@ public class UIDialogue {
     private boolean started = false;
     private boolean isEnding = false;
 
-    public UIDialogue(HashMap<String, List<DialogueStep>> dialogueBranches) {
-        this(dialogueBranches, "default");
-    }
-
-    public UIDialogue(HashMap<String, List<DialogueStep>> dialogueBranches, String startBranch) {
-        this.dialogueBranches = dialogueBranches;
-        this.currentBranch = startBranch;
-        this.characters = new HashMap<>();
-
+    public Dialogue(Game game) {
+        super(game);
+        // Initialize the dialogue system
         container = new Table();
         container.setFillParent(true);
 
@@ -89,7 +85,6 @@ public class UIDialogue {
         dialogue = new DialogueBoxTransparent(font, dialogBg, separator, WINDOW_WIDTH - 100);
         dialogue.setPosition(50, 20);
         container.addActor(dialogue);
-
         container.addListener(new InputListener() {
             @Override
             public boolean keyDown(InputEvent e, int keycode) {
@@ -108,21 +103,12 @@ public class UIDialogue {
                 return false;
             }
         });
+
+        characters = new HashMap<>();
+        // Add to stage but keep hidden initially
         container.setVisible(false);
-    }
-
-    public void start() {
-        if (!started) {
-            started = true;
-            container.setVisible(true);
-            showStep(currentBranch, 0);
-        }
-    }
-
-    public void end() {
-        if (started && !isEnding) {
-            isEnding = true;
-        }
+        root.addActor(container);
+        game.stage.addActor(root);
     }
 
     private TextureRegion createDialogBackground() {
@@ -154,7 +140,17 @@ public class UIDialogue {
         return characters.get(speakerAsset);
     }
 
-    private void showStep(String branch, int stepIndex) {
+    protected void setDialogueBranches(HashMap<String, List<DialogueStep>> dialogueBranches, String startBranch) {
+        this.dialogueBranches = dialogueBranches;
+        this.currentBranch = startBranch;
+    }
+
+    protected void setDialogueBranches(HashMap<String, List<DialogueStep>> dialogueBranches) {
+        this.dialogueBranches = dialogueBranches;
+        this.currentBranch = "default";
+    }
+
+    protected void showStep(String branch, int stepIndex) {
         if (choice != null) {
             choice.remove();
             choice = null;
@@ -283,35 +279,24 @@ public class UIDialogue {
         }
     }
 
-    public void setOnComplete(Runnable onComplete) {
+    protected void setOnComplete(Runnable onComplete) {
         this.onComplete = onComplete;
     }
 
-    public void setOnExit(ExitCallback onExit) {
+    protected void setOnExit(ExitCallback onExit) {
         this.onExit = onExit;
     }
 
-    public void render() {
-        if (isEnding && currentOpacity > 0f) {
-            currentOpacity -= Gdx.graphics.getDeltaTime() * 3;
-            var opacity = new Color(1f, 1f, 1f, currentOpacity);
-            container.setColor(opacity);
-            background.setColor(opacity);
-            overlay.setColor(opacity);
-            dialogue.setColor(opacity);
-            for (CharacterActor actor : characters.values()) {
-                actor.setColor(opacity);
-            }
-            if (choice != null) {
-                choice.setColor(opacity);
-            }
-            if (currentOpacity <= 0f) {
-                started = false;
-                isEnding = false;
-                dispose();
-            }
-            return;
+    protected void start() {
+        if (!started) {
+            started = true;
+            container.setVisible(true);
+            showStep(currentBranch, 0);
         }
+    }
+
+    @Override
+    public void render(SpriteBatch batch) {
         if (started && currentOpacity < 1f) {
             currentOpacity += Gdx.graphics.getDeltaTime() * 3;
             var opacity = new Color(1f, 1f, 1f, currentOpacity);

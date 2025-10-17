@@ -8,9 +8,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import java.util.ArrayList;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vibecoders.moongazer.enums.State;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.managers.Audio;
 import org.vibecoders.moongazer.scenes.*;
@@ -29,7 +32,8 @@ public class Game extends ApplicationAdapter {
     public Scene mainMenuScene;
     public Scene settingsScene;
     public Scene loadScene;
-    public Scene inGameScene;
+    public Scene testInGameScene;
+    public Scene currentDialogue;
     public ArrayList<Scene> gameScenes;
 
     @Override
@@ -48,7 +52,8 @@ public class Game extends ApplicationAdapter {
         gameScenes = new ArrayList<>();
         currentScene = introScene = new Intro(this);
         gameScenes.add(introScene);
-        // By the end of the intro, other secenes will be created and assigned to these scenes
+        // By the end of the intro, other secenes will be created and assigned to these
+        // scenes
     }
 
     @Override
@@ -77,8 +82,11 @@ public class Game extends ApplicationAdapter {
             case LOAD_GAME:
                 currentScene = loadScene;
                 break;
-            case IN_GAME:
-                currentScene = inGameScene;
+            case TEST_IN_GAME:
+                currentScene = testInGameScene;
+                break;
+            case DIALOGUE:
+                currentScene = currentDialogue;
                 break;
             default:
                 log.warn("Unknown state: {}", state);
@@ -99,6 +107,22 @@ public class Game extends ApplicationAdapter {
         // Handle stage drawing for UI elements
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
+    }
+
+    public <T extends Scene> T recreateScene(
+            T oldScene,
+            Supplier<T> constructor,
+            Consumer<T> assign) {
+        if (oldScene != null) {
+            if (gameScenes.contains(oldScene)) {
+                gameScenes.remove(oldScene);
+            }
+            oldScene.dispose();
+        }
+        T newScene = constructor.get();
+        assign.accept(newScene);
+        gameScenes.add(newScene);
+        return newScene;
     }
 
     @Override

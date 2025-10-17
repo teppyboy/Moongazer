@@ -3,7 +3,7 @@ package org.vibecoders.moongazer.scenes;
 import static org.vibecoders.moongazer.Constants.*;
 
 import org.vibecoders.moongazer.Game;
-import org.vibecoders.moongazer.State;
+import org.vibecoders.moongazer.enums.State;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.managers.Audio;
 

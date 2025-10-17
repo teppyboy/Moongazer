@@ -1,4 +1,4 @@
-package org.vibecoders.moongazer.ui.novel;
+package org.vibecoders.moongazer.dialogue;
 
 public class DialogueStep {
     private final String speaker;
@@ -8,9 +8,9 @@ public class DialogueStep {
     private final Choice[] choices;
 
     public enum Action {
-        EXIT,      // Exit the dialogue screen
-        CONTINUE,  // Continue to next step
-        CHOICE     // Present choices to the user
+        EXIT, // Exit the dialogue screen
+        CONTINUE, // Continue to next step
+        CHOICE // Present choices to the user
     }
 
     public static class Choice {

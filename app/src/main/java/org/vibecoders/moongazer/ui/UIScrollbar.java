@@ -28,7 +28,7 @@ public class UIScrollbar {
     private final Image scrollIndicator;
     private final Image scrollTrack;
     private final Table scrollArea;
-    private final float scrollbarHeight;
+    // private final float scrollbarHeight;
     private final float trackHeight;
 
     private boolean isScrollingUp = false;
@@ -40,7 +40,7 @@ public class UIScrollbar {
 
     public UIScrollbar(ScrollPane scrollPane, float width, float height) {
         this.scrollPane = scrollPane;
-        this.scrollbarHeight = height;
+        // this.scrollbarHeight = height;
 
         Texture arrowTexture = Assets.getAsset("textures/ui/UI_Scrollbar_Arrow.png", Texture.class);
         Texture whiteTexture = Assets.getWhiteTexture();
