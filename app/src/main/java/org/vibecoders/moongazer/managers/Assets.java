@@ -126,6 +126,9 @@ public class Assets {
         assetManager.load("textures/ui/UI_SliderKnob.png", Texture.class);
         assetManager.load("textures/ui/UI_SliderBg.png", Texture.class);
         assetManager.load("textures/ui/UI_SliderBg2.png", Texture.class);
+        assetManager.load("textures/ui/StoryMode.png", Texture.class);
+        assetManager.load("textures/ui/EndlessMode.png", Texture.class);
+        assetManager.load("textures/stage/stage5.png", Texture.class);
         // VN scene textures
         assetManager.load("textures/vn_scene/iuno.png", Texture.class);
         assetManager.load("textures/vn_scene/separator.png", Texture.class);

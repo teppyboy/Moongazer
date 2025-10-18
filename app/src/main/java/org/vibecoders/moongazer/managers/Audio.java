@@ -22,7 +22,7 @@ public class Audio {
             return;
         }
         initialized = true;
-        menuMusic = Gdx.audio.newMusic(Assets.getAsset("audio/I Once Praised the Day.mp3", FileHandle.class));
+        menuMusic = Gdx.audio.newMusic(Assets.getAsset("audio/I Once Praised The Day.mp3", FileHandle.class));
         selectSfx = Gdx.audio.newSound(Assets.getAsset("audio/sfx/select.mp3", FileHandle.class));
         returnSfx = Gdx.audio.newSound(Assets.getAsset("audio/sfx/return.mp3", FileHandle.class));
         confirmSfx = Gdx.audio.newSound(Assets.getAsset("audio/sfx/confirm.mp3", FileHandle.class));

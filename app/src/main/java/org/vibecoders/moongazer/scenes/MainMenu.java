@@ -96,8 +96,8 @@ public class MainMenu extends Scene {
         playButton.onClick(() -> {
             log.debug("Play clicked");
             if (game.transition == null) {
-                game.recreateScene(game.testInGameScene, () -> new TestInGameScene(game), scene -> game.testInGameScene = scene);
-                game.transition = new Transition(game, this, game.testInGameScene, State.TEST_IN_GAME, 500);
+//                game.recreateScene(game.selectionScene, () -> new SelectionScene(game), scene -> game.selectionScene = scene);
+                game.transition = new Transition(game, this, game.selectionScene, State.SELECTION, 500);
             }
         });
         loadButton.onClick(() -> {
