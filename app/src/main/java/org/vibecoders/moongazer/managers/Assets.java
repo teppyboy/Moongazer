@@ -129,6 +129,15 @@ public class Assets {
         assetManager.load("textures/ui/StoryMode.png", Texture.class);
         assetManager.load("textures/ui/EndlessMode.png", Texture.class);
         assetManager.load("textures/stage/stage5.png", Texture.class);
+        assetManager.load("textures/ui/UI_Scrollbar_Handle.png", Texture.class);
+        assetManager.load("textures/ui/hearth.png", Texture.class);
+        assetManager.load("textures/ui/Lunite.png", Texture.class);
+        assetManager.load("textures/ui/Astrite.png", Texture.class);
+        assetManager.load("textures/ui/UI_Icon_Tower_Star.png", Texture.class);
+        assetManager.load("textures/ui/ScrollVerticalBg.png", Texture.class);
+        assetManager.load("textures/ui/ScrollVerticalKnob.png", Texture.class);
+        assetManager.load("textures/stage/MapTest.png", Texture.class);
+        assetManager.load("textures/ui/shorepiano.png", Texture.class);
         // VN scene textures
         assetManager.load("textures/vn_scene/iuno.png", Texture.class);
         assetManager.load("textures/vn_scene/separator.png", Texture.class);

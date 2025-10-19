@@ -6,13 +6,8 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
-import org.vibecoders.moongazer.enums.State;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.managers.Audio;
-import org.vibecoders.moongazer.scenes.Transition;
-
-import static org.vibecoders.moongazer.Constants.WINDOW_HEIGHT;
-import static org.vibecoders.moongazer.Constants.WINDOW_WIDTH;
 
 public class UICloseButton extends UIButton {
     public UICloseButton() {
