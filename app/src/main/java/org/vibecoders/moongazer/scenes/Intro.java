@@ -36,9 +36,13 @@ public class Intro extends Scene {
         game.mainMenuScene = new MainMenu(game);
         game.settingsScene = new SettingsScene(game);
         game.loadScene = new LoadScene(game);
+        game.selectionScene = new SelectionScene(game);
+        game.storyModeScene = new StoryModeScene(game);
         game.gameScenes.add(game.mainMenuScene);
         game.gameScenes.add(game.settingsScene);
         game.gameScenes.add(game.loadScene);
+        game.gameScenes.add(game.selectionScene);
+        game.gameScenes.add(game.storyModeScene);
     }
 
     /**

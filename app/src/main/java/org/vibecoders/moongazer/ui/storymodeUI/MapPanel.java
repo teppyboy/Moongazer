@@ -1,0 +1,65 @@
+package org.vibecoders.moongazer.ui.storymodeUI;
+
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import org.vibecoders.moongazer.managers.Assets;
+
+import static org.vibecoders.moongazer.Constants.WINDOW_HEIGHT;
+import static org.vibecoders.moongazer.Constants.WINDOW_WIDTH;
+
+public class MapPanel {
+    private Table panel;
+    private static final BitmapFont font = Assets.getFont("ui", 20);
+    private static final float MAP_WIDTH = 550;
+    private static final float MAP_HEIGHT = 400;
+    private final float x = (WINDOW_WIDTH - MAP_WIDTH) / 2f - 40;
+    private final float y = (WINDOW_HEIGHT - MAP_HEIGHT) / 2f + 30;
+    private Label title;
+    private Image map;
+
+    public MapPanel(Table root) {
+        createPanel();
+        root.addActor(panel);
+    }
+
+    private void createPanel() {
+        panel = new Table();
+        panel.setFillParent(true);
+
+        title = new Label("Map", new Label.LabelStyle(font, Color.WHITE));
+        title.setPosition(x + MAP_WIDTH / 2f - title.getWidth() / 2f, y + MAP_HEIGHT + 10);
+
+        Texture mapTexture = Assets.getAsset("textures/ui/shorepiano.png", Texture.class);
+        TextureRegionDrawable mapDrawable = new TextureRegionDrawable(new TextureRegion(mapTexture));
+        map = new Image(mapDrawable);
+        map.setSize(MAP_WIDTH, MAP_HEIGHT);
+        map.setPosition(x, y);
+
+        panel.addActor(map);
+        panel.addActor(title);
+    }
+
+    public void updateMap(String path, String title) {
+        if (map != null) {
+            map.remove();
+        }
+        updateTitle(title);
+        Texture mapTexture = Assets.getAsset(path, Texture.class);
+        TextureRegionDrawable mapDrawable = new TextureRegionDrawable(new TextureRegion(mapTexture));
+        map = new Image(mapDrawable);
+        map.setSize(MAP_WIDTH, MAP_HEIGHT);
+        map.setPosition(x, y);
+        panel.addActor(map);
+    }
+
+    private void updateTitle(String newTitle) {
+        title.setText(newTitle);
+        title.setPosition(x + MAP_WIDTH / 2f - title.getPrefWidth() / 2f, y + MAP_HEIGHT + 10);
+    }
+}
