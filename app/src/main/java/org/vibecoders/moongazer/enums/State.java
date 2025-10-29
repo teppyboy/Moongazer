@@ -6,5 +6,6 @@ public enum State {
     SETTINGS,
     LOAD_GAME,
     TEST_IN_GAME,
-    DIALOGUE
+    DIALOGUE,
+    GAMEPLAY_TEST
 }

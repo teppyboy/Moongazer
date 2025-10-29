@@ -129,6 +129,14 @@ public class Assets {
         // VN scene textures
         assetManager.load("textures/vn_scene/iuno.png", Texture.class);
         assetManager.load("textures/vn_scene/separator.png", Texture.class);
+        // Arkanoid gameplay assets - REMOVED: Load directly in Ball/Paddle/Brick classes
+        // These are loaded via Gdx.files.internal() instead of AssetManager to avoid path issues
+        // assetManager.load("arkanoid_assets/normal_ball.png", Texture.class);
+        // assetManager.load("arkanoid_assets/enchanted_ball.png", Texture.class);
+        // assetManager.load("arkanoid_assets/paddle.png", Texture.class);
+        // assetManager.load("arkanoid_assets/bricks/breakable_brick_lv1.png", Texture.class);
+        // assetManager.load("arkanoid_assets/bricks/unbreakable_brick.png", Texture.class);
+        // assetManager.load("arkanoid_assets/heart.png", Texture.class);
         // "Load" unsupported file types as FileHandle
         loadingThread = new Thread(() -> {
             loadAny("videos/main_menu_background.webm");
