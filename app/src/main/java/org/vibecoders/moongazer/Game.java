@@ -34,6 +34,7 @@ public class Game extends ApplicationAdapter {
     public Scene loadScene;
     public Scene testInGameScene;
     public Scene currentDialogue;
+    public Scene gameplayTestScene;
     public Scene selectionScene;
     public Scene storyModeScene;
     public ArrayList<Scene> gameScenes;
@@ -89,6 +90,9 @@ public class Game extends ApplicationAdapter {
                 break;
             case DIALOGUE:
                 currentScene = currentDialogue;
+                break;
+            case GAMEPLAY_TEST:
+                currentScene = gameplayTestScene;
                 break;
             case SELECTION:
                 currentScene = selectionScene;

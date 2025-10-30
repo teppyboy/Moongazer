@@ -7,6 +7,7 @@ public enum State {
     LOAD_GAME,
     TEST_IN_GAME,
     DIALOGUE,
+    GAMEPLAY_TEST
     SELECTION,
     STORY_MODE
 }
