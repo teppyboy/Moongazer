@@ -10,6 +10,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Stack;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +44,7 @@ public class UIScrollbar {
         // this.scrollbarHeight = height;
 
         Texture arrowTexture = Assets.getAsset("textures/ui/UI_Scrollbar_Arrow.png", Texture.class);
+        Texture knobTexture = Assets.getAsset("textures/ui/ScrollVerticalKnob.png", Texture.class);
         Texture whiteTexture = Assets.getWhiteTexture();
 
         int arrowHeight = arrowTexture.getHeight() / 2;
@@ -86,8 +88,8 @@ public class UIScrollbar {
         scrollTrack.setColor(new Color(0.3f, 0.3f, 0.3f, 0.8f));
 
         // Green scroll indicator
-        scrollIndicator = new Image(whiteTexture);
-        scrollIndicator.setColor(new Color(0.2f, 0.8f, 0.3f, 1f));
+        scrollIndicator = new Image(new TextureRegionDrawable(new TextureRegion(knobTexture)));
+//        scrollIndicator.setColor(new Color(0.2f, 0.8f, 0.3f, 1f));
 
         // Add to stack
         Table trackTable = new Table();

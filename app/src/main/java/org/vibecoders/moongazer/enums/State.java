@@ -8,4 +8,6 @@ public enum State {
     TEST_IN_GAME,
     DIALOGUE,
     GAMEPLAY_TEST
+    SELECTION,
+    STORY_MODE
 }

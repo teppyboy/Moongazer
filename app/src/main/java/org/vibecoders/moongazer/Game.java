@@ -35,6 +35,8 @@ public class Game extends ApplicationAdapter {
     public Scene testInGameScene;
     public Scene currentDialogue;
     public Scene gameplayTestScene;
+    public Scene selectionScene;
+    public Scene storyModeScene;
     public ArrayList<Scene> gameScenes;
 
     @Override
@@ -91,6 +93,12 @@ public class Game extends ApplicationAdapter {
                 break;
             case GAMEPLAY_TEST:
                 currentScene = gameplayTestScene;
+                break;
+            case SELECTION:
+                currentScene = selectionScene;
+                break;
+            case STORY_MODE:
+                currentScene = storyModeScene;
                 break;
             default:
                 log.warn("Unknown state: {}", state);
