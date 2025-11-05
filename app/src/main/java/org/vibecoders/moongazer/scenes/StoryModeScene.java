@@ -58,7 +58,7 @@ public class StoryModeScene extends Scene {
     private void createCloseButton() {
         UICloseButton backButton = new UICloseButton();
         backButton.setSize(40, 40);
-        backButton.setPosition(WINDOW_WIDTH - 40, WINDOW_HEIGHT - 40);
+        backButton.setPosition(WINDOW_WIDTH - 80, WINDOW_HEIGHT - 80);
         root.addActor(backButton.getActor());
         backButton.onClick(() -> {
             if (game.transition == null) {

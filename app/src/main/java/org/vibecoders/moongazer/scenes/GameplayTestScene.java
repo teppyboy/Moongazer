@@ -28,6 +28,7 @@ public class GameplayTestScene extends Scene {
     private Label statsLabel;
     private int score = 0;
     private int bricksDestroyed = 0;
+    private boolean wasVisible = true;
 
     // Wave system for endless mode
     private int currentWave = 1;
@@ -63,6 +64,23 @@ public class GameplayTestScene extends Scene {
 
         // Start first wave
         startWave(currentWave);
+    }
+
+    private void reinitGameplay() {
+        if (paddle != null) paddle.dispose();
+        if (ball != null) ball.dispose();
+        if (bricks != null) {
+            for (Brick brick : bricks) {
+                brick.dispose();
+            }
+            bricks.clear();
+        }
+        score = 0;
+        bricksDestroyed = 0;
+        currentWave = 1;
+        unbreakableChance = 0.1f;
+        initGameplay();
+        log.info("GameplayTestScene reinitialized");
     }
 
     private void startWave(int wave) {
@@ -118,6 +136,12 @@ public class GameplayTestScene extends Scene {
 
     @Override
     public void render(SpriteBatch batch) {
+        batch.setColor(1, 1, 1, 1);
+        boolean isVisible = root.isVisible();
+        if (isVisible && !wasVisible) {
+            reinitGameplay();
+        }
+        wasVisible = isVisible;
         float delta = Gdx.graphics.getDeltaTime();
 
         // Clear screen with black background to hide main menu
