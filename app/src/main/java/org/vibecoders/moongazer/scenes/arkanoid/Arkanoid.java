@@ -11,9 +11,8 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vibecoders.moongazer.gameplay.Ball;
-import org.vibecoders.moongazer.gameplay.Brick;
-import org.vibecoders.moongazer.gameplay.Paddle;
+import org.vibecoders.moongazer.Game;
+import org.vibecoders.moongazer.arkanoid.*;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.scenes.Scene;
 
@@ -47,6 +46,10 @@ public abstract class Arkanoid extends Scene {
     protected static final float BRICK_WIDTH = 40f;
     protected static final float BRICK_HEIGHT = 40f;
     protected static final float BRICK_PADDING = 2f;
+
+    public Arkanoid(Game game) {
+        super(game);
+    }
 
     /**
      * Initialize the scene - called once before first render.
@@ -171,21 +174,21 @@ public abstract class Arkanoid extends Scene {
      */
     protected void handleCollisions() {
         Rectangle ballBounds = ball.getBounds();
-        float ballX = ball.getPosition().x;
-        float ballY = ball.getPosition().y;
+        float ballX = ball.getBounds().x;
+        float ballY = ball.getBounds().y;
         float ballRadius = ball.getRadius();
 
         // Wall collisions
         if (ballX - ballRadius <= 0) {
-            ball.getPosition().x = ballRadius + 1f;
+            ball.getBounds().x = ballRadius + 1f;
             ball.reverseX();
         }
         if (ballX + ballRadius >= WINDOW_WIDTH) {
-            ball.getPosition().x = WINDOW_WIDTH - ballRadius - 1f;
+            ball.getBounds().x = WINDOW_WIDTH - ballRadius - 1f;
             ball.reverseX();
         }
         if (ballY + ballRadius >= WINDOW_HEIGHT) {
-            ball.getPosition().y = WINDOW_HEIGHT - ballRadius - 1f;
+            ball.getBounds().y = WINDOW_HEIGHT - ballRadius - 1f;
             ball.reverseY();
         }
 
@@ -235,16 +238,16 @@ public abstract class Arkanoid extends Scene {
         if (minOverlapX < minOverlapY) {
             ball.reverseX();
             if (overlapLeft < overlapRight) {
-                ball.getPosition().x = brickBounds.x - ballRadius - 2.0f;
+                ball.getBounds().x = brickBounds.x - ballRadius - 2.0f;
             } else {
-                ball.getPosition().x = brickBounds.x + brickBounds.width + ballRadius + 2.0f;
+                ball.getBounds().x = brickBounds.x + brickBounds.width + ballRadius + 2.0f;
             }
         } else {
             ball.reverseY();
             if (overlapTop < overlapBottom) {
-                ball.getPosition().y = brickBounds.y + brickBounds.height + ballRadius + 2.0f;
+                ball.getBounds().y = brickBounds.y + brickBounds.height + ballRadius + 2.0f;
             } else {
-                ball.getPosition().y = brickBounds.y - ballRadius - 2.0f;
+                ball.getBounds().y = brickBounds.y - ballRadius - 2.0f;
             }
         }
 
@@ -269,7 +272,7 @@ public abstract class Arkanoid extends Scene {
                 ballIsAbovePaddle) {
 
             // Position correction
-            ball.getPosition().y = paddleBounds.y + paddleBounds.height + ballRadius + 2f;
+            ball.getBounds().y = paddleBounds.y + paddleBounds.height + ballRadius + 2f;
 
             // Calculate hit position (0 = left, 1 = right)
             float hitPos = (ballX - paddleBounds.x) / paddleBounds.width;

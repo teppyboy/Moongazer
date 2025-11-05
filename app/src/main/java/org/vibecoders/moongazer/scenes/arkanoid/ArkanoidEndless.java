@@ -1,11 +1,16 @@
 package org.vibecoders.moongazer.scenes.arkanoid;
 
-import org.vibecoders.moongazer.gameplay.Brick;
+import org.vibecoders.moongazer.Game;
+import org.vibecoders.moongazer.arkanoid.*;
 
 public class ArkanoidEndless extends Arkanoid {
 
     private int currentWave = 1;
     private float unbreakableChance = 0.1f;
+
+    public ArkanoidEndless(Game game) {
+        super(game);
+    }
 
     @Override
     protected void init() {

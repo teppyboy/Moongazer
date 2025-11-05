@@ -51,6 +51,8 @@ public class Transition extends Scene {
             from.root.setVisible(false);
             to.root.setVisible(true);
             game.stage.setKeyboardFocus(to.root);
+            // Reset batch color to full opacity
+            batch.setColor(1, 1, 1, 1);
             return;
         }
         var fromOpacity = 1 - toOpacity;

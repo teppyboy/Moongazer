@@ -3,45 +3,54 @@ package org.vibecoders.moongazer.scenes.arkanoid;
 import com.badlogic.gdx.Gdx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vibecoders.moongazer.Game;
 
 /**
- * Test screen for Arkanoid gameplay.
- * Use this for standalone testing before integrating with main game.
+ * Test screen for Arkanoid gameplay with wave system.
  */
 public class TestArkanoidScreen extends Arkanoid {
     private static final Logger log = LoggerFactory.getLogger(TestArkanoidScreen.class);
+    private int currentWave = 1;
+    private float unbreakableChance = 0.1f; // Initial chance for unbreakable bricks
 
-    public TestArkanoidScreen() {
-        super();
+    public TestArkanoidScreen(Game game) {
+        super(game);
     }
 
     @Override
     protected void init() {
         super.init();
-        // Create test level
-        createBrickGrid(8, 30);
+        startWave(currentWave);
+    }
+
+    private void startWave(int wave) {
+        int rows = Math.min(5 + (wave / 2), 10);
+        unbreakableChance = Math.min(0.1f + (wave * 0.02f), 0.4f);
+        createBrickGrid(rows, 30);
+        log.info("=== WAVE {} === (Rows: {}, Unbreakable: {}%)", 
+                 wave, rows, (int)(unbreakableChance * 100));
     }
 
     @Override
     protected void onLevelComplete() {
-        log.info("Level Complete! Score: {}", score);
-        // Restart for testing
-        score = 0;
-        lives = 3;
+        int waveBonus = 100 * currentWave;
+        score += waveBonus;
+        log.info("Wave {} complete! Bonus: {}", currentWave, waveBonus);
+        currentWave++;
         bricksDestroyed = 0;
         initGameplay();
-        createBrickGrid(8, 30);
+        startWave(currentWave);
     }
 
     @Override
     protected void onGameOver() {
-        log.info("Game Over! Final Score: {}", score);
-        // Restart for testing
+        log.info("Game Over! Final Score: {} (Wave {})", score, currentWave);
         score = 0;
         lives = 3;
+        currentWave = 1;
         bricksDestroyed = 0;
         initGameplay();
-        createBrickGrid(8, 30);
+        startWave(currentWave);
     }
 
     @Override

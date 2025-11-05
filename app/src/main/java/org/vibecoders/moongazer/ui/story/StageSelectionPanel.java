@@ -1,4 +1,4 @@
-package org.vibecoders.moongazer.ui.storymodeUI;
+package org.vibecoders.moongazer.ui.story;
 
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;

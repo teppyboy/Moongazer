@@ -11,8 +11,7 @@ import org.vibecoders.moongazer.enums.State;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.ui.UICloseButton;
 import org.vibecoders.moongazer.ui.UITextButton;
-import org.vibecoders.moongazer.ui.storymodeUI.*;
-//import org.vibecoders.moongazer.ui.storymodeUI.StoryModeUI;
+import org.vibecoders.moongazer.ui.story.*;
 
 import java.util.ArrayList;
 import java.util.List;

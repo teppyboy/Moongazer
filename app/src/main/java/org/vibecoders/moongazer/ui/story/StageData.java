@@ -1,4 +1,4 @@
-package org.vibecoders.moongazer.ui.storymodeUI;
+package org.vibecoders.moongazer.ui.story;
 
 public class StageData {
     private int stageId;

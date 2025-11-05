@@ -37,6 +37,7 @@ public class Game extends ApplicationAdapter {
     public Scene gameplayTestScene;
     public Scene selectionScene;
     public Scene storyModeScene;
+    public Scene endlessModeScene;
     public ArrayList<Scene> gameScenes;
 
     @Override
@@ -99,6 +100,9 @@ public class Game extends ApplicationAdapter {
                 break;
             case STORY_MODE:
                 currentScene = storyModeScene;
+                break;
+            case ENDLESS_MODE:
+                currentScene = endlessModeScene;
                 break;
             default:
                 log.warn("Unknown state: {}", state);

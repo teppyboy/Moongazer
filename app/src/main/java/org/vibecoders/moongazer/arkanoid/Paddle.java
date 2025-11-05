@@ -1,15 +1,15 @@
-package org.vibecoders.moongazer.gameplay;
+package org.vibecoders.moongazer.arkanoid;
+
+import org.vibecoders.moongazer.managers.Assets;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 
-public class Paddle {
-    private Rectangle bounds;
+public class Paddle extends MovableObject {
     private Texture texture;
     private float speed = 500f;
 
@@ -19,35 +19,9 @@ public class Paddle {
     private boolean useSmoothing = true;
 
     public Paddle(float x, float y, float width, float height) {
-        this.bounds = new Rectangle(x, y, width, height);
+        super(x, y, width, height);
         this.targetX = x;
-        loadTexture();
-    }
-
-    private void loadTexture() {
-        try {
-            com.badlogic.gdx.files.FileHandle fileHandle = Gdx.files.internal("arkanoid_assets/paddle.png");
-            if (fileHandle.exists()) {
-                texture = new Texture(fileHandle);
-            } else {
-                createFallbackTexture();
-            }
-        } catch (Exception e) {
-            createFallbackTexture();
-        }
-    }
-
-    private void createFallbackTexture() {
-        Pixmap pixmap = new Pixmap((int)bounds.width, (int)bounds.height, Pixmap.Format.RGBA8888);
-        pixmap.setColor(0.9f, 0.9f, 0.9f, 1f);
-        pixmap.fill();
-
-        // Add border
-        pixmap.setColor(1f, 1f, 1f, 1f);
-        pixmap.drawRectangle(0, 0, (int)bounds.width, (int)bounds.height);
-
-        texture = new Texture(pixmap);
-        pixmap.dispose();
+        this.texture = Assets.getAsset("textures/arkanoid/paddle.png", Texture.class);
     }
 
     public void update(float delta, int screenWidth) {

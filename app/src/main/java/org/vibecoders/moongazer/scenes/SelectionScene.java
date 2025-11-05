@@ -3,15 +3,13 @@ package org.vibecoders.moongazer.scenes;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.enums.State;
 import org.vibecoders.moongazer.managers.Assets;
+import org.vibecoders.moongazer.scenes.arkanoid.ArkanoidEndless;
 import org.vibecoders.moongazer.ui.UICloseButton;
 import org.vibecoders.moongazer.ui.UIImageButton;
-
-import java.awt.*;
 
 import static org.vibecoders.moongazer.Constants.WINDOW_HEIGHT;
 import static org.vibecoders.moongazer.Constants.WINDOW_WIDTH;
@@ -42,6 +40,13 @@ public class SelectionScene extends Scene {
             log.debug("Story mode clicked");
             if (game.transition == null) {
                 game.transition = new Transition(game, this, game.storyModeScene, State.STORY_MODE, 500);
+            }
+        });
+        endlessModeButton.onClick(() -> {
+            log.debug("Endless mode clicked");
+            if (game.transition == null) {
+                game.recreateScene(game.endlessModeScene, () -> new ArkanoidEndless(game), scene -> game.endlessModeScene = scene);
+                game.transition = new Transition(game, this, game.endlessModeScene, State.ENDLESS_MODE, 500);
             }
         });
 
