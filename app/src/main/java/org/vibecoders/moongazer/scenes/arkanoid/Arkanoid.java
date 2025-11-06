@@ -188,7 +188,7 @@ public abstract class Arkanoid extends Scene {
                 ball.getBounds().y = paddleBounds.y + paddleBounds.height + ballRadius + 2f;
                 float hitPos = (ballX - paddleBounds.x) / paddleBounds.width;
                 hitPos = Math.max(0.1f, Math.min(0.9f, hitPos));
-                float bounceAngle = (hitPos - 0.5f) * 100f;
+                float bounceAngle = -(hitPos - 0.5f) * 100f;
                 float targetSpeed = 350f;
                 float speedMultiplier = 1.0f + (bricksDestroyed * 0.002f);
                 speedMultiplier = Math.min(speedMultiplier, 1.3f);
