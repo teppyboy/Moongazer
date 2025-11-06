@@ -40,7 +40,6 @@ public class PauseMenu {
     private HashMap<Integer, Long> currentKeyDown = new HashMap<>();
     private PauseMenuSettings settingsOverlay;
 
-    // Callbacks
     private Runnable onResume;
     private Runnable onRestart;
     private Runnable onMainMenu;
@@ -54,30 +53,25 @@ public class PauseMenu {
     private void initSettingsOverlay() {
         settingsOverlay = new PauseMenuSettings();
         settingsOverlay.setOnClose(() -> {
-            // When settings close, return input to pause menu
             Gdx.input.setInputProcessor(menuStage);
         });
     }
 
     private void initUI() {
-        // Create blur overlay texture
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-        pixmap.setColor(0, 0, 0, 0.7f); // Dark semi-transparent overlay
+        pixmap.setColor(0, 0, 0, 0.7f);
         pixmap.fill();
         blurOverlay = new Texture(pixmap);
         pixmap.dispose();
 
-        // Fonts
         titleFont = Assets.getFont("ui", 40);
         buttonFont = Assets.getFont("ui", 24);
 
-        // Create stage for pause menu UI
         menuStage = new Stage();
         menuTable = new Table();
         menuTable.setFillParent(true);
         menuStage.addActor(menuTable);
 
-        // Create buttons
         UITextButton resumeButton = new UITextButton("Back to Game", buttonFont);
         UITextButton restartButton = new UITextButton("Restart", buttonFont);
         UITextButton settingsButton = new UITextButton("Settings", buttonFont);
@@ -103,7 +97,6 @@ public class PauseMenu {
         mainMenuButton.setPosition(centerX, startY - spacing * 3);
         quitButton.setPosition(centerX, startY - spacing * 4);
 
-        // Button click handlers
         resumeButton.onClick(() -> {
             log.debug("Resume clicked");
             Audio.playSfxConfirm();
@@ -114,7 +107,7 @@ public class PauseMenu {
             log.debug("Restart clicked");
             Audio.playSfxConfirm();
             if (onRestart != null) {
-                resume(); // Resume first to unpause the game
+                resume();
                 onRestart.run();
             }
         });
@@ -129,7 +122,7 @@ public class PauseMenu {
             log.debug("Main menu clicked");
             Audio.playSfxConfirm();
             if (onMainMenu != null) {
-                resume(); // Resume first to unpause the game
+                resume();
                 onMainMenu.run();
             }
         });
@@ -144,14 +137,12 @@ public class PauseMenu {
             }
         });
 
-        // Add buttons to stage
         menuTable.addActor(resumeButton.getActor());
         menuTable.addActor(restartButton.getActor());
         menuTable.addActor(settingsButton.getActor());
         menuTable.addActor(mainMenuButton.getActor());
         menuTable.addActor(quitButton.getActor());
 
-        // Keyboard navigation
         initKeyboardHandling();
     }
 
@@ -206,7 +197,6 @@ public class PauseMenu {
                 }
                 break;
             case Input.Keys.ESCAPE:
-                // ESC in pause menu = back to game
                 Audio.playSfxReturn();
                 resume();
                 break;
@@ -239,7 +229,6 @@ public class PauseMenu {
             isPaused = false;
             currentChoice = -1;
             currentKeyDown.clear();
-            // Call onResume callback to restore game input processor
             if (onResume != null) {
                 onResume.run();
             }
@@ -258,7 +247,6 @@ public class PauseMenu {
     public void render(SpriteBatch batch, Texture gameSnapshot) {
         if (!isPaused) return;
 
-        // Handle key repeat (only if settings not open)
         if (!settingsOverlay.isOpen()) {
             for (Map.Entry<Integer, Long> entry : currentKeyDown.entrySet()) {
                 Integer keyCode = entry.getKey();
@@ -270,23 +258,18 @@ public class PauseMenu {
             }
         }
 
-        // Draw frozen game with blur overlay
-        // FrameBuffer textures are flipped, so we need to flip them back
         if (gameSnapshot != null) {
             batch.draw(gameSnapshot, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0, 1, 1);
         }
 
-        // Draw dark overlay for blur effect
         batch.setColor(1, 1, 1, 1);
         batch.draw(blurOverlay, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 
-        // If settings overlay is open, render it instead of pause menu
         if (settingsOverlay.isOpen()) {
             settingsOverlay.render(batch);
             return;
         }
 
-        // Draw "PAUSED" title
         String pausedText = "PAUSED";
         com.badlogic.gdx.graphics.g2d.GlyphLayout layout = new com.badlogic.gdx.graphics.g2d.GlyphLayout();
         layout.setText(titleFont, pausedText);
@@ -298,14 +281,12 @@ public class PauseMenu {
 
         batch.end();
 
-        // Draw UI buttons
         menuStage.act(Gdx.graphics.getDeltaTime());
         menuStage.draw();
 
         batch.begin();
     }
 
-    // Setters for callbacks
     public void setOnResume(Runnable onResume) {
         this.onResume = onResume;
     }
@@ -334,4 +315,3 @@ public class PauseMenu {
         }
     }
 }
-
