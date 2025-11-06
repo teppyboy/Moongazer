@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
 
@@ -38,6 +39,8 @@ public abstract class Arkanoid extends Scene {
     protected Brick lastHitBrick = null;
     protected float collisionCooldown = 0f;
     private Texture pixelTexture;
+    protected ShapeRenderer shapeRenderer;
+    protected boolean showHitboxes = false;
 
     public Arkanoid(Game game) {
         super(game);
@@ -48,6 +51,7 @@ public abstract class Arkanoid extends Scene {
         font = Assets.getFont("ui", 18);
         fontUI30 = Assets.getFont("ui", 30);
         pixelTexture = Assets.getBlackTexture();
+        shapeRenderer = new ShapeRenderer();
         initGameplay();
         log.info("Arkanoid gameplay initialized");
     }
@@ -57,7 +61,8 @@ public abstract class Arkanoid extends Scene {
         float paddleY = 50f;
         paddle = new Paddle(paddleX, paddleY, PADDLE_WIDTH, PADDLE_HEIGHT);
         float ballRadius = 12f;
-        ball = new Ball(SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH / 2f, paddleY + PADDLE_HEIGHT + ballRadius + 5, ballRadius);
+        ball = new Ball(SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH / 2f, paddleY + PADDLE_HEIGHT + ballRadius + 5,
+                ballRadius);
         bricks = new ArrayList<>();
     }
 
@@ -102,6 +107,10 @@ public abstract class Arkanoid extends Scene {
             ball.launch();
             log.info("Ball launched!");
         }
+        if (Gdx.input.isKeyPressed(Input.Keys.F3) && Gdx.input.isKeyJustPressed(Input.Keys.B)) {
+            showHitboxes = !showHitboxes;
+            log.info("Hitbox rendering: {}", showHitboxes ? "ON" : "OFF");
+        }
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             onPausePressed();
         }
@@ -119,7 +128,8 @@ public abstract class Arkanoid extends Scene {
     }
 
     protected void handleCollisions() {
-        if (!ball.isActive()) return;
+        if (!ball.isActive())
+            return;
         Rectangle ballBounds = ball.getBounds();
         float ballX = ball.getBounds().x;
         float ballY = ball.getBounds().y;
@@ -197,8 +207,7 @@ public abstract class Arkanoid extends Scene {
                 float angleInRadians = (float) Math.toRadians(90 + bounceAngle);
                 ball.setVelocity(
                         finalSpeed * (float) Math.cos(angleInRadians),
-                        finalSpeed * (float) Math.sin(angleInRadians)
-                );
+                        finalSpeed * (float) Math.sin(angleInRadians));
             }
         }
         if (checkLevelComplete()) {
@@ -216,6 +225,51 @@ public abstract class Arkanoid extends Scene {
         for (Brick brick : bricks) {
             brick.render(batch);
         }
+        if (showHitboxes) {
+            // batch.end();
+            renderHitboxes(batch);
+            // batch.begin();
+        }
+    }
+
+    protected void renderHitboxes(SpriteBatch batch) {
+        shapeRenderer.setProjectionMatrix(batch.getProjectionMatrix());
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        shapeRenderer.setColor(0, 1, 0, 1);
+        Rectangle ballBounds = ball.getBounds();
+        float ballCenterX = ballBounds.x;
+        float ballCenterY = ballBounds.y;
+        float ballRadius = ball.getRadius();
+        shapeRenderer.circle(ballCenterX, ballCenterY, ballRadius, 32);
+        shapeRenderer.setColor(0, 1, 0, 0.5f);
+        shapeRenderer.rect(ballBounds.x - ballRadius, ballBounds.y - ballRadius, ballRadius * 2, ballRadius * 2);
+        shapeRenderer.setColor(1, 1, 0, 1);
+        shapeRenderer.circle(ballCenterX, ballCenterY, 2, 8);
+        shapeRenderer.setColor(0, 0.5f, 1, 1);
+        Rectangle paddleBounds = paddle.getBounds();
+        shapeRenderer.rect(paddleBounds.x, paddleBounds.y, paddleBounds.width, paddleBounds.height);
+        shapeRenderer.setColor(0, 1, 1, 1);
+        float paddleTop = paddleBounds.y + paddleBounds.height;
+        shapeRenderer.line(paddleBounds.x, paddleTop, paddleBounds.x + paddleBounds.width, paddleTop);
+        for (Brick brick : bricks) {
+            if (!brick.isDestroyed()) {
+                Rectangle brickBounds = brick.getBounds();
+                if (brick.getType() == Brick.BrickType.UNBREAKABLE) {
+                    shapeRenderer.setColor(1, 0, 0, 1);
+                } else {
+                    shapeRenderer.setColor(1, 0.5f, 0, 1);
+                }
+                shapeRenderer.rect(brickBounds.x, brickBounds.y, brickBounds.width, brickBounds.height);
+                shapeRenderer.setColor(1, 1, 1, 0.5f);
+                float brickCenterX = brickBounds.x + brickBounds.width / 2f;
+                float brickCenterY = brickBounds.y + brickBounds.height / 2f;
+                shapeRenderer.circle(brickCenterX, brickCenterY, 2, 8);
+            }
+        }
+        shapeRenderer.end();
+        Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
     protected void renderUI(SpriteBatch batch) {
@@ -274,17 +328,17 @@ public abstract class Arkanoid extends Scene {
     }
 
     protected abstract void onLevelComplete();
+
     protected abstract void onGameOver();
+
     protected abstract void onPausePressed();
 
     @Override
     public void dispose() {
-        if (paddle != null) paddle.dispose();
-        if (ball != null) ball.dispose();
+        if (shapeRenderer != null) {
+            shapeRenderer.dispose();
+        }
         if (bricks != null) {
-            for (Brick brick : bricks) {
-                brick.dispose();
-            }
             bricks.clear();
         }
     }

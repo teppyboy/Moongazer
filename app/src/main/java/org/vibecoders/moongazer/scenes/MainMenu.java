@@ -10,7 +10,6 @@ import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.enums.State;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.managers.Audio;
-import org.vibecoders.moongazer.scenes.arkanoid.GameplayTestScene;
 import org.vibecoders.moongazer.ui.UITextButton;
 
 import com.badlogic.gdx.Gdx;
@@ -63,18 +62,16 @@ public class MainMenu extends Scene {
         // Buttons
         var font = Assets.getFont("ui", 24);
         UITextButton playButton = new UITextButton("Play", font);
-        UITextButton gameplayTestButton = new UITextButton("Gameplay Test", font);
         UITextButton loadButton = new UITextButton("Load", font);
         UITextButton leaderboardButton = new UITextButton("Leaderboard", font);
         UITextButton settingsButton = new UITextButton("Settings", font);
         UITextButton exitButton = new UITextButton("Exit", font);
-        buttons = new UITextButton[] { playButton, gameplayTestButton, loadButton, leaderboardButton, settingsButton, exitButton };
+        buttons = new UITextButton[] { playButton, loadButton, leaderboardButton, settingsButton, exitButton };
 
         int buttonWidth = 300;
         int buttonHeight = 80;
 
         playButton.setSize(buttonWidth, buttonHeight);
-        gameplayTestButton.setSize(buttonWidth, buttonHeight);
         loadButton.setSize(buttonWidth, buttonHeight);
         leaderboardButton.setSize(buttonWidth, buttonHeight);
         settingsButton.setSize(buttonWidth, buttonHeight);
@@ -84,18 +81,11 @@ public class MainMenu extends Scene {
         int startY = WINDOW_HEIGHT / 2 - buttonHeight / 2;
         int spacing = 65;
 
-        playButton.setSize(buttonWidth, buttonHeight);
         playButton.setPosition(centerX, startY);
-        gameplayTestButton.setSize(buttonWidth, buttonHeight);
-        gameplayTestButton.setPosition(centerX, startY - spacing);
-        loadButton.setSize(buttonWidth, buttonHeight);
-        loadButton.setPosition(centerX, startY - spacing * 2);
-        leaderboardButton.setSize(buttonWidth, buttonHeight);
-        leaderboardButton.setPosition(centerX, startY - spacing * 3);
-        settingsButton.setSize(buttonWidth, buttonHeight);
-        settingsButton.setPosition(centerX, startY - spacing * 4);
-        exitButton.setSize(buttonWidth, buttonHeight);
-        exitButton.setPosition(centerX, startY - spacing * 5);
+        loadButton.setPosition(centerX, startY - spacing);
+        leaderboardButton.setPosition(centerX, startY - spacing * 2);
+        settingsButton.setPosition(centerX, startY - spacing * 3);
+        exitButton.setPosition(centerX, startY - spacing * 4);
 
         // Mouse click handlers
         playButton.onClick(() -> {
@@ -103,13 +93,6 @@ public class MainMenu extends Scene {
             if (game.transition == null) {
                 // game.recreateScene(game.selectionScene, () -> new SelectionScene(game), scene -> game.selectionScene = scene);
                 game.transition = new Transition(game, this, game.selectionScene, State.SELECTION, 500);
-            }
-        });
-        gameplayTestButton.onClick(() -> {
-            log.debug("Gameplay Test clicked");
-            if (game.transition == null) {
-                game.recreateScene(game.gameplayTestScene, () -> new GameplayTestScene(game), scene -> game.gameplayTestScene = scene);
-                game.transition = new Transition(game, this, game.gameplayTestScene, State.GAMEPLAY_TEST, 500);
             }
         });
         loadButton.onClick(() -> {
@@ -133,7 +116,6 @@ public class MainMenu extends Scene {
         });
 
         root.addActor(playButton.getActor());
-        root.addActor(gameplayTestButton.getActor());
         root.addActor(loadButton.getActor());
         root.addActor(leaderboardButton.getActor());
         root.addActor(settingsButton.getActor());

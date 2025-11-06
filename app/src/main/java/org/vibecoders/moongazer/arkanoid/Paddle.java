@@ -17,7 +17,7 @@ public class Paddle extends MovableObject {
     private float targetX;
     private float smoothingFactor = 0.25f; // 0 = instant, 1 = no movement
     
-    // Sticky paddle feature (from Exterminator3618)
+    // Sticky paddle feature
     private boolean isSticky = false;
 
     public Paddle(float x, float y, float width, float height) {
@@ -77,7 +77,7 @@ public class Paddle extends MovableObject {
     }
     
     /**
-     * Extends the paddle width (power-up feature from Exterminator3618).
+     * Extends the paddle width
      * Increases paddle width by specified amount.
      * 
      * @param amount pixels to extend (default: 100)
@@ -96,7 +96,7 @@ public class Paddle extends MovableObject {
     }
     
     /**
-     * Shrinks the paddle width (power-up feature from Exterminator3618).
+     * Shrinks the paddle width 
      * Decreases paddle width by specified amount.
      * 
      * @param amount pixels to shrink (default: 100)
@@ -120,7 +120,7 @@ public class Paddle extends MovableObject {
     }
     
     /**
-     * Sets the sticky paddle mode (from Exterminator3618).
+     * Sets the sticky paddle mode
      * When enabled, ball sticks to paddle on contact.
      * 
      * @param sticky true to enable sticky mode, false to disable
@@ -136,11 +136,5 @@ public class Paddle extends MovableObject {
      */
     public boolean isSticky() {
         return isSticky;
-    }
-
-    public void dispose() {
-        if (texture != null) {
-            texture.dispose();
-        }
     }
 }

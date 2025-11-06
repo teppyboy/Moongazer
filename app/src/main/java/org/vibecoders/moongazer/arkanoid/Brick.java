@@ -129,12 +129,7 @@ public class Brick extends GameObject {
         }
         return (float) durability / maxDurability;
     }
-
-    public void dispose() {
-        if (texture != null) {
-            texture.dispose();
-        }
-    }
+    
     public void update(float deltaTime) {
         // Bricks are stationary; no update needed
     }

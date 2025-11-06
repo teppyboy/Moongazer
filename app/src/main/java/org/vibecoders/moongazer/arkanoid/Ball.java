@@ -12,7 +12,6 @@ public class Ball extends MovableObject {
     private Texture texture;
     private boolean active;
     
-    // Enhanced physics properties from Exterminator3618
     private float previousY;          // For swept collision detection
     private boolean isHeavyBall = false;  // Heavy ball passes through bricks
     private boolean isStuckToPaddle = false;  // For sticky paddle power-up
@@ -283,11 +282,5 @@ public class Ball extends MovableObject {
      */
     public float getSpeedMultiplier() {
         return speedMultiplier;
-    }
-
-    public void dispose() {
-        if (texture != null) {
-            texture.dispose();
-        }
     }
 }
