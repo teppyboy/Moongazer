@@ -4,10 +4,14 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
+
+import org.lwjgl.opengl.GL32;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibecoders.moongazer.Game;
@@ -22,51 +26,53 @@ import static org.vibecoders.moongazer.Constants.*;
 
 public abstract class Arkanoid extends Scene {
     protected static final Logger log = LoggerFactory.getLogger(Arkanoid.class);
-    protected static final float BRICK_WIDTH = 60f;
-    protected static final float BRICK_HEIGHT = 60f;
-    protected static final float BRICK_PADDING = 2f;
     protected Paddle paddle;
     protected Ball ball;
     protected List<Brick> bricks;
     protected BitmapFont font;
-    protected SpriteBatch batch;
+    protected BitmapFont fontUI30;
     protected int score = 0;
     protected int lives = 3;
     protected int bricksDestroyed = 0;
     protected boolean isPaused = false;
-    protected boolean initialized = false;
     protected Brick lastHitBrick = null;
     protected float collisionCooldown = 0f;
-    protected static final float COLLISION_COOLDOWN_TIME = 0.05f;
+    private Texture pixelTexture;
 
     public Arkanoid(Game game) {
         super(game);
+        init();
     }
 
     protected void init() {
         font = Assets.getFont("ui", 18);
+        fontUI30 = Assets.getFont("ui", 30);
+        pixelTexture = Assets.getBlackTexture();
         initGameplay();
         log.info("Arkanoid gameplay initialized");
     }
 
     protected void initGameplay() {
-        float paddleWidth = 150f;
-        float paddleHeight = 50f;
-        float paddleX = (WINDOW_WIDTH - paddleWidth) / 2f;
+        float paddleX = SIDE_PANEL_WIDTH + (GAMEPLAY_AREA_WIDTH - PADDLE_WIDTH) / 2f;
         float paddleY = 50f;
-        paddle = new Paddle(paddleX, paddleY, paddleWidth, paddleHeight);
+        paddle = new Paddle(paddleX, paddleY, PADDLE_WIDTH, PADDLE_HEIGHT);
         float ballRadius = 12f;
-        ball = new Ball(WINDOW_WIDTH / 2f, paddleY + paddleHeight + ballRadius + 5, ballRadius);
+        ball = new Ball(SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH / 2f, paddleY + PADDLE_HEIGHT + ballRadius + 5, ballRadius);
         bricks = new ArrayList<>();
     }
 
     protected void createBrickGrid(int rows, int cols) {
         bricks.clear();
-        float startX = (WINDOW_WIDTH - (cols * (BRICK_WIDTH + BRICK_PADDING))) / 2f;
+        float availableWidth = GAMEPLAY_AREA_WIDTH;
+        float brickTotalWidth = BRICK_WIDTH + BRICK_PADDING;
+        int maxCols = (int) (availableWidth / brickTotalWidth);
+        cols = Math.min(cols, maxCols);
+        float gridWidth = cols * brickTotalWidth;
+        float startX = SIDE_PANEL_WIDTH + (GAMEPLAY_AREA_WIDTH - gridWidth) / 2f;
         float startY = WINDOW_HEIGHT - 100f;
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
-                float x = startX + col * (BRICK_WIDTH + BRICK_PADDING);
+                float x = startX + col * brickTotalWidth;
                 float y = startY - row * (BRICK_HEIGHT + BRICK_PADDING);
                 bricks.add(new Brick(x, y, BRICK_WIDTH, BRICK_HEIGHT, getBrickType(row, col)));
             }
@@ -79,11 +85,6 @@ public abstract class Arkanoid extends Scene {
 
     @Override
     public void render(SpriteBatch batch) {
-        if (!initialized) {
-            init();
-            initialized = true;
-        }
-        this.batch = batch;
         float delta = Gdx.graphics.getDeltaTime();
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -92,8 +93,8 @@ public abstract class Arkanoid extends Scene {
             updateGameplay(delta);
             handleCollisions();
         }
-        renderGameplay();
-        renderUI();
+        renderGameplay(batch);
+        renderUI(batch);
     }
 
     protected void handleInput(float delta) {
@@ -107,7 +108,7 @@ public abstract class Arkanoid extends Scene {
     }
 
     protected void updateGameplay(float delta) {
-        paddle.update(delta, WINDOW_WIDTH);
+        paddle.update(delta, SIDE_PANEL_WIDTH, SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH);
         ball.update(delta);
         if (collisionCooldown > 0) {
             collisionCooldown -= delta;
@@ -123,12 +124,12 @@ public abstract class Arkanoid extends Scene {
         float ballX = ball.getBounds().x;
         float ballY = ball.getBounds().y;
         float ballRadius = ball.getRadius();
-        if (ballX - ballRadius <= 0) {
-            ball.getBounds().x = ballRadius + 1f;
+        if (ballX - ballRadius <= SIDE_PANEL_WIDTH) {
+            ball.getBounds().x = SIDE_PANEL_WIDTH + ballRadius + 1f;
             ball.reverseX();
         }
-        if (ballX + ballRadius >= WINDOW_WIDTH) {
-            ball.getBounds().x = WINDOW_WIDTH - ballRadius - 1f;
+        if (ballX + ballRadius >= SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH) {
+            ball.getBounds().x = SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH - ballRadius - 1f;
             ball.reverseX();
         }
         if (ballY + ballRadius >= WINDOW_HEIGHT) {
@@ -205,7 +206,11 @@ public abstract class Arkanoid extends Scene {
         }
     }
 
-    protected void renderGameplay() {
+    protected void renderGameplay(SpriteBatch batch) {
+        batch.setColor(0f, 0f, 0f, 0.6f);
+        batch.draw(pixelTexture, 0, 0, SIDE_PANEL_WIDTH, WINDOW_HEIGHT);
+        batch.draw(pixelTexture, SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH, 0, SIDE_PANEL_WIDTH, WINDOW_HEIGHT);
+        batch.setColor(1f, 1f, 1f, 1f);
         paddle.render(batch);
         ball.render(batch);
         for (Brick brick : bricks) {
@@ -213,9 +218,32 @@ public abstract class Arkanoid extends Scene {
         }
     }
 
-    protected void renderUI() {
-        font.setColor(Color.WHITE);
-        font.draw(batch, String.format("Score: %d | Lives: %d", score, lives), 10, WINDOW_HEIGHT - 10);
+    protected void renderUI(SpriteBatch batch) {
+        batch.setColor(1f, 1f, 1f, 1f);
+        fontUI30.setColor(Color.WHITE);
+        String scoreLabel = "Score";
+        String scoreValue = String.format("%d", score);
+        com.badlogic.gdx.graphics.g2d.GlyphLayout layout = new com.badlogic.gdx.graphics.g2d.GlyphLayout();
+        layout.setText(fontUI30, scoreLabel);
+        float scoreLabelX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
+        fontUI30.draw(batch, scoreLabel, scoreLabelX, WINDOW_HEIGHT - 50);
+        layout.setText(fontUI30, scoreValue);
+        float scoreValueX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
+        fontUI30.draw(batch, scoreValue, scoreValueX, WINDOW_HEIGHT - 60 - layout.height);
+        String bestLabel = "Best";
+        String bestValue = String.format("%d", score);
+        layout.setText(fontUI30, bestLabel);
+        float bestLabelX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
+        fontUI30.draw(batch, bestLabel, bestLabelX, WINDOW_HEIGHT - 140);
+        layout.setText(fontUI30, bestValue);
+        float bestValueX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
+        fontUI30.draw(batch, bestValue, bestValueX, WINDOW_HEIGHT - 150 - layout.height);
+        String livesIcon = "";
+        for (int i = 0; i < lives; i++) {
+            livesIcon += "♥ ";
+        }
+        fontUI30.draw(batch, livesIcon, 30, WINDOW_HEIGHT - 190);
+        fontUI30.draw(batch, "Powerups", SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH + 30, WINDOW_HEIGHT - 50);
     }
 
     protected boolean checkLevelComplete() {

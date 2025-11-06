@@ -27,6 +27,10 @@ public class Paddle extends MovableObject {
     }
 
     public void update(float delta, int screenWidth) {
+        update(delta, 0, screenWidth);
+    }
+
+    public void update(float delta, float minX, float maxX) {
         boolean keyboardUsed = false;
 
         // Keyboard controls - direct movement
@@ -50,9 +54,9 @@ public class Paddle extends MovableObject {
             bounds.x = MathUtils.lerp(bounds.x, targetX, 1f - smoothingFactor);
         }
 
-        // Keep paddle within screen bounds
-        bounds.x = MathUtils.clamp(bounds.x, 0, screenWidth - bounds.width);
-        targetX = MathUtils.clamp(targetX, 0, screenWidth - bounds.width);
+        // Keep paddle within gameplay area bounds
+        bounds.x = MathUtils.clamp(bounds.x, minX, maxX - bounds.width);
+        targetX = MathUtils.clamp(targetX, minX, maxX - bounds.width);
     }
 
     public void render(SpriteBatch batch) {

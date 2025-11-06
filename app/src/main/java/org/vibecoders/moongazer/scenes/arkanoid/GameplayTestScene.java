@@ -23,6 +23,7 @@ import static org.vibecoders.moongazer.Constants.*;
 public class GameplayTestScene extends Arkanoid {
     private static final Logger log = LoggerFactory.getLogger(GameplayTestScene.class);
     private static final int BRICK_COLS = 30;
+    private boolean initialized = false;
     private Label instructionLabel;
     private Label statsLabel;
     private boolean wasVisible = true;
@@ -108,7 +109,6 @@ public class GameplayTestScene extends Arkanoid {
             initialized = true;
         }
         this.cachedBatch = batch;
-        this.batch = batch;
         batch.setColor(1, 1, 1, 1);
         boolean isVisible = root.isVisible();
         if (isVisible && !wasVisible) {
@@ -121,7 +121,7 @@ public class GameplayTestScene extends Arkanoid {
         handleInput(delta);
         updateGameplay(delta);
         handleCollisions();
-        renderGameplay();
+        renderGameplay(batch);
         batch.end();
         if (showHitboxes) {
             renderHitboxes();

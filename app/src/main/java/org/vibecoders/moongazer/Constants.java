@@ -12,4 +12,16 @@ public class Constants {
     public static final int WINDOW_WIDTH = 1280;
     public static final int WINDOW_HEIGHT = 720;
     public static final String WINDOW_TITLE = "Moongazer";
+
+    /**
+     * Arkanoid game configuration.
+     */
+    public static final float BRICK_WIDTH = 60f;
+    public static final float BRICK_HEIGHT = 60f;
+    public static final float BRICK_PADDING = 2f;
+    public static final float COLLISION_COOLDOWN_TIME = 0.05f;
+    public static final float PADDLE_WIDTH = 150f;
+    public static final float PADDLE_HEIGHT = 50f;
+    public static final float SIDE_PANEL_WIDTH = 250f;
+    public static final float GAMEPLAY_AREA_WIDTH = WINDOW_WIDTH - (SIDE_PANEL_WIDTH * 2);
 }
