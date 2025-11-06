@@ -24,4 +24,9 @@ public class Constants {
     public static final float PADDLE_HEIGHT = 50f;
     public static final float SIDE_PANEL_WIDTH = 250f;
     public static final float GAMEPLAY_AREA_WIDTH = WINDOW_WIDTH - (SIDE_PANEL_WIDTH * 2);
+
+    /**
+     * Main menu configuration.
+     */
+    public static final float PARALLAX_STRENGTH = 20f;
 }

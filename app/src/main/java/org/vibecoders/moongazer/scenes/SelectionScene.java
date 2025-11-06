@@ -2,8 +2,6 @@ package org.vibecoders.moongazer.scenes;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.enums.State;
 import org.vibecoders.moongazer.managers.Assets;
@@ -11,6 +9,7 @@ import org.vibecoders.moongazer.scenes.arkanoid.ArkanoidEndless;
 import org.vibecoders.moongazer.ui.UICloseButton;
 import org.vibecoders.moongazer.ui.UIImageButton;
 
+import static org.vibecoders.moongazer.Constants.PARALLAX_STRENGTH;
 import static org.vibecoders.moongazer.Constants.WINDOW_HEIGHT;
 import static org.vibecoders.moongazer.Constants.WINDOW_WIDTH;
 
@@ -18,13 +17,12 @@ public class SelectionScene extends Scene {
     private UICloseButton backButton;
     private UIImageButton storyModeButton;
     private UIImageButton endlessModeButton;
+    private Texture backgroundTexture;
 
     SelectionScene(Game game) {
         super(game);
 
-        Texture background = Assets.getAsset("textures/mode_selection/Bg3.png", Texture.class);
-        TextureRegionDrawable backgroundDrawable = new TextureRegionDrawable(new TextureRegion(background));
-        root.setBackground(backgroundDrawable);
+        backgroundTexture = Assets.getAsset("textures/mode_selection/Bg3.png", Texture.class);
         root.setFillParent(true);
 
         storyModeButton = new UIImageButton("textures/ui/StoryMode.png");
@@ -66,5 +64,19 @@ public class SelectionScene extends Scene {
 
     @Override
     public void render(SpriteBatch batch) {
+        // Apply parallax effect to background
+        int mouseX = com.badlogic.gdx.Gdx.input.getX();
+        int mouseY = WINDOW_HEIGHT - com.badlogic.gdx.Gdx.input.getY();
+        float offsetX = ((mouseX - WINDOW_WIDTH / 2f) / WINDOW_WIDTH) * PARALLAX_STRENGTH;
+        float offsetY = ((mouseY - WINDOW_HEIGHT / 2f) / WINDOW_HEIGHT) * PARALLAX_STRENGTH;
+        
+        // Zoom background by 1.05x and center it
+        float zoomScale = 1.05f;
+        float bgWidth = WINDOW_WIDTH * zoomScale;
+        float bgHeight = WINDOW_HEIGHT * zoomScale;
+        float bgX = (WINDOW_WIDTH - bgWidth) / 2f + offsetX;
+        float bgY = (WINDOW_HEIGHT - bgHeight) / 2f + offsetY;
+        
+        batch.draw(backgroundTexture, bgX, bgY, bgWidth, bgHeight);
     }
 }

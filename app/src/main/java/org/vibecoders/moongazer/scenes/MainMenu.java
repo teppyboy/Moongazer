@@ -226,7 +226,21 @@ public class MainMenu extends Scene {
         startVideoOnce();
         videoPlayer.update();
         Texture videoTexture = videoPlayer.getTexture();
-        batch.draw(videoTexture, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        
+        // Apply parallax effect to background video
+        int mouseX = Gdx.input.getX();
+        int mouseY = WINDOW_HEIGHT - Gdx.input.getY();
+        float offsetX = ((mouseX - WINDOW_WIDTH / 2f) / WINDOW_WIDTH) * PARALLAX_STRENGTH;
+        float offsetY = ((mouseY - WINDOW_HEIGHT / 2f) / WINDOW_HEIGHT) * PARALLAX_STRENGTH;
+        
+        // Zoom background by 1.05x and center it
+        float zoomScale = 1.05f;
+        float bgWidth = WINDOW_WIDTH * zoomScale;
+        float bgHeight = WINDOW_HEIGHT * zoomScale;
+        float bgX = (WINDOW_WIDTH - bgWidth) / 2f + offsetX;
+        float bgY = (WINDOW_HEIGHT - bgHeight) / 2f + offsetY;
+        
+        batch.draw(videoTexture, bgX, bgY, bgWidth, bgHeight);
         batch.draw(titleTexture, titleX, titleY, titleWidth, titleHeight);
     }
 
