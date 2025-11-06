@@ -24,8 +24,8 @@ import static org.vibecoders.moongazer.Constants.*;
 
 public abstract class Arkanoid extends Scene {
     protected static final Logger log = LoggerFactory.getLogger(Arkanoid.class);
-    protected static final float BRICK_WIDTH = 40f;
-    protected static final float BRICK_HEIGHT = 40f;
+    protected static final float BRICK_WIDTH = 60f;
+    protected static final float BRICK_HEIGHT = 60f;
     protected static final float BRICK_PADDING = 2f;
     protected Paddle paddle;
     protected Ball ball;
@@ -54,7 +54,7 @@ public abstract class Arkanoid extends Scene {
         float paddleX = (WINDOW_WIDTH - paddleWidth) / 2f;
         float paddleY = 50f;
         paddle = new Paddle(paddleX, paddleY, paddleWidth, paddleHeight);
-        float ballRadius = 8f;
+        float ballRadius = 12f;
         ball = new Ball(WINDOW_WIDTH / 2f, paddleY + paddleHeight + ballRadius + 5, ballRadius);
         bricks = new ArrayList<>();
     }

@@ -14,6 +14,8 @@ import org.vibecoders.moongazer.enums.State;
 import org.vibecoders.moongazer.arkanoid.*;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.managers.Audio;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,8 +37,9 @@ public class GameplayTestScene extends Scene {
     private float unbreakableChance = 0.1f;
 
     // Brick configuration - можно легко изменить
-    private static final float BRICK_WIDTH = 40f;
-    private static final float BRICK_HEIGHT = 40f;
+    private static final Logger log = LoggerFactory.getLogger(GameplayTestScene.class);
+    private static final float BRICK_WIDTH = 60f;
+    private static final float BRICK_HEIGHT = 60f;
     private static final float BRICK_PADDING = 2f;
     private static final int BRICK_COLS = 30; // Increase columns since bricks are now square
 
@@ -56,7 +59,7 @@ public class GameplayTestScene extends Scene {
         paddle = new Paddle(paddleX, paddleY, paddleWidth, paddleHeight);
 
         // Create ball
-        float ballRadius = 8f;
+        float ballRadius = 12f;
         ball = new Ball(WINDOW_WIDTH / 2f, paddleY + paddleHeight + ballRadius + 5, ballRadius);
 
         // Initialize bricks list
