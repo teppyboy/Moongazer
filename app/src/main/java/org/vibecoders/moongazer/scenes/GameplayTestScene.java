@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -31,41 +32,37 @@ public class GameplayTestScene extends Scene {
     private int score = 0;
     private int bricksDestroyed = 0;
     private boolean wasVisible = true;
-
-    // Wave system for endless mode
+    private ShapeRenderer shapeRenderer;
+    private boolean showHitboxes = true;
+    private SpriteBatch cachedBatch;
     private int currentWave = 1;
     private float unbreakableChance = 0.1f;
-
-    // Brick configuration - можно легко изменить
+    private Brick lastHitBrick = null;
+    private float collisionCooldown = 0f;
+    private static final float COLLISION_COOLDOWN_TIME = 0.05f;
     private static final Logger log = LoggerFactory.getLogger(GameplayTestScene.class);
     private static final float BRICK_WIDTH = 60f;
     private static final float BRICK_HEIGHT = 60f;
     private static final float BRICK_PADDING = 2f;
-    private static final int BRICK_COLS = 30; // Increase columns since bricks are now square
+    private static final int BRICK_COLS = 30;
 
     public GameplayTestScene(Game game) {
         super(game);
+        shapeRenderer = new ShapeRenderer();
         initGameplay();
         initUI();
         game.stage.addActor(root);
     }
 
     private void initGameplay() {
-        // Create paddle
         float paddleWidth = 120f;
         float paddleHeight = 20f;
         float paddleX = (WINDOW_WIDTH - paddleWidth) / 2f;
         float paddleY = 50f;
         paddle = new Paddle(paddleX, paddleY, paddleWidth, paddleHeight);
-
-        // Create ball
         float ballRadius = 12f;
         ball = new Ball(WINDOW_WIDTH / 2f, paddleY + paddleHeight + ballRadius + 5, ballRadius);
-
-        // Initialize bricks list
         bricks = new ArrayList<>();
-
-        // Start first wave
         startWave(currentWave);
     }
 
@@ -82,39 +79,32 @@ public class GameplayTestScene extends Scene {
         bricksDestroyed = 0;
         currentWave = 1;
         unbreakableChance = 0.1f;
+        lastHitBrick = null;
+        collisionCooldown = 0f;
         initGameplay();
         log.info("GameplayTestScene reinitialized");
     }
 
     private void startWave(int wave) {
         bricksDestroyed = 0;
-
-        // Calculate difficulty based on wave
         int rows = Math.min(5 + (wave / 2), 10);
         unbreakableChance = Math.min(0.1f + (wave * 0.02f), 0.4f);
-
-        // Create brick grid
         createBrickGrid(rows, BRICK_COLS);
-
         log.info("=== WAVE {} STARTED === (Rows: {}, Unbreakable Chance: {}%)",
                  wave, rows, (int)(unbreakableChance * 100));
     }
 
     private void createBrickGrid(int rows, int cols) {
         bricks.clear();
-
         float startX = (WINDOW_WIDTH - (cols * (BRICK_WIDTH + BRICK_PADDING))) / 2f;
         float startY = WINDOW_HEIGHT - 100f;
-
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
                 float x = startX + col * (BRICK_WIDTH + BRICK_PADDING);
                 float y = startY - row * (BRICK_HEIGHT + BRICK_PADDING);
-
                 Brick.BrickType type = (Math.random() < unbreakableChance)
                     ? Brick.BrickType.UNBREAKABLE
                     : Brick.BrickType.BREAKABLE;
-
                 bricks.add(new Brick(x, y, BRICK_WIDTH, BRICK_HEIGHT, type));
             }
         }
@@ -123,22 +113,20 @@ public class GameplayTestScene extends Scene {
     private void initUI() {
         BitmapFont font = Assets.getFont("ui", 18);
         Label.LabelStyle labelStyle = new Label.LabelStyle(font, Color.WHITE);
-
         instructionLabel = new Label(
-            "GAMEPLAY TEST - Press SPACE to launch ball | A/D or LEFT/RIGHT to move | ESC to return",
+            "GAMEPLAY TEST - SPACE: launch | A/D or ARROWS: move | H: toggle hitboxes | ESC: return",
             labelStyle
         );
         instructionLabel.setPosition(10, WINDOW_HEIGHT - 30);
-
         statsLabel = new Label("Score: 0 | Bricks: 0", labelStyle);
         statsLabel.setPosition(10, WINDOW_HEIGHT - 55);
-
         root.addActor(instructionLabel);
         root.addActor(statsLabel);
     }
 
     @Override
     public void render(SpriteBatch batch) {
+        this.cachedBatch = batch;
         batch.setColor(1, 1, 1, 1);
         boolean isVisible = root.isVisible();
         if (isVisible && !wasVisible) {
@@ -146,34 +134,28 @@ public class GameplayTestScene extends Scene {
         }
         wasVisible = isVisible;
         float delta = Gdx.graphics.getDeltaTime();
-
-        // Clear screen with black background to hide main menu
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-        // Handle input
         handleInput();
-
-        // Update game objects
         paddle.update(delta, WINDOW_WIDTH);
         ball.update(delta);
-
-        // If ball is not active, keep it on paddle
+        if (collisionCooldown > 0) {
+            collisionCooldown -= delta;
+        }
         if (!ball.isActive()) {
             ball.reset(paddle.getCenterX(), paddle.getBounds().y + paddle.getBounds().height + ball.getRadius() + 5);
         }
-
-        // Collision detection
         handleCollisions();
-
-        // Render game objects
         paddle.render(batch);
         ball.render(batch);
         for (Brick brick : bricks) {
             brick.render(batch);
         }
-
-        // Update UI
+        batch.end();
+        if (showHitboxes) {
+            renderHitboxes();
+        }
+        batch.begin();
         updateStats();
     }
 
@@ -182,7 +164,10 @@ public class GameplayTestScene extends Scene {
             ball.launch();
             Audio.playSfxConfirm();
         }
-
+        if (Gdx.input.isKeyJustPressed(Input.Keys.H)) {
+            showHitboxes = !showHitboxes;
+            log.info("Hitbox rendering: {}", showHitboxes ? "ON" : "OFF");
+        }
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             Audio.playSfxReturn();
             if (game.transition == null) {
@@ -196,10 +181,8 @@ public class GameplayTestScene extends Scene {
         float ballX = ball.getBounds().x;
         float ballY = ball.getBounds().y;
         float ballRadius = ball.getRadius();
-
-        // Wall collisions - increase position correction
         if (ballX - ballRadius <= 0) {
-            ball.getBounds().x = ballRadius + 1f; // Stronger correction
+            ball.getBounds().x = ballRadius + 1f;
             ball.reverseX();
         }
         if (ballX + ballRadius >= WINDOW_WIDTH) {
@@ -210,103 +193,87 @@ public class GameplayTestScene extends Scene {
             ball.getBounds().y = WINDOW_HEIGHT - ballRadius - 1f;
             ball.reverseY();
         }
-
-        // Bottom boundary (ball lost)
         if (ballY - ballRadius <= 0) {
             ball.reset(paddle.getCenterX(), paddle.getBounds().y + paddle.getBounds().height + ballRadius + 5);
             log.info("Ball lost! Resetting...");
             return;
         }
-
-        // Brick collisions FIRST (prioritize brick hits over paddle)
         boolean brickHit = false;
         for (Brick brick : bricks) {
             if (!brick.isDestroyed() && Intersector.overlaps(ballBounds, brick.getBounds())) {
+                if (collisionCooldown > 0 && brick == lastHitBrick) {
+                    continue;
+                }
                 Rectangle brickBounds = brick.getBounds();
-
-                // Calculate overlap on each axis
                 float overlapLeft = (ballX + ballRadius) - brickBounds.x;
                 float overlapRight = (brickBounds.x + brickBounds.width) - (ballX - ballRadius);
                 float overlapTop = (brickBounds.y + brickBounds.height) - (ballY - ballRadius);
                 float overlapBottom = (ballY + ballRadius) - brickBounds.y;
-
                 float minOverlapX = Math.min(overlapLeft, overlapRight);
                 float minOverlapY = Math.min(overlapTop, overlapBottom);
-
-                // Stronger position correction (2.0f instead of 0.1f)
+                float separationDistance = ballRadius + 1.0f;
                 if (minOverlapX < minOverlapY) {
                     ball.reverseX();
                     if (overlapLeft < overlapRight) {
-                        ball.getBounds().x = brickBounds.x - ballRadius - 2.0f;
+                        ball.getBounds().x = brickBounds.x - ballRadius - separationDistance;
                     } else {
-                        ball.getBounds().x = brickBounds.x + brickBounds.width + ballRadius + 2.0f;
+                        ball.getBounds().x = brickBounds.x + brickBounds.width + ballRadius + separationDistance;
                     }
                 } else {
                     ball.reverseY();
                     if (overlapTop < overlapBottom) {
-                        ball.getBounds().y = brickBounds.y + brickBounds.height + ballRadius + 2.0f;
+                        ball.getBounds().y = brickBounds.y + brickBounds.height + ballRadius + separationDistance;
                     } else {
-                        ball.getBounds().y = brickBounds.y - ballRadius - 2.0f;
+                        ball.getBounds().y = brickBounds.y - ballRadius - separationDistance;
                     }
                 }
-
                 brick.hit();
+                lastHitBrick = brick;
+                collisionCooldown = COLLISION_COOLDOWN_TIME;
+                log.info("BALL HIT BRICK - Ball pos: ({}, {}), Velocity: ({}, {}), Collision: {}, Brick pos: ({}, {})",
+                    String.format("%.2f", ballX),
+                    String.format("%.2f", ballY),
+                    String.format("%.2f", ball.getVelocity().x),
+                    String.format("%.2f", ball.getVelocity().y),
+                    (minOverlapX < minOverlapY) ? "X-axis" : "Y-axis",
+                    String.format("%.2f", brickBounds.x),
+                    String.format("%.2f", brickBounds.y)
+                );
                 if (brick.getType() == Brick.BrickType.BREAKABLE && brick.isDestroyed()) {
                     score += 10;
                     bricksDestroyed++;
-                    log.debug("Brick destroyed! Score: {}", score);
+                    lastHitBrick = null;
+                    // log.debug("Brick destroyed! Score: {}", score);
                 }
-
                 brickHit = true;
                 break;
             }
         }
-
-        // Paddle collision - only check if no brick was hit this frame
         if (!brickHit && ball.isActive()) {
             Rectangle paddleBounds = paddle.getBounds();
-
-            // Additional check: ball must be above paddle (not deep inside)
             boolean ballIsAbovePaddle = ballY - ballRadius > paddleBounds.y;
-
             if (Intersector.overlaps(ballBounds, paddleBounds) &&
                     ball.getVelocity().y < 0 &&
                     ballIsAbovePaddle) {
-
-                // Stronger position correction - place ball well above paddle
                 ball.getBounds().y = paddleBounds.y + paddleBounds.height + ballRadius + 2f;
-
-                // Calculate hit position (0 = left edge, 1 = right edge)
                 float hitPos = (ballX - paddleBounds.x) / paddleBounds.width;
-                hitPos = Math.max(0.1f, Math.min(0.9f, hitPos)); // Clamp to prevent extreme angles
-
-                // Convert to angle: -50° to +50° (narrower range feels better)
-                float bounceAngle = (hitPos - 0.5f) * 100f; // -50 to +50 degrees
-
-                // FIXED SPEED instead of accelerating - more predictable gameplay
-                float targetSpeed = 350f; // Constant speed
-
-                // Optional: slight speed increase based on how many bricks destroyed
-                // More bricks = slightly faster (max +30% speed)
+                hitPos = Math.max(0.1f, Math.min(0.9f, hitPos));
+                float bounceAngle = (hitPos - 0.5f) * 100f;
+                float targetSpeed = 350f;
                 float speedMultiplier = 1.0f + (bricksDestroyed * 0.002f);
-                speedMultiplier = Math.min(speedMultiplier, 1.3f); // Cap at 130%
+                speedMultiplier = Math.min(speedMultiplier, 1.3f);
                 float finalSpeed = targetSpeed * speedMultiplier;
-
-                // Convert angle to velocity
                 float angleInRadians = (float) Math.toRadians(90 + bounceAngle);
                 ball.setVelocity(
                         finalSpeed * (float) Math.cos(angleInRadians),
                         finalSpeed * (float) Math.sin(angleInRadians)
                 );
-
                 log.debug("Paddle hit at {}, angle {}°, speed {}",
                         String.format("%.2f", hitPos),
                         String.format("%.1f", bounceAngle),
                         String.format("%.1f", finalSpeed));
             }
         }
-
-        // Check if wave is complete
         if (isWaveComplete()) {
             onWaveComplete();
         }
@@ -325,10 +292,10 @@ public class GameplayTestScene extends Scene {
         int waveBonus = 100 * currentWave;
         score += waveBonus;
         log.info("Wave {} complete! Bonus: {}", currentWave, waveBonus);
-
         currentWave++;
+        lastHitBrick = null;
+        collisionCooldown = 0f;
         ball.reset(paddle.getCenterX(), paddle.getBounds().y + paddle.getBounds().height + ball.getRadius() + 5);
-
         startWave(currentWave);
     }
 
@@ -346,10 +313,53 @@ public class GameplayTestScene extends Scene {
         }
         return count;
     }
+    
+    private void renderHitboxes() {
+        shapeRenderer.setProjectionMatrix(cachedBatch.getProjectionMatrix());
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        shapeRenderer.setColor(0, 1, 0, 1);
+        Rectangle ballBounds = ball.getBounds();
+        float ballCenterX = ballBounds.x + ballBounds.width / 2f;
+        float ballCenterY = ballBounds.y + ballBounds.height / 2f;
+        float ballRadius = ball.getRadius();
+        shapeRenderer.circle(ballCenterX, ballCenterY, ballRadius, 32);
+        shapeRenderer.setColor(0, 1, 0, 0.5f);
+        shapeRenderer.rect(ballBounds.x, ballBounds.y, ballBounds.width, ballBounds.height);
+        shapeRenderer.setColor(1, 1, 0, 1);
+        shapeRenderer.circle(ballCenterX, ballCenterY, 2, 8);
+        shapeRenderer.setColor(0, 0.5f, 1, 1);
+        Rectangle paddleBounds = paddle.getBounds();
+        shapeRenderer.rect(paddleBounds.x, paddleBounds.y, paddleBounds.width, paddleBounds.height);
+        shapeRenderer.setColor(0, 1, 1, 1);
+        float paddleTop = paddleBounds.y + paddleBounds.height;
+        shapeRenderer.line(paddleBounds.x, paddleTop, paddleBounds.x + paddleBounds.width, paddleTop);
+        for (Brick brick : bricks) {
+            if (!brick.isDestroyed()) {
+                Rectangle brickBounds = brick.getBounds();
+                if (brick.getType() == Brick.BrickType.UNBREAKABLE) {
+                    shapeRenderer.setColor(1, 0, 0, 1);
+                } else {
+                    shapeRenderer.setColor(1, 0.5f, 0, 1);
+                }
+                shapeRenderer.rect(brickBounds.x, brickBounds.y, brickBounds.width, brickBounds.height);
+                shapeRenderer.setColor(1, 1, 1, 0.5f);
+                float brickCenterX = brickBounds.x + brickBounds.width / 2f;
+                float brickCenterY = brickBounds.y + brickBounds.height / 2f;
+                shapeRenderer.circle(brickCenterX, brickCenterY, 2, 8);
+            }
+        }
+        shapeRenderer.end();
+        Gdx.gl.glDisable(GL20.GL_BLEND);
+    }
 
     @Override
     public void dispose() {
         super.dispose();
+        if (shapeRenderer != null) {
+            shapeRenderer.dispose();
+        }
         paddle.dispose();
         ball.dispose();
         for (Brick brick : bricks) {

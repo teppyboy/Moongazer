@@ -7,9 +7,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Intersector;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.math.Vector2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibecoders.moongazer.Game;
@@ -37,6 +35,9 @@ public abstract class Arkanoid extends Scene {
     protected int bricksDestroyed = 0;
     protected boolean isPaused = false;
     protected boolean initialized = false;
+    protected Brick lastHitBrick = null;
+    protected float collisionCooldown = 0f;
+    protected static final float COLLISION_COOLDOWN_TIME = 0.05f;
 
     public Arkanoid(Game game) {
         super(game);
@@ -108,6 +109,9 @@ public abstract class Arkanoid extends Scene {
     protected void updateGameplay(float delta) {
         paddle.update(delta, WINDOW_WIDTH);
         ball.update(delta);
+        if (collisionCooldown > 0) {
+            collisionCooldown -= delta;
+        }
         if (!ball.isActive()) {
             ball.reset(paddle.getCenterX(), paddle.getBounds().y + paddle.getBounds().height + ball.getRadius() + 5);
         }
@@ -115,100 +119,89 @@ public abstract class Arkanoid extends Scene {
 
     protected void handleCollisions() {
         if (!ball.isActive()) return;
+        Rectangle ballBounds = ball.getBounds();
         float ballX = ball.getBounds().x;
         float ballY = ball.getBounds().y;
         float ballRadius = ball.getRadius();
-        Vector2 velocity = ball.getVelocity();
-        float speed = velocity.len();
-        if (speed > 800f) {
-            velocity.scl(800f / speed);
-        }
-        boolean collisionOccurred = false;
         if (ballX - ballRadius <= 0) {
             ball.getBounds().x = ballRadius + 1f;
             ball.reverseX();
-            collisionOccurred = true;
-        } else if (ballX + ballRadius >= WINDOW_WIDTH) {
+        }
+        if (ballX + ballRadius >= WINDOW_WIDTH) {
             ball.getBounds().x = WINDOW_WIDTH - ballRadius - 1f;
             ball.reverseX();
-            collisionOccurred = true;
         }
         if (ballY + ballRadius >= WINDOW_HEIGHT) {
             ball.getBounds().y = WINDOW_HEIGHT - ballRadius - 1f;
             ball.reverseY();
-            collisionOccurred = true;
-        } else if (ballY - ballRadius <= 0) {
+        }
+        if (ballY - ballRadius <= 0) {
             onBallLost();
             return;
         }
-        if (collisionOccurred) return;
-        List<Brick> bricksToCheck = new ArrayList<>();
+        boolean brickHit = false;
         for (Brick brick : bricks) {
-            if (!brick.isDestroyed() && Intersector.overlaps(ball.getBounds(), brick.getBounds())) {
-                bricksToCheck.add(brick);
+            if (!brick.isDestroyed() && Intersector.overlaps(ballBounds, brick.getBounds())) {
+                if (collisionCooldown > 0 && brick == lastHitBrick) {
+                    continue;
+                }
+                Rectangle brickBounds = brick.getBounds();
+                float overlapLeft = (ballX + ballRadius) - brickBounds.x;
+                float overlapRight = (brickBounds.x + brickBounds.width) - (ballX - ballRadius);
+                float overlapTop = (brickBounds.y + brickBounds.height) - (ballY - ballRadius);
+                float overlapBottom = (ballY + ballRadius) - brickBounds.y;
+                float minOverlapX = Math.min(overlapLeft, overlapRight);
+                float minOverlapY = Math.min(overlapTop, overlapBottom);
+                float separationDistance = ballRadius + 1.0f;
+                if (minOverlapX < minOverlapY) {
+                    ball.reverseX();
+                    if (overlapLeft < overlapRight) {
+                        ball.getBounds().x = brickBounds.x - ballRadius - separationDistance;
+                    } else {
+                        ball.getBounds().x = brickBounds.x + brickBounds.width + ballRadius + separationDistance;
+                    }
+                } else {
+                    ball.reverseY();
+                    if (overlapTop < overlapBottom) {
+                        ball.getBounds().y = brickBounds.y + brickBounds.height + ballRadius + separationDistance;
+                    } else {
+                        ball.getBounds().y = brickBounds.y - ballRadius - separationDistance;
+                    }
+                }
+                brick.hit();
+                lastHitBrick = brick;
+                collisionCooldown = COLLISION_COOLDOWN_TIME;
+                if (brick.getType() == Brick.BrickType.BREAKABLE && brick.isDestroyed()) {
+                    lastHitBrick = null;
+                    onBrickDestroyed(brick);
+                }
+                brickHit = true;
+                break;
             }
         }
-        if (!bricksToCheck.isEmpty()) {
-            for (Brick brick : bricksToCheck) {
-                handleBrickCollision(brick, ballX, ballY, ballRadius);
+        if (!brickHit && ball.isActive()) {
+            Rectangle paddleBounds = paddle.getBounds();
+            boolean ballIsAbovePaddle = ballY - ballRadius > paddleBounds.y;
+            if (Intersector.overlaps(ballBounds, paddleBounds) &&
+                    ball.getVelocity().y < 0 &&
+                    ballIsAbovePaddle) {
+                ball.getBounds().y = paddleBounds.y + paddleBounds.height + ballRadius + 2f;
+                float hitPos = (ballX - paddleBounds.x) / paddleBounds.width;
+                hitPos = Math.max(0.1f, Math.min(0.9f, hitPos));
+                float bounceAngle = (hitPos - 0.5f) * 100f;
+                float targetSpeed = 350f;
+                float speedMultiplier = 1.0f + (bricksDestroyed * 0.002f);
+                speedMultiplier = Math.min(speedMultiplier, 1.3f);
+                float finalSpeed = targetSpeed * speedMultiplier;
+                float angleInRadians = (float) Math.toRadians(90 + bounceAngle);
+                ball.setVelocity(
+                        finalSpeed * (float) Math.cos(angleInRadians),
+                        finalSpeed * (float) Math.sin(angleInRadians)
+                );
             }
-        } else {
-            handlePaddleCollision(ballX, ballY, ballRadius);
         }
         if (checkLevelComplete()) {
             onLevelComplete();
-        }
-    }
-
-    protected void handleBrickCollision(Brick brick, float ballX, float ballY, float ballRadius) {
-        Rectangle brickBounds = brick.getBounds();
-        float brickCenterX = brickBounds.x + brickBounds.width / 2f;
-        float brickCenterY = brickBounds.y + brickBounds.height / 2f;
-        float dx = ballX - brickCenterX;
-        float dy = ballY - brickCenterY;
-        float overlapX = (brickBounds.width / 2f + ballRadius) - Math.abs(dx);
-        float overlapY = (brickBounds.height / 2f + ballRadius) - Math.abs(dy);
-        if (overlapX <= 0 || overlapY <= 0) return;
-        if (overlapX < overlapY) {
-            ball.reverseX();
-            ball.getBounds().x = (dx > 0)
-                    ? brickBounds.x + brickBounds.width + ballRadius + 2f
-                    : brickBounds.x - ballRadius - 2f;
-        } else {
-            ball.reverseY();
-            ball.getBounds().y = (dy > 0)
-                    ? brickBounds.y + brickBounds.height + ballRadius + 2f
-                    : brickBounds.y - ballRadius - 2f;
-        }
-        brick.hit();
-        if (brick.getType() == Brick.BrickType.BREAKABLE && brick.isDestroyed()) {
-            onBrickDestroyed(brick);
-        }
-    }
-
-    protected void handlePaddleCollision(float ballX, float ballY, float ballRadius) {
-        Rectangle paddleBounds = paddle.getBounds();
-        Rectangle ballBounds = ball.getBounds();
-        if (Intersector.overlaps(ballBounds, paddleBounds) && ball.getVelocity().y < 0) {
-            float paddleTop = paddleBounds.y + paddleBounds.height;
-            if (ballY - ballRadius < paddleTop + 10f) {
-                ballBounds.y = paddleTop + ballRadius + 2f;
-                float hitPos = MathUtils.clamp((ballX - paddleBounds.x) / paddleBounds.width, 0.1f, 0.9f);
-                float bounceAngle = -(hitPos - 0.5f) * 100f;
-                float speedMultiplier = Math.min(1.0f + (bricksDestroyed * 0.002f), 1.3f);
-                float finalSpeed = 350f * speedMultiplier;
-                float paddleVelocity = paddle.getVelocityX();
-                if (Math.abs(paddleVelocity) > 0.5f) {
-                    float paddleInfluence = MathUtils.clamp(paddleVelocity / 50f, -1f, 1f);
-                    bounceAngle -= paddleInfluence * 15f;
-                    if ((paddleInfluence > 0 && ball.getVelocity().x > 0) || (paddleInfluence < 0 && ball.getVelocity().x < 0)) {
-                        finalSpeed *= 1.05f;
-                    }
-                }
-                bounceAngle = MathUtils.clamp(bounceAngle, -70f, 70f);
-                float angleInRadians = (float) Math.toRadians(90 + bounceAngle);
-                ball.setVelocity(finalSpeed * (float) Math.cos(angleInRadians), finalSpeed * (float) Math.sin(angleInRadians));
-            }
         }
     }
 
