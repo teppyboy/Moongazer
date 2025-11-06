@@ -206,12 +206,12 @@ public class GameplayTestScene extends Arkanoid {
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         shapeRenderer.setColor(0, 1, 0, 1);
         Rectangle ballBounds = ball.getBounds();
-        float ballCenterX = ballBounds.x + ballBounds.width / 2f;
-        float ballCenterY = ballBounds.y + ballBounds.height / 2f;
+        float ballCenterX = ballBounds.x;
+        float ballCenterY = ballBounds.y;
         float ballRadius = ball.getRadius();
         shapeRenderer.circle(ballCenterX, ballCenterY, ballRadius, 32);
         shapeRenderer.setColor(0, 1, 0, 0.5f);
-        shapeRenderer.rect(ballBounds.x, ballBounds.y, ballBounds.width, ballBounds.height);
+        shapeRenderer.rect(ballBounds.x - ballRadius, ballBounds.y - ballRadius, ballRadius * 2, ballRadius * 2);
         shapeRenderer.setColor(1, 1, 0, 1);
         shapeRenderer.circle(ballCenterX, ballCenterY, 2, 8);
         shapeRenderer.setColor(0, 0.5f, 1, 1);
