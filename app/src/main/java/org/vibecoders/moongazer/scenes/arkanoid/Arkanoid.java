@@ -207,7 +207,7 @@ public abstract class Arkanoid extends Scene {
     }
 
     protected void renderGameplay(SpriteBatch batch) {
-        batch.setColor(0f, 0f, 0f, 0.6f);
+        batch.setColor(0f, 0f, 0f, 0.3f);
         batch.draw(pixelTexture, 0, 0, SIDE_PANEL_WIDTH, WINDOW_HEIGHT);
         batch.draw(pixelTexture, SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH, 0, SIDE_PANEL_WIDTH, WINDOW_HEIGHT);
         batch.setColor(1f, 1f, 1f, 1f);
@@ -243,7 +243,10 @@ public abstract class Arkanoid extends Scene {
             livesIcon += "♥ ";
         }
         fontUI30.draw(batch, livesIcon, 30, WINDOW_HEIGHT - 190);
-        fontUI30.draw(batch, "Powerups", SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH + 30, WINDOW_HEIGHT - 50);
+        String powerupsText = "Powerups";
+        layout.setText(fontUI30, powerupsText);
+        float powerupsX = SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH + (SIDE_PANEL_WIDTH - layout.width) / 2f;
+        fontUI30.draw(batch, powerupsText, powerupsX, WINDOW_HEIGHT - 50);
     }
 
     protected boolean checkLevelComplete() {
