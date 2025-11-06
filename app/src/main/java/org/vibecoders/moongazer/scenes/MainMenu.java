@@ -10,6 +10,7 @@ import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.enums.State;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.managers.Audio;
+import org.vibecoders.moongazer.scenes.arkanoid.GameplayTestScene;
 import org.vibecoders.moongazer.ui.UITextButton;
 
 import com.badlogic.gdx.Gdx;
