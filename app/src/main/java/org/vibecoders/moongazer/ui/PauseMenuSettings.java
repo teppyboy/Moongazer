@@ -48,17 +48,14 @@ public class PauseMenuSettings {
     }
 
     private void initUI() {
-        // Fonts
         titleFont = Assets.getFont("ui", 40);
         labelFont = Assets.getFont("ui", 24);
 
-        // Create stage
         settingsStage = new Stage();
         root = new Table();
         root.setFillParent(true);
         settingsStage.addActor(root);
 
-        // Main panel
         Table mainPanel = new Table();
         mainPanel.setSize(800, 600);
         mainPanel.setPosition((WINDOW_WIDTH - 800) / 2f, (WINDOW_HEIGHT - 600) / 2f);
@@ -68,11 +65,9 @@ public class PauseMenuSettings {
         mainPanel.add(title).colspan(2).padTop(60).padBottom(40);
         mainPanel.row();
 
-        // Background tint for rows
         TextureRegionDrawable bg = new TextureRegionDrawable(Assets.getWhiteTexture());
         var tintedBg = bg.tint(new Color(0.2f, 0.2f, 0.2f, 0.3f));
 
-        // Volume settings
         String[] volumes = { "Master Volume", "Music Volume", "SFX Volume" };
         UISlider[] sliders = new UISlider[3];
 
@@ -113,7 +108,6 @@ public class PauseMenuSettings {
             mainPanel.row();
         }
 
-        // Back button
         backButton = new UITextButton("Back", labelFont);
         backButton.setSize(300, 70);
         backButton.onClick(() -> {
@@ -127,7 +121,6 @@ public class PauseMenuSettings {
 
         root.addActor(mainPanel);
 
-        // Keyboard handling
         initKeyboardHandling();
     }
 
@@ -181,7 +174,6 @@ public class PauseMenuSettings {
     public void render(SpriteBatch batch) {
         if (!isOpen) return;
 
-        // Handle key repeat
         for (Map.Entry<Integer, Long> entry : currentKeyDown.entrySet()) {
             Integer keyCode = entry.getKey();
             Long timeStamp = entry.getValue();
@@ -191,14 +183,12 @@ public class PauseMenuSettings {
             }
         }
 
-        // Draw darker overlay (settings already has the game + pause menu as background)
         batch.setColor(0, 0, 0, 0.5f);
         batch.draw(Assets.getWhiteTexture(), 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         batch.setColor(Color.WHITE);
 
         batch.end();
 
-        // Draw UI
         settingsStage.act(Gdx.graphics.getDeltaTime());
         settingsStage.draw();
 
@@ -215,4 +205,3 @@ public class PauseMenuSettings {
         }
     }
 }
-
