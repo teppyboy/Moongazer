@@ -70,7 +70,33 @@ public class ArkanoidEndless extends Arkanoid {
 
     @Override
     protected void onPausePressed() {
-        isPaused = !isPaused;
-        log.info("Game {}", isPaused ? "paused" : "resumed");
+        log.info("Pause requested");
+        pauseMenu.pause();
+    }
+
+    @Override
+    protected void restartGame() {
+        // Reset game state
+        score = 0;
+        lives = 3;
+        bricksDestroyed = 0;
+        currentWave = 1;
+        unbreakableChance = 0.1f;
+        initGameplay();
+        startWave(currentWave);
+    }
+
+    @Override
+    protected void returnToMainMenu() {
+        log.info("Returning to main menu from endless mode");
+        // Unpause and restore input processor
+        pauseMenu.resume();
+        restoreInputProcessor();
+        // Navigate back to main menu
+        if (game.transition == null) {
+            game.transition = new org.vibecoders.moongazer.scenes.Transition(
+                game, this, game.mainMenuScene,
+                org.vibecoders.moongazer.enums.State.MAIN_MENU, 500);
+        }
     }
 }

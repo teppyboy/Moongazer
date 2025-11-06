@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
@@ -19,6 +20,8 @@ import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.arkanoid.*;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.scenes.Scene;
+import org.vibecoders.moongazer.scenes.Transition;
+import org.vibecoders.moongazer.ui.PauseMenu;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,12 +38,14 @@ public abstract class Arkanoid extends Scene {
     protected int score = 0;
     protected int lives = 3;
     protected int bricksDestroyed = 0;
-    protected boolean isPaused = false;
     protected Brick lastHitBrick = null;
     protected float collisionCooldown = 0f;
     private Texture pixelTexture;
     protected ShapeRenderer shapeRenderer;
     protected boolean showHitboxes = false;
+    protected PauseMenu pauseMenu;
+    private FrameBuffer gameFrameBuffer;
+    private Texture gameSnapshot;
 
     public Arkanoid(Game game) {
         super(game);
@@ -52,9 +57,54 @@ public abstract class Arkanoid extends Scene {
         fontUI30 = Assets.getFont("ui", 30);
         pixelTexture = Assets.getBlackTexture();
         shapeRenderer = new ShapeRenderer();
+
+        // Initialize frame buffer for capturing game state
+        gameFrameBuffer = new FrameBuffer(Pixmap.Format.RGBA8888, WINDOW_WIDTH, WINDOW_HEIGHT, false);
+
+        // Initialize pause menu
+        pauseMenu = new PauseMenu();
+        setupPauseMenuCallbacks();
+
         initGameplay();
         log.info("Arkanoid gameplay initialized");
     }
+
+    protected void setupPauseMenuCallbacks() {
+        pauseMenu.setOnResume(() -> {
+            log.info("Resuming game from pause menu");
+            restoreInputProcessor();
+        });
+
+        pauseMenu.setOnRestart(() -> {
+            log.info("Restarting game");
+            restartGame();
+            restoreInputProcessor();
+        });
+
+        pauseMenu.setOnMainMenu(() -> {
+            log.info("Returning to main menu");
+            returnToMainMenu();
+        });
+
+        pauseMenu.setOnQuit(() -> {
+            log.info("Quitting game");
+            Gdx.app.exit();
+        });
+    }
+
+    protected void restartGame() {
+        // Reset game state
+        score = 0;
+        lives = 3;
+        bricksDestroyed = 0;
+        initGameplay();
+    }
+
+    protected void restoreInputProcessor() {
+        Gdx.input.setInputProcessor(game.stage);
+    }
+
+    protected abstract void returnToMainMenu();
 
     protected void initGameplay() {
         float paddleX = SIDE_PANEL_WIDTH + (GAMEPLAY_AREA_WIDTH - PADDLE_WIDTH) / 2f;
@@ -91,15 +141,52 @@ public abstract class Arkanoid extends Scene {
     @Override
     public void render(SpriteBatch batch) {
         float delta = Gdx.graphics.getDeltaTime();
+
+        // Clear screen
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        if (!isPaused) {
+
+        // Only update game logic if not paused
+        if (!pauseMenu.isPaused()) {
             handleInput(delta);
             updateGameplay(delta);
             handleCollisions();
         }
+
+        // Render gameplay
         renderGameplay(batch);
         renderUI(batch);
+
+        // If paused, capture game state and render pause menu
+        if (pauseMenu.isPaused()) {
+            // Always capture fresh snapshot when just paused
+            captureGameSnapshot(batch);
+            pauseMenu.render(batch, gameSnapshot);
+        } else {
+            // Clear snapshot reference when not paused (don't dispose, framebuffer owns it)
+            gameSnapshot = null;
+        }
+    }
+
+    private void captureGameSnapshot(SpriteBatch batch) {
+        batch.end();
+
+        // Render game to framebuffer
+        gameFrameBuffer.begin();
+        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        batch.begin();
+        renderGameplay(batch);
+        renderUI(batch);
+        batch.end();
+
+        gameFrameBuffer.end();
+
+        // Get the texture from framebuffer (don't dispose this, framebuffer manages it)
+        gameSnapshot = gameFrameBuffer.getColorBufferTexture();
+
+        batch.begin();
     }
 
     protected void handleInput(float delta) {
@@ -341,5 +428,12 @@ public abstract class Arkanoid extends Scene {
         if (bricks != null) {
             bricks.clear();
         }
+        if (pauseMenu != null) {
+            pauseMenu.dispose();
+        }
+        if (gameFrameBuffer != null) {
+            gameFrameBuffer.dispose();
+        }
+        // Don't dispose gameSnapshot - it's managed by gameFrameBuffer
     }
 }

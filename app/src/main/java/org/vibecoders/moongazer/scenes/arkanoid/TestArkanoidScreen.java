@@ -55,7 +55,25 @@ public class TestArkanoidScreen extends Arkanoid {
 
     @Override
     protected void onPausePressed() {
-        log.info("ESC pressed - Exiting test...");
+        log.info("Pause requested");
+        pauseMenu.pause();
+    }
+
+    @Override
+    protected void restartGame() {
+        // Reset game state
+        score = 0;
+        lives = 3;
+        bricksDestroyed = 0;
+        currentWave = 1;
+        unbreakableChance = 0.1f;
+        initGameplay();
+        startWave(currentWave);
+    }
+
+    @Override
+    protected void returnToMainMenu() {
+        log.info("Returning to main menu from test screen");
         Gdx.app.exit();
     }
 }
