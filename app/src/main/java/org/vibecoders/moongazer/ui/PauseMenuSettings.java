@@ -125,7 +125,7 @@ public class PauseMenuSettings {
     }
 
     private void initKeyboardHandling() {
-        root.addListener(new InputListener() {
+        settingsStage.addListener(new InputListener() {
             @Override
             public boolean keyDown(InputEvent event, int keycode) {
                 handleKeyDown(keycode);
@@ -139,6 +139,9 @@ public class PauseMenuSettings {
                 return true;
             }
         });
+
+        // Set keyboard focus to root so it receives input events
+        settingsStage.setKeyboardFocus(root);
     }
 
     private void handleKeyDown(int keycode) {
@@ -152,6 +155,7 @@ public class PauseMenuSettings {
         if (!isOpen) {
             isOpen = true;
             Gdx.input.setInputProcessor(settingsStage);
+            settingsStage.setKeyboardFocus(root);
             log.info("Settings overlay opened");
         }
     }

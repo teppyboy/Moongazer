@@ -55,7 +55,6 @@ public class TestArkanoidScreen extends Arkanoid {
 
     @Override
     protected void onPausePressed() {
-        log.info("Pause requested");
         pauseMenu.pause();
     }
 

@@ -2,6 +2,8 @@ package org.vibecoders.moongazer.scenes.arkanoid;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -50,6 +52,12 @@ public abstract class Arkanoid extends Scene {
     protected PauseMenu pauseMenu;
     private FrameBuffer gameFrameBuffer;
     private Texture gameSnapshot;
+    private float pauseCooldown = 0f;
+    private static final float PAUSE_COOLDOWN_TIME = 0.2f;
+    private InputMultiplexer inputMultiplexer;
+    private InputAdapter gameInputAdapter;
+    private boolean gameInputEnabled = true;
+    private boolean escKeyDownInGame = false;
 
     public Arkanoid(Game game) {
         super(game);
@@ -66,6 +74,9 @@ public abstract class Arkanoid extends Scene {
         // Initialize frame buffer for capturing game state
         gameFrameBuffer = new FrameBuffer(Pixmap.Format.RGBA8888, WINDOW_WIDTH, WINDOW_HEIGHT, false);
 
+        // Initialize input handling
+        setupInputHandling();
+
         // Initialize pause menu
         pauseMenu = new PauseMenu();
         setupPauseMenuCallbacks();
@@ -74,14 +85,60 @@ public abstract class Arkanoid extends Scene {
         log.info("Arkanoid gameplay initialized");
     }
 
+    private void setupInputHandling() {
+        // Create input adapter for game-specific controls (including ESC for pause)
+        gameInputAdapter = new InputAdapter() {
+            @Override
+            public boolean keyDown(int keycode) {
+                if (keycode == Input.Keys.ESCAPE) {
+                    if (gameInputEnabled && !pauseMenu.isPaused() && pauseCooldown <= 0) {
+                        escKeyDownInGame = true;
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            @Override
+            public boolean keyUp(int keycode) {
+                if (keycode == Input.Keys.ESCAPE) {
+                    if (gameInputEnabled && escKeyDownInGame && !pauseMenu.isPaused()) {
+                        escKeyDownInGame = false;
+                        gameInputEnabled = false; // Disable immediately to prevent re-triggering
+                        onPausePressed();
+                        return true;
+                    }
+
+                    if (keycode == Input.Keys.ESCAPE) {
+                        escKeyDownInGame = false;
+                    }
+                }
+                return false;
+            }
+        };
+
+        // Create multiplexer to handle both game.stage and game input
+        inputMultiplexer = new InputMultiplexer();
+        inputMultiplexer.addProcessor(gameInputAdapter);
+        inputMultiplexer.addProcessor(game.stage);
+
+        Gdx.input.setInputProcessor(inputMultiplexer);
+    }
+
     protected void setupPauseMenuCallbacks() {
         pauseMenu.setOnResume(() -> {
             log.info("Resuming game from pause menu");
+            pauseCooldown = PAUSE_COOLDOWN_TIME;
+            gameInputEnabled = true; // Re-enable game input
+            escKeyDownInGame = false; // Reset ESC key state
             restoreInputProcessor();
         });
 
         pauseMenu.setOnRestart(() -> {
             log.info("Restarting game");
+            pauseCooldown = 0;
+            gameInputEnabled = true;
+            escKeyDownInGame = false;
             restartGame();
             restoreInputProcessor();
         });
@@ -106,7 +163,7 @@ public abstract class Arkanoid extends Scene {
     }
 
     protected void restoreInputProcessor() {
-        Gdx.input.setInputProcessor(game.stage);
+        Gdx.input.setInputProcessor(inputMultiplexer);
     }
 
     protected abstract void returnToMainMenu();
@@ -151,6 +208,11 @@ public abstract class Arkanoid extends Scene {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        // Update pause cooldown
+        if (pauseCooldown > 0) {
+            pauseCooldown -= delta;
+        }
+
         // Only update game logic if not paused
         if (!pauseMenu.isPaused()) {
             handleInput(delta);
@@ -170,9 +232,8 @@ public abstract class Arkanoid extends Scene {
             }
             pauseMenu.render(batch, gameSnapshot);
         } else {
-            // Clear snapshot when not paused
+            // Clear snapshot reference when not paused (don't dispose - it's the framebuffer's texture)
             if (gameSnapshot != null) {
-                gameSnapshot.dispose();
                 gameSnapshot = null;
             }
         }
@@ -207,9 +268,6 @@ public abstract class Arkanoid extends Scene {
         if (Gdx.input.isKeyPressed(Input.Keys.F3) && Gdx.input.isKeyJustPressed(Input.Keys.B)) {
             showHitboxes = !showHitboxes;
             log.info("Hitbox rendering: {}", showHitboxes ? "ON" : "OFF");
-        }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            onPausePressed();
         }
     }
 

@@ -39,6 +39,7 @@ public class PauseMenu {
     private int currentChoice = -1;
     private HashMap<Integer, Long> currentKeyDown = new HashMap<>();
     private PauseMenuSettings settingsOverlay;
+    private boolean pendingResume = false;
 
     private Runnable onResume;
     private Runnable onRestart;
@@ -54,6 +55,7 @@ public class PauseMenu {
         settingsOverlay = new PauseMenuSettings();
         settingsOverlay.setOnClose(() -> {
             Gdx.input.setInputProcessor(menuStage);
+            menuStage.setKeyboardFocus(menuTable);
         });
     }
 
@@ -164,7 +166,7 @@ public class PauseMenu {
             });
         }
 
-        menuTable.addListener(new InputListener() {
+        menuStage.addListener(new InputListener() {
             @Override
             public boolean keyDown(InputEvent event, int keycode) {
                 handleKeyDown(keycode);
@@ -178,6 +180,9 @@ public class PauseMenu {
                 return true;
             }
         });
+
+        // Set keyboard focus to menuTable so it receives input events
+        menuStage.setKeyboardFocus(menuTable);
     }
 
     private void handleKeyDown(int keycode) {
@@ -220,20 +225,25 @@ public class PauseMenu {
             isPaused = true;
             currentChoice = -1;
             Gdx.input.setInputProcessor(menuStage);
+            menuStage.setKeyboardFocus(menuTable);
             log.info("Game paused");
         }
     }
 
     public void resume() {
         if (isPaused) {
-            isPaused = false;
-            currentChoice = -1;
-            currentKeyDown.clear();
-            if (onResume != null) {
-                onResume.run();
-            }
-            log.info("Game resumed");
+            pendingResume = true;
         }
+    }
+
+    private void processResume() {
+        isPaused = false;
+        currentChoice = -1;
+        currentKeyDown.clear();
+        if (onResume != null) {
+            onResume.run();
+        }
+        log.info("Game resumed");
     }
 
     private void openSettings() {
@@ -246,6 +256,13 @@ public class PauseMenu {
 
     public void render(SpriteBatch batch, Texture gameSnapshot) {
         if (!isPaused) return;
+
+        // Process pending resume at the start of render, before any input processing
+        if (pendingResume) {
+            pendingResume = false;
+            processResume();
+            return; // Exit immediately after resume
+        }
 
         if (!settingsOverlay.isOpen()) {
             for (Map.Entry<Integer, Long> entry : currentKeyDown.entrySet()) {
