@@ -72,24 +72,24 @@ public class PauseMenu {
         menuTable.setFillParent(true);
         menuStage.addActor(menuTable);
 
-        UITextButton resumeButton = new UITextButton("Back to Game", buttonFont);
+        UITextButton resumeButton = new UITextButton("Resume", buttonFont);
         UITextButton restartButton = new UITextButton("Restart", buttonFont);
         UITextButton settingsButton = new UITextButton("Settings", buttonFont);
-        UITextButton mainMenuButton = new UITextButton("Return to Main Menu", buttonFont);
+        UITextButton mainMenuButton = new UITextButton("Main Menu", buttonFont);
         UITextButton quitButton = new UITextButton("Quit Game", buttonFont);
 
         buttons = new UITextButton[] { resumeButton, restartButton, settingsButton, mainMenuButton, quitButton };
 
-        int buttonWidth = 350;
-        int buttonHeight = 70;
+        int buttonWidth = 300;
+        int buttonHeight = 80;
 
         for (UITextButton button : buttons) {
             button.setSize(buttonWidth, buttonHeight);
         }
 
         int centerX = WINDOW_WIDTH / 2 - buttonWidth / 2;
-        int startY = WINDOW_HEIGHT / 2 + 100;
-        int spacing = 60;
+        int startY = WINDOW_HEIGHT / 2 - buttonHeight / 2;
+        int spacing = 65;
 
         resumeButton.setPosition(centerX, startY);
         restartButton.setPosition(centerX, startY - spacing);
