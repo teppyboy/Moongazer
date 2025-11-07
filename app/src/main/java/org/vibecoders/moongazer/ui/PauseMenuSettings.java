@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -163,6 +164,9 @@ public class PauseMenuSettings {
             if (onClose != null) {
                 onClose.run();
             }
+            if (settingsStage != null && settingsStage.getRoot() != null) {
+                settingsStage.getRoot().getColor().a = 1f;
+            }
             log.info("Settings overlay closed");
         }
     }
@@ -171,8 +175,13 @@ public class PauseMenuSettings {
         return isOpen;
     }
 
-    public void render(SpriteBatch batch) {
+    public void render(SpriteBatch batch, float parentAlpha) {
         if (!isOpen) return;
+
+        float alpha = MathUtils.clamp(parentAlpha, 0f, 1f);
+        if (alpha <= 0f) {
+            return;
+        }
 
         for (Map.Entry<Integer, Long> entry : currentKeyDown.entrySet()) {
             Integer keyCode = entry.getKey();
@@ -183,12 +192,15 @@ public class PauseMenuSettings {
             }
         }
 
-        batch.setColor(0, 0, 0, 0.5f);
+        batch.setColor(0, 0, 0, 0.5f * alpha);
         batch.draw(Assets.getWhiteTexture(), 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         batch.setColor(Color.WHITE);
 
         batch.end();
 
+        if (settingsStage.getRoot() != null) {
+            settingsStage.getRoot().getColor().a = alpha;
+        }
         settingsStage.act(Gdx.graphics.getDeltaTime());
         settingsStage.draw();
 
