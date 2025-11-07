@@ -20,7 +20,6 @@ import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.arkanoid.*;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.scenes.Scene;
-import org.vibecoders.moongazer.scenes.Transition;
 import org.vibecoders.moongazer.ui.PauseMenu;
 
 import java.util.ArrayList;
@@ -41,6 +40,11 @@ public abstract class Arkanoid extends Scene {
     protected Brick lastHitBrick = null;
     protected float collisionCooldown = 0f;
     private Texture pixelTexture;
+    private Texture heartTexture;
+    private boolean heartBlinking = false;
+    private float heartBlinkTimer = 0f;
+    private static final float HEART_BLINK_DURATION = 1.5f;
+    private static final float HEART_BLINK_SPEED = 0.15f;
     protected ShapeRenderer shapeRenderer;
     protected boolean showHitboxes = false;
     protected PauseMenu pauseMenu;
@@ -56,6 +60,7 @@ public abstract class Arkanoid extends Scene {
         font = Assets.getFont("ui", 18);
         fontUI30 = Assets.getFont("ui", 30);
         pixelTexture = Assets.getBlackTexture();
+        heartTexture = Assets.getAsset("textures/arkanoid/heart.png", Texture.class);
         shapeRenderer = new ShapeRenderer();
 
         // Initialize frame buffer for capturing game state
@@ -159,12 +164,17 @@ public abstract class Arkanoid extends Scene {
 
         // If paused, capture game state and render pause menu
         if (pauseMenu.isPaused()) {
-            // Always capture fresh snapshot when just paused
-            captureGameSnapshot(batch);
+            // Capture the current screen to a texture for the blur effect
+            if (gameSnapshot == null) {
+                captureGameSnapshot(batch);
+            }
             pauseMenu.render(batch, gameSnapshot);
         } else {
-            // Clear snapshot reference when not paused (don't dispose, framebuffer owns it)
-            gameSnapshot = null;
+            // Clear snapshot when not paused
+            if (gameSnapshot != null) {
+                gameSnapshot.dispose();
+                gameSnapshot = null;
+            }
         }
     }
 
@@ -183,7 +193,7 @@ public abstract class Arkanoid extends Scene {
 
         gameFrameBuffer.end();
 
-        // Get the texture from framebuffer (don't dispose this, framebuffer manages it)
+        // Get the texture from framebuffer
         gameSnapshot = gameFrameBuffer.getColorBufferTexture();
 
         batch.begin();
@@ -209,6 +219,16 @@ public abstract class Arkanoid extends Scene {
         if (collisionCooldown > 0) {
             collisionCooldown -= delta;
         }
+
+        // Update heart blink animation
+        if (heartBlinking) {
+            heartBlinkTimer += delta;
+            if (heartBlinkTimer >= HEART_BLINK_DURATION) {
+                heartBlinking = false;
+                heartBlinkTimer = 0f;
+            }
+        }
+
         if (!ball.isActive()) {
             ball.reset(paddle.getCenterX(), paddle.getBounds().y + paddle.getBounds().height + ball.getRadius() + 5);
         }
@@ -379,11 +399,37 @@ public abstract class Arkanoid extends Scene {
         layout.setText(fontUI30, bestValue);
         float bestValueX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
         fontUI30.draw(batch, bestValue, bestValueX, WINDOW_HEIGHT - 150 - layout.height);
-        String livesIcon = "";
-        for (int i = 0; i < lives; i++) {
-            livesIcon += "♥ ";
+
+        // Render hearts at bottom left as "heart icon x lives"
+        float heartSize = 50f; // Size of heart icon
+        float heartStartX = 30f; // Left margin
+        float heartStartY = 40f; // Bottom margin
+
+        // Calculate blink alpha for both heart icon and lives text
+        float blinkAlpha = 1.0f;
+        if (heartBlinking) {
+            // Create a blinking effect by oscillating alpha
+            float blinkCycle = (heartBlinkTimer % HEART_BLINK_SPEED) / HEART_BLINK_SPEED;
+            blinkAlpha = blinkCycle < 0.5f ? 0.2f : 1.0f;
         }
-        fontUI30.draw(batch, livesIcon, 30, WINDOW_HEIGHT - 190);
+
+        // Save original colors
+        Color batchColor = batch.getColor().cpy();
+        Color fontColor = fontUI30.getColor().cpy();
+
+        // Draw heart icon with blinking effect
+        batch.setColor(1f, 1f, 1f, blinkAlpha);
+        batch.draw(heartTexture, heartStartX, heartStartY, heartSize, heartSize);
+
+        // Draw "x lives" text with blinking effect
+        fontUI30.setColor(fontColor.r, fontColor.g, fontColor.b, blinkAlpha);
+        String livesText = " x " + lives;
+        fontUI30.draw(batch, livesText, heartStartX + heartSize + 5f, heartStartY + heartSize - 5f);
+
+        // IMPORTANT: Restore colors to full opacity before drawing anything else
+        batch.setColor(1f, 1f, 1f, 1f);
+        fontUI30.setColor(fontColor.r, fontColor.g, fontColor.b, 1f);
+
         String powerupsText = "Powerups";
         layout.setText(fontUI30, powerupsText);
         float powerupsX = SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH + (SIDE_PANEL_WIDTH - layout.width) / 2f;
@@ -407,6 +453,8 @@ public abstract class Arkanoid extends Scene {
 
     protected void onBallLost() {
         lives--;
+        heartBlinking = true;
+        heartBlinkTimer = 0f;
         ball.reset(paddle.getCenterX(), paddle.getBounds().y + paddle.getBounds().height + ball.getRadius() + 5);
         log.info("Ball lost! Lives remaining: {}", lives);
         if (lives <= 0) {
@@ -434,6 +482,8 @@ public abstract class Arkanoid extends Scene {
         if (gameFrameBuffer != null) {
             gameFrameBuffer.dispose();
         }
-        // Don't dispose gameSnapshot - it's managed by gameFrameBuffer
+        if (gameSnapshot != null) {
+            gameSnapshot.dispose();
+        }
     }
 }
