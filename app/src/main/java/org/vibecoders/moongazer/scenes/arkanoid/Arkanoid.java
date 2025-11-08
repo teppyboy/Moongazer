@@ -19,8 +19,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.arkanoid.*;
-import org.vibecoders.moongazer.arkanoid.powerups.ActivePowerUpEffect;
-import org.vibecoders.moongazer.arkanoid.powerups.ClassicPowerUpFactory;
+import org.vibecoders.moongazer.arkanoid.PowerUps.ActivePowerUpEffect;
+import org.vibecoders.moongazer.arkanoid.PowerUps.ClassicPowerUpFactory;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.scenes.Scene;
 import org.vibecoders.moongazer.ui.PauseMenu;
@@ -33,7 +33,7 @@ import static org.vibecoders.moongazer.Constants.*;
 public abstract class Arkanoid extends Scene {
     protected static final Logger log = LoggerFactory.getLogger(Arkanoid.class);
     protected Paddle paddle;
-    protected Ball ball;
+    protected List<Ball> balls; // Support multiple balls for MultiBall power-up
     protected List<Brick> bricks;
     protected BitmapFont font;
     protected BitmapFont fontUI30;
@@ -42,6 +42,7 @@ public abstract class Arkanoid extends Scene {
     protected int bricksDestroyed = 0;
     protected Brick lastHitBrick = null;
     protected float collisionCooldown = 0f;
+    protected static final int MAX_BALLS = 3; // Maximum number of balls for MultiBall
     private Texture pixelTexture;
     private Texture heartTexture;
     private Texture backgroundTexture = null;
@@ -164,8 +165,10 @@ public abstract class Arkanoid extends Scene {
         float paddleY = 50f;
         paddle = new Paddle(paddleX, paddleY, PADDLE_WIDTH, PADDLE_HEIGHT);
         float ballRadius = 12f;
-        ball = new Ball(SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH / 2f, paddleY + PADDLE_HEIGHT + ballRadius + 5,
+        Ball mainBall = new Ball(SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH / 2f, paddleY + PADDLE_HEIGHT + ballRadius + 5,
                 ballRadius);
+        balls = new ArrayList<>();
+        balls.add(mainBall);
         bricks = new ArrayList<>();
         activePowerUps = new ArrayList<>();
         activePowerUpEffects = new ArrayList<>();
@@ -239,9 +242,17 @@ public abstract class Arkanoid extends Scene {
     }
 
     protected void handleInput(float delta) {
-        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) && !ball.isActive()) {
-            ball.launch();
-            log.info("Ball launched!");
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+            boolean anyLaunched = false;
+            for (Ball ball : balls) {
+                if (!ball.isActive()) {
+                    ball.launch();
+                    anyLaunched = true;
+                }
+            }
+            if (anyLaunched) {
+                log.info("Ball(s) launched!");
+            }
         }
         if (Gdx.input.isKeyPressed(Input.Keys.F3) && Gdx.input.isKeyJustPressed(Input.Keys.B)) {
             showHitboxes = !showHitboxes;
@@ -251,7 +262,12 @@ public abstract class Arkanoid extends Scene {
 
     protected void updateGameplay(float delta) {
         paddle.update(delta, SIDE_PANEL_WIDTH, SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH);
-        ball.update(delta);
+
+        // Update all balls
+        for (Ball ball : balls) {
+            ball.update(delta);
+        }
+
         for (PowerUp powerUp : activePowerUps) {
             powerUp.update(delta);
         }
@@ -273,98 +289,157 @@ public abstract class Arkanoid extends Scene {
                 heartBlinkTimer = 0f;
             }
         }
-        if (!ball.isActive()) {
-            ball.reset(paddle.getCenterX(), paddle.getBounds().y + paddle.getBounds().height + ball.getRadius() + 5);
+
+        // Reset main ball if no balls are active
+        if (balls.size() == 1 && !balls.get(0).isActive()) {
+            Ball mainBall = balls.get(0);
+            mainBall.reset(paddle.getCenterX(), paddle.getBounds().y + paddle.getBounds().height + mainBall.getRadius() + 5);
         }
     }
 
     protected void handleCollisions() {
-        if (!ball.isActive())
-            return;
-        Rectangle ballBounds = ball.getBounds();
-        float ballX = ball.getBounds().x;
-        float ballY = ball.getBounds().y;
-        float ballRadius = ball.getRadius();
-        if (ballX - ballRadius <= SIDE_PANEL_WIDTH) {
-            ball.getBounds().x = SIDE_PANEL_WIDTH + ballRadius + 1f;
-            ball.reverseX();
-        }
-        if (ballX + ballRadius >= SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH) {
-            ball.getBounds().x = SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH - ballRadius - 1f;
-            ball.reverseX();
-        }
-        if (ballY + ballRadius >= WINDOW_HEIGHT) {
-            ball.getBounds().y = WINDOW_HEIGHT - ballRadius - 1f;
-            ball.reverseY();
-        }
-        if (ballY - ballRadius <= 0) {
-            onBallLost();
-            return;
-        }
-        boolean brickHit = false;
-        for (Brick brick : bricks) {
-            if (!brick.isDestroyed() && Intersector.overlaps(ballBounds, brick.getBounds())) {
-                if (collisionCooldown > 0 && brick == lastHitBrick) {
-                    continue;
-                }
-                Rectangle brickBounds = brick.getBounds();
-                float overlapLeft = (ballX + ballRadius) - brickBounds.x;
-                float overlapRight = (brickBounds.x + brickBounds.width) - (ballX - ballRadius);
-                float overlapTop = (brickBounds.y + brickBounds.height) - (ballY - ballRadius);
-                float overlapBottom = (ballY + ballRadius) - brickBounds.y;
-                float minOverlapX = Math.min(overlapLeft, overlapRight);
-                float minOverlapY = Math.min(overlapTop, overlapBottom);
-                float separationDistance = ballRadius + 1.0f;
-                if (minOverlapX < minOverlapY) {
-                    ball.reverseX();
-                    if (overlapLeft < overlapRight) {
-                        ball.getBounds().x = brickBounds.x - ballRadius - separationDistance;
-                    } else {
-                        ball.getBounds().x = brickBounds.x + brickBounds.width + ballRadius + separationDistance;
-                    }
-                } else {
-                    ball.reverseY();
-                    if (overlapTop < overlapBottom) {
-                        ball.getBounds().y = brickBounds.y + brickBounds.height + ballRadius + separationDistance;
-                    } else {
-                        ball.getBounds().y = brickBounds.y - ballRadius - separationDistance;
-                    }
-                }
-                brick.hit();
-                lastHitBrick = brick;
-                collisionCooldown = COLLISION_COOLDOWN_TIME;
-                if (brick.getType() == Brick.BrickType.BREAKABLE && brick.isDestroyed()) {
-                    lastHitBrick = null;
-                    onBrickDestroyed(brick);
+        // Handle collisions for each ball
+        for (int ballIndex = balls.size() - 1; ballIndex >= 0; ballIndex--) {
+            Ball ball = balls.get(ballIndex);
 
-                    if (Math.random() < 0.5) {
-                        spawnRandomPowerUp(brick);
-                    }
+            if (!ball.isActive())
+                continue;
+
+            Rectangle ballBounds = ball.getBounds();
+            float ballX = ball.getBounds().x;
+            float ballY = ball.getBounds().y;
+            float ballRadius = ball.getRadius();
+
+            // Left wall collision
+            if (ballX - ballRadius <= SIDE_PANEL_WIDTH) {
+                ball.getBounds().x = SIDE_PANEL_WIDTH + ballRadius + 1f;
+                ball.reverseX();
+            }
+            // Right wall collision
+            if (ballX + ballRadius >= SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH) {
+                ball.getBounds().x = SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH - ballRadius - 1f;
+                ball.reverseX();
+            }
+            // Top wall collision
+            if (ballY + ballRadius >= WINDOW_HEIGHT) {
+                ball.getBounds().y = WINDOW_HEIGHT - ballRadius - 1f;
+                ball.reverseY();
+            }
+            // Bottom - ball falls
+            if (ballY - ballRadius <= 0) {
+                // Remove this ball from the list
+                balls.remove(ballIndex);
+                log.info("Ball lost! Remaining balls: {}", balls.size());
+
+                // If no balls left, trigger ball lost
+                if (balls.isEmpty()) {
+                    onBallLost();
                 }
-                brickHit = true;
-                break;
+                continue;
+            }
+
+            // Brick collisions
+            boolean brickHit = false;
+            for (Brick brick : bricks) {
+                if (!brick.isDestroyed() && Intersector.overlaps(ballBounds, brick.getBounds())) {
+                    if (collisionCooldown > 0 && brick == lastHitBrick) {
+                        continue;
+                    }
+
+                    // Check if super ball mode is active
+                    boolean isSuperBallMode = ball.isSuperBall();
+                    boolean isBreakableBrick = brick.getType() == Brick.BrickType.BREAKABLE;
+
+                    // Super ball passes through breakable bricks without bouncing
+                    if (isSuperBallMode && isBreakableBrick) {
+                        // Destroy the brick but don't reverse ball direction
+                        brick.hit();
+                        lastHitBrick = brick;
+                        collisionCooldown = COLLISION_COOLDOWN_TIME;
+
+                        if (brick.isDestroyed()) {
+                            lastHitBrick = null;
+                            onBrickDestroyed(brick);
+
+                            // Spawn power-up if brick has one
+                            if (brick.getPowerUpType() != Brick.PowerUpType.NONE) {
+                                spawnRandomPowerUp(brick);
+                            } else if (Math.random() < 0.15) {
+                                // 15% chance for normal bricks to drop random power-up
+                                spawnRandomPowerUp(brick);
+                            }
+                        }
+                        // Don't set brickHit = true, allow ball to continue through
+                        continue;
+                    }
+
+                    // Normal collision handling for unbreakable bricks or when super ball is inactive
+                    Rectangle brickBounds = brick.getBounds();
+                    float overlapLeft = (ballX + ballRadius) - brickBounds.x;
+                    float overlapRight = (brickBounds.x + brickBounds.width) - (ballX - ballRadius);
+                    float overlapTop = (brickBounds.y + brickBounds.height) - (ballY - ballRadius);
+                    float overlapBottom = (ballY + ballRadius) - brickBounds.y;
+                    float minOverlapX = Math.min(overlapLeft, overlapRight);
+                    float minOverlapY = Math.min(overlapTop, overlapBottom);
+                    float separationDistance = ballRadius + 1.0f;
+                    if (minOverlapX < minOverlapY) {
+                        ball.reverseX();
+                        if (overlapLeft < overlapRight) {
+                            ball.getBounds().x = brickBounds.x - ballRadius - separationDistance;
+                        } else {
+                            ball.getBounds().x = brickBounds.x + brickBounds.width + ballRadius + separationDistance;
+                        }
+                    } else {
+                        ball.reverseY();
+                        if (overlapTop < overlapBottom) {
+                            ball.getBounds().y = brickBounds.y + brickBounds.height + ballRadius + separationDistance;
+                        } else {
+                            ball.getBounds().y = brickBounds.y - ballRadius - separationDistance;
+                        }
+                    }
+                    brick.hit();
+                    lastHitBrick = brick;
+                    collisionCooldown = COLLISION_COOLDOWN_TIME;
+                    if (brick.getType() == Brick.BrickType.BREAKABLE && brick.isDestroyed()) {
+                        lastHitBrick = null;
+                        onBrickDestroyed(brick);
+
+                        // Spawn power-up if brick has one
+                        if (brick.getPowerUpType() != Brick.PowerUpType.NONE) {
+                            spawnRandomPowerUp(brick);
+                        } else if (Math.random() < 0.15) {
+                            // 15% chance for normal bricks to drop random power-up
+                            spawnRandomPowerUp(brick);
+                        }
+                    }
+                    brickHit = true;
+                    break;
+                }
+            }
+
+            // Paddle collision
+            if (!brickHit && ball.isActive()) {
+                Rectangle paddleBounds = paddle.getBounds();
+                boolean ballIsAbovePaddle = ballY - ballRadius > paddleBounds.y;
+                if (Intersector.overlaps(ballBounds, paddleBounds) &&
+                        ball.getVelocity().y < 0 &&
+                        ballIsAbovePaddle) {
+                    ball.getBounds().y = paddleBounds.y + paddleBounds.height + ballRadius + 2f;
+                    float hitPos = (ballX - paddleBounds.x) / paddleBounds.width;
+                    hitPos = Math.max(0.1f, Math.min(0.9f, hitPos));
+                    float bounceAngle = -(hitPos - 0.5f) * 100f;
+                    float targetSpeed = 350f;
+                    float speedMultiplier = 1.0f + (bricksDestroyed * 0.002f);
+                    speedMultiplier = Math.min(speedMultiplier, 1.3f);
+                    float finalSpeed = targetSpeed * speedMultiplier;
+                    float angleInRadians = (float) Math.toRadians(90 + bounceAngle);
+                    ball.setVelocity(
+                            finalSpeed * (float) Math.cos(angleInRadians),
+                            finalSpeed * (float) Math.sin(angleInRadians));
+                }
             }
         }
-        if (!brickHit && ball.isActive()) {
-            Rectangle paddleBounds = paddle.getBounds();
-            boolean ballIsAbovePaddle = ballY - ballRadius > paddleBounds.y;
-            if (Intersector.overlaps(ballBounds, paddleBounds) &&
-                    ball.getVelocity().y < 0 &&
-                    ballIsAbovePaddle) {
-                ball.getBounds().y = paddleBounds.y + paddleBounds.height + ballRadius + 2f;
-                float hitPos = (ballX - paddleBounds.x) / paddleBounds.width;
-                hitPos = Math.max(0.1f, Math.min(0.9f, hitPos));
-                float bounceAngle = -(hitPos - 0.5f) * 100f;
-                float targetSpeed = 350f;
-                float speedMultiplier = 1.0f + (bricksDestroyed * 0.002f);
-                speedMultiplier = Math.min(speedMultiplier, 1.3f);
-                float finalSpeed = targetSpeed * speedMultiplier;
-                float angleInRadians = (float) Math.toRadians(90 + bounceAngle);
-                ball.setVelocity(
-                        finalSpeed * (float) Math.cos(angleInRadians),
-                        finalSpeed * (float) Math.sin(angleInRadians));
-            }
-        }
+
         handlePowerUpCollisions();
         if (checkLevelComplete()) {
             onLevelComplete();
@@ -385,6 +460,15 @@ public abstract class Arkanoid extends Scene {
                     powerUp.x + powerUp.width > paddleBounds.x &&
                     powerUp.y < paddleBounds.y + paddleBounds.height &&
                     powerUp.y + powerUp.height > paddleBounds.y) {
+
+                // Check power-up stacking rules
+                boolean canStack = canPowerUpStack(powerUp.getName());
+
+                if (!canStack) {
+                    log.info("{} cannot stack with active effects, ignored", powerUp.getName());
+                    activePowerUps.remove(i);
+                    continue;
+                }
 
                 boolean effectExists = false;
                 for (ActivePowerUpEffect activeEffect : activePowerUpEffects) {
@@ -416,27 +500,99 @@ public abstract class Arkanoid extends Scene {
 
     private void spawnRandomPowerUp(Brick brick) {
         ClassicPowerUpFactory factory = new ClassicPowerUpFactory();
-        PowerUp powerUp;
+        PowerUp powerUp = null;
 
-        double rand = Math.random();
-        if (rand < 0.25) {
-            powerUp = factory.createExpandPaddle(
-                    brick.getX() + brick.getWidth() / 2f - 16,
-                    brick.getY(), 32, 32);
-        } else if (rand < 0.5){
-            powerUp = factory.createExtraLife(
-                    brick.getX() + brick.getWidth() / 2f - 16,
-                    brick.getY(), 32, 32);
-        } else if (rand < 0.75){
-            powerUp = factory.createFastBall(
-                    brick.getX() + brick.getWidth() / 2f - 16,
-                    brick.getY(), 32, 32);
+        float powerUpX = brick.getX() + brick.getWidth() / 2f - 16;
+        float powerUpY = brick.getY();
+        float powerUpWidth = 32;
+        float powerUpHeight = 32;
+
+        // Check if brick has a specific power-up type
+        if (brick.getPowerUpType() != Brick.PowerUpType.NONE) {
+            switch (brick.getPowerUpType()) {
+                case EXPAND_PADDLE:
+                    powerUp = factory.createExpandPaddle(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
+                    break;
+                case EXTRA_LIFE:
+                    powerUp = factory.createExtraLife(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
+                    break;
+                case FAST_BALL:
+                    powerUp = factory.createFastBall(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
+                    break;
+                case SLOW_BALL:
+                    powerUp = factory.createSlowBall(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
+                    break;
+                case MULTI_BALL:
+                    powerUp = factory.createMultiBall(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
+                    break;
+                case SUPER_BALL:
+                    powerUp = factory.createSuperBall(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
+                    break;
+                // Future implementations
+                case LASER:
+                case EXPLOSIVE:
+                    log.warn("Power-up type {} not yet implemented", brick.getPowerUpType());
+                    return;
+            }
         } else {
-            powerUp = factory.createSlowBall(
-                    brick.getX() + brick.getWidth() / 2f - 16,
-                    brick.getY(), 32, 32);
+            // Random power-up for non-specific bricks
+            double rand = Math.random();
+            if (rand < 0.20) {
+                powerUp = factory.createExpandPaddle(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
+            } else if (rand < 0.40){
+                powerUp = factory.createExtraLife(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
+            } else if (rand < 0.60){
+                powerUp = factory.createFastBall(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
+            } else if (rand < 0.80){
+                powerUp = factory.createSlowBall(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
+            } else if (rand < 0.90){
+                powerUp = factory.createMultiBall(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
+            } else {
+                powerUp = factory.createSuperBall(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
+            }
         }
-        activePowerUps.add(powerUp);
+
+        if (powerUp != null) {
+            activePowerUps.add(powerUp);
+        }
+    }
+
+    /**
+     * Checks if a power-up can stack with currently active effects.
+     * Stacking rules:
+     * - Expand Paddle: can stack with all other power-ups
+     * - Slow Ball: can stack with all except Fast Ball
+     * - Fast Ball: can stack with all except Slow Ball
+     * - Other power-ups: can stack with Expand Paddle and Slow/Fast (if allowed)
+     *
+     * @param powerUpName the name of the power-up to check
+     * @return true if the power-up can be activated, false otherwise
+     */
+    private boolean canPowerUpStack(String powerUpName) {
+        // Expand Paddle and instant effects (Multi Ball, Extra Life) can always stack
+        if (powerUpName.equals("Expand Paddle") ||
+            powerUpName.equals("Multi Ball") ||
+            powerUpName.equals("Extra Life")) {
+            return true;
+        }
+
+        // Check for conflicting effects
+        for (ActivePowerUpEffect activeEffect : activePowerUpEffects) {
+            String activeEffectName = activeEffect.getEffectType();
+
+            // Fast Ball and Slow Ball cannot stack with each other
+            if (powerUpName.equals("Speed x2") && activeEffectName.equals("speed x0.5")) {
+                return false;
+            }
+            if (powerUpName.equals("speed x0.5") && activeEffectName.equals("Speed x2")) {
+                return false;
+            }
+
+            // Super Ball cannot stack with itself (already handled by refresh logic above)
+            // Other power-ups can stack
+        }
+
+        return true;
     }
 
     protected void renderGameplay(SpriteBatch batch) {
@@ -448,7 +604,12 @@ public abstract class Arkanoid extends Scene {
         batch.draw(pixelTexture, SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH, 0, SIDE_PANEL_WIDTH, WINDOW_HEIGHT);
         batch.setColor(1f, 1f, 1f, 1f);
         paddle.render(batch);
-        ball.render(batch);
+
+        // Render all balls
+        for (Ball ball : balls) {
+            ball.render(batch);
+        }
+
         for (Brick brick : bricks) {
             brick.render(batch);
         }
@@ -468,14 +629,19 @@ public abstract class Arkanoid extends Scene {
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        Rectangle ballBounds = ball.getBounds();
-        float ballRadius = ball.getRadius();
-        shapeRenderer.setColor(0, 1, 0, 1);
-        shapeRenderer.circle(ballBounds.x, ballBounds.y, ballRadius, 32);
-        shapeRenderer.setColor(0, 1, 0, 0.5f);
-        shapeRenderer.rect(ballBounds.x - ballRadius, ballBounds.y - ballRadius, ballRadius * 2, ballRadius * 2);
-        shapeRenderer.setColor(1, 1, 0, 1);
-        shapeRenderer.circle(ballBounds.x, ballBounds.y, 2, 8);
+
+        // Render hitboxes for all balls
+        for (Ball ball : balls) {
+            Rectangle ballBounds = ball.getBounds();
+            float ballRadius = ball.getRadius();
+            shapeRenderer.setColor(0, 1, 0, 1);
+            shapeRenderer.circle(ballBounds.x, ballBounds.y, ballRadius, 32);
+            shapeRenderer.setColor(0, 1, 0, 0.5f);
+            shapeRenderer.rect(ballBounds.x - ballRadius, ballBounds.y - ballRadius, ballRadius * 2, ballRadius * 2);
+            shapeRenderer.setColor(1, 1, 0, 1);
+            shapeRenderer.circle(ballBounds.x, ballBounds.y, 2, 8);
+        }
+
         Rectangle paddleBounds = paddle.getBounds();
         shapeRenderer.setColor(0, 0.5f, 1, 1);
         shapeRenderer.rect(paddleBounds.x, paddleBounds.y, paddleBounds.width, paddleBounds.height);
@@ -593,7 +759,13 @@ public abstract class Arkanoid extends Scene {
         lives--;
         heartBlinking = true;
         heartBlinkTimer = 0f;
-        ball.reset(paddle.getCenterX(), paddle.getBounds().y + paddle.getBounds().height + ball.getRadius() + 5);
+
+        // Reset to single ball
+        balls.clear();
+        float ballRadius = 12f;
+        Ball mainBall = new Ball(paddle.getCenterX(), paddle.getBounds().y + paddle.getBounds().height + ballRadius + 5, ballRadius);
+        balls.add(mainBall);
+
         log.info("Ball lost! Lives remaining: {}", lives);
         if (lives <= 0) {
             onGameOver();
@@ -633,7 +805,56 @@ public abstract class Arkanoid extends Scene {
         return lastHitBrick;
     }
 
+    /**
+     * Gets the main ball (first ball in the list).
+     * Used for compatibility with power-ups that affect a single ball.
+     */
     public Ball getBall() {
-        return ball;
+        return balls.isEmpty() ? null : balls.get(0);
+    }
+
+    /**
+     * Gets all balls currently in play.
+     */
+    public List<Ball> getBalls() {
+        return balls;
+    }
+
+    /**
+     * Spawns additional balls for MultiBall power-up.
+     * Maximum of MAX_BALLS total balls.
+     *
+     * @param count number of balls to spawn
+     */
+    public void spawnBalls(int count) {
+        if (balls.isEmpty()) return;
+
+        Ball mainBall = balls.get(0);
+        if (!mainBall.isActive()) return;
+
+        int ballsToSpawn = Math.min(count, MAX_BALLS - balls.size());
+
+        for (int i = 0; i < ballsToSpawn; i++) {
+            // Create new ball at main ball position
+            Ball newBall = new Ball(mainBall.getBounds().x, mainBall.getBounds().y, mainBall.getRadius());
+
+            // Copy properties from main ball
+            newBall.setSuperBall(mainBall.isSuperBall());
+            newBall.setSpeedMultiplier(mainBall.getSpeedMultiplier());
+            newBall.launch();
+
+            // Set velocity at different angles to spread the balls
+            float baseSpeed = mainBall.getVelocity().len();
+            float angleOffset = (i + 1) * 30f; // Spread balls at 30 degree intervals
+            float angleInRadians = (float) Math.toRadians(90 + angleOffset - (ballsToSpawn * 15f));
+            newBall.setVelocity(
+                baseSpeed * (float) Math.cos(angleInRadians),
+                baseSpeed * (float) Math.sin(angleInRadians)
+            );
+
+            balls.add(newBall);
+        }
+
+        log.info("Spawned {} additional ball(s). Total balls: {}", ballsToSpawn, balls.size());
     }
 }

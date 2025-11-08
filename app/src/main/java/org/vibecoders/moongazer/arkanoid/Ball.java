@@ -13,17 +13,22 @@ public class Ball extends MovableObject {
     private boolean active;
     private float previousY;          // For swept collision detection
     private boolean isHeavyBall = false;  // Heavy ball passes through bricks
+    private boolean isSuperBall = false;  // Super ball passes through breakable bricks
     private boolean isStuckToPaddle = false;  // For sticky paddle power-up
     private float stuckOffsetX = 0f;  // Offset from paddle center when stuck
     private int comboCount = 0;       // Consecutive brick hits counter
     private float speedMultiplier = 1.0f;  // Dynamic speed adjustment
+    private Texture normalTexture;    // Normal ball texture
+    private Texture enchantedTexture; // Enchanted ball texture for super ball mode
 
     public Ball(float x, float y, float radius) {
         super((int)x, (int)y, (int)radius * 2, (int)radius * 2);
         this.velocity = new Vector2(300, 300); // Initial velocity
         this.radius = radius;
         this.active = false;
-        this.texture = Assets.getAsset("textures/arkanoid/normal_ball.png", Texture.class);
+        this.normalTexture = Assets.getAsset("textures/arkanoid/normal_ball.png", Texture.class);
+        this.enchantedTexture = Assets.getAsset("textures/arkanoid/enchanted_ball.png", Texture.class);
+        this.texture = normalTexture;
     }
 
     public void update(float delta) {
@@ -137,6 +142,34 @@ public class Ball extends MovableObject {
         return isHeavyBall;
     }
     
+    // ===== Super Ball Mode =====
+
+    /**
+     * Sets the super ball mode for this ball.
+     * When super ball is active, the ball passes through breakable bricks without bouncing,
+     * but still bounces off unbreakable bricks and borders.
+     *
+     * @param superBall true to enable super ball mode, false to disable
+     */
+    public void setSuperBall(boolean superBall) {
+        this.isSuperBall = superBall;
+        // Change texture based on mode
+        if (superBall) {
+            this.texture = enchantedTexture;
+        } else {
+            this.texture = normalTexture;
+        }
+    }
+
+    /**
+     * Gets whether this ball is in super ball mode.
+     *
+     * @return true if super ball mode is active, false otherwise
+     */
+    public boolean isSuperBall() {
+        return isSuperBall;
+    }
+
     // ===== Sticky Paddle Support =====
     
     /**

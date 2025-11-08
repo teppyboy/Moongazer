@@ -1,4 +1,4 @@
-package org.vibecoders.moongazer.arkanoid.powerups;
+package org.vibecoders.moongazer.arkanoid.PowerUps;
 
 import org.vibecoders.moongazer.arkanoid.PowerUp;
 
@@ -32,5 +32,10 @@ public class ClassicPowerUpFactory implements PowerUpFactory {
     @Override
     public PowerUp createBulletPaddle(float x, float y, float width, float height) {
         return new BulletPaddle(x, y, width, height);
+    }
+
+    @Override
+    public PowerUp createSuperBall(float x, float y, float width, float height) {
+        return new SuperBall(x, y, width, height);
     }
 }
