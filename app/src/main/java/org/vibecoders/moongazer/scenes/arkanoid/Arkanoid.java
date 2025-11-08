@@ -19,9 +19,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.arkanoid.*;
-import org.vibecoders.moongazer.arkanoid.PowerUps.ActivePowerUpEffect;
-import org.vibecoders.moongazer.arkanoid.PowerUps.ClassicPowerUpFactory;
-
+import org.vibecoders.moongazer.arkanoid.powerups.ActivePowerUpEffect;
+import org.vibecoders.moongazer.arkanoid.powerups.ClassicPowerUpFactory;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.scenes.Scene;
 import org.vibecoders.moongazer.ui.PauseMenu;

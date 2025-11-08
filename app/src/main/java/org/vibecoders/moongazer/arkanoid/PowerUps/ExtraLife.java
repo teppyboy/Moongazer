@@ -1,11 +1,11 @@
-package org.vibecoders.moongazer.arkanoid.PowerUps;
+package org.vibecoders.moongazer.arkanoid.powerups;
 
 import org.vibecoders.moongazer.arkanoid.PowerUp;
 import org.vibecoders.moongazer.scenes.arkanoid.Arkanoid;
 
-public class ExtraLifePowerUp extends PowerUp {
-    
-    public ExtraLifePowerUp(float x, float y, float width, float height) {
+public class ExtraLife extends PowerUp {
+
+    public ExtraLife(float x, float y, float width, float height) {
         super(x, y, width, height);
         loadTexture("textures/ui/hearth.png");
     }

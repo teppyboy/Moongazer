@@ -1,4 +1,4 @@
-package org.vibecoders.moongazer.arkanoid.PowerUps;
+package org.vibecoders.moongazer.arkanoid.powerups;
 
 import org.vibecoders.moongazer.arkanoid.PowerUp;
 
