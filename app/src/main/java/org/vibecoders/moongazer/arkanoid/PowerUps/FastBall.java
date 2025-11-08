@@ -4,7 +4,6 @@ import org.vibecoders.moongazer.arkanoid.PowerUp;
 import org.vibecoders.moongazer.scenes.arkanoid.Arkanoid;
 
 public class FastBall extends PowerUp {
-
     public FastBall(float x, float y, float width, float height) {
         super(x, y, width, height);
         loadTexture("textures/arkanoid/perk2.png");
