@@ -62,6 +62,7 @@ public class SettingsScene extends Scene {
             row.add(new Label(volume, labelStyle)).expandX().left().padLeft(40).pad(15);
             if (volume.equals("Master Volume")) {
                 masterVolSlider = new UISlider();
+                masterVolSlider.setValue(Settings.getMasterVolume());
                 masterVolSlider.onChanged(() -> {
                     Settings.setMasterVolume(masterVolSlider.getValue());
                     Audio.musicSetVolume();
@@ -69,6 +70,7 @@ public class SettingsScene extends Scene {
                 row.add(masterVolSlider.slider).width(300).right().padRight(40);
             } else if (volume.equals("Music Volume")) {
                 musicSlider = new UISlider();
+                musicSlider.setValue(Settings.getMusicVolume());
                 musicSlider.onChanged(() -> {
                     Settings.setMusicVolume(musicSlider.getValue());
                     Audio.musicSetVolume();
@@ -76,6 +78,7 @@ public class SettingsScene extends Scene {
                 row.add(musicSlider.slider).width(300).right().padRight(40);
             } else if (volume.equals("SFX Volume")) {
                 sfxSlider = new UISlider();
+                sfxSlider.setValue(Settings.getSfxVolume());
                 sfxSlider.onChanged(() -> {
                     Settings.setSfxVolume(sfxSlider.getValue());
                 });

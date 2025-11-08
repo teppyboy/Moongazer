@@ -1,17 +1,20 @@
 package org.vibecoders.moongazer.scenes;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.enums.State;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.ui.UICloseButton;
 import org.vibecoders.moongazer.ui.UITextButton;
-import org.vibecoders.moongazer.ui.story.*;
+import org.vibecoders.moongazer.ui.story.ChallengeGoalsPanel;
+import org.vibecoders.moongazer.ui.story.MapPanel;
+import org.vibecoders.moongazer.ui.story.StageData;
+import org.vibecoders.moongazer.ui.story.StageInfoPanel;
+import org.vibecoders.moongazer.ui.story.StageRewardPanel;
+import org.vibecoders.moongazer.ui.story.StageSelectionPanel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,10 +80,14 @@ public class StoryModeScene extends Scene {
 
         playButton.onClick(() -> {
             log.debug("Stage " + currentStageID + " clicked");
-//            if (game.transition == null) {
-//                game.recreateScene(game.testInGameScene, () -> new TestInGameScene(game), scene -> game.testInGameScene = scene);
-//                game.transition = new Transition(game, this, game.testInGameScene, State.TEST_IN_GAME, 500);
-//            }
+            if (game.transition == null) {
+                if (currentStageID == 1) {
+                    game.recreateScene(game.storyStageScene, () -> new org.vibecoders.moongazer.scenes.story.Stage1(game), scene -> game.storyStageScene = scene);
+                    game.transition = new Transition(game, this, game.storyStageScene, State.STORY_STAGE, 500);
+                } else {
+                    log.warn("Stage {} not implemented yet", currentStageID);
+                }
+            }
         });
     }
 

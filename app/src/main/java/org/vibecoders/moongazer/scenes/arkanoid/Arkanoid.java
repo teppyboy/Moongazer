@@ -2,6 +2,8 @@ package org.vibecoders.moongazer.scenes.arkanoid;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -42,6 +44,12 @@ public abstract class Arkanoid extends Scene {
     protected Brick lastHitBrick = null;
     protected float collisionCooldown = 0f;
     private Texture pixelTexture;
+    private Texture heartTexture;
+    private Texture backgroundTexture = null;
+    private boolean heartBlinking = false;
+    private float heartBlinkTimer = 0f;
+    private static final float HEART_BLINK_DURATION = 1.5f;
+    private static final float HEART_BLINK_SPEED = 0.15f;
     protected ShapeRenderer shapeRenderer;
     protected boolean showHitboxes = false;
     protected PauseMenu pauseMenu;
@@ -49,6 +57,12 @@ public abstract class Arkanoid extends Scene {
     private Texture gameSnapshot;
     protected List<PowerUp> activePowerUps;
     protected List<ActivePowerUpEffect> activePowerUpEffects;
+    private float pauseCooldown = 0f;
+    private static final float PAUSE_COOLDOWN_TIME = 0.2f;
+    private InputMultiplexer inputMultiplexer;
+    private InputAdapter gameInputAdapter;
+    private boolean gameInputEnabled = true;
+    private boolean escKeyDownInGame = false;
 
     public Arkanoid(Game game) {
         super(game);
@@ -59,12 +73,10 @@ public abstract class Arkanoid extends Scene {
         font = Assets.getFont("ui", 18);
         fontUI30 = Assets.getFont("ui", 30);
         pixelTexture = Assets.getBlackTexture();
+        heartTexture = Assets.getAsset("textures/arkanoid/heart.png", Texture.class);
         shapeRenderer = new ShapeRenderer();
-
-        // Initialize frame buffer for capturing game state
         gameFrameBuffer = new FrameBuffer(Pixmap.Format.RGBA8888, WINDOW_WIDTH, WINDOW_HEIGHT, false);
-
-        // Initialize pause menu
+        setupInputHandling();
         pauseMenu = new PauseMenu();
         setupPauseMenuCallbacks();
 
@@ -72,14 +84,54 @@ public abstract class Arkanoid extends Scene {
         log.info("Arkanoid gameplay initialized");
     }
 
+    private void setupInputHandling() {
+        gameInputAdapter = new InputAdapter() {
+            @Override
+            public boolean keyDown(int keycode) {
+                if (keycode == Input.Keys.ESCAPE) {
+                    if (gameInputEnabled && !pauseMenu.isPaused() && pauseCooldown <= 0) {
+                        escKeyDownInGame = true;
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            @Override
+            public boolean keyUp(int keycode) {
+                if (keycode == Input.Keys.ESCAPE) {
+                    if (gameInputEnabled && escKeyDownInGame && !pauseMenu.isPaused()) {
+                        escKeyDownInGame = false;
+                        gameInputEnabled = false;
+                        onPausePressed();
+                        return true;
+                    }
+                    escKeyDownInGame = false;
+                }
+                return false;
+            }
+        };
+        inputMultiplexer = new InputMultiplexer();
+        inputMultiplexer.addProcessor(gameInputAdapter);
+        inputMultiplexer.addProcessor(game.stage);
+
+        Gdx.input.setInputProcessor(inputMultiplexer);
+    }
+
     protected void setupPauseMenuCallbacks() {
         pauseMenu.setOnResume(() -> {
             log.info("Resuming game from pause menu");
+            pauseCooldown = PAUSE_COOLDOWN_TIME;
+            gameInputEnabled = true;
+            escKeyDownInGame = false;
             restoreInputProcessor();
         });
 
         pauseMenu.setOnRestart(() -> {
             log.info("Restarting game");
+            pauseCooldown = 0;
+            gameInputEnabled = true;
+            escKeyDownInGame = false;
             restartGame();
             restoreInputProcessor();
         });
@@ -96,7 +148,6 @@ public abstract class Arkanoid extends Scene {
     }
 
     protected void restartGame() {
-        // Reset game state
         score = 0;
         lives = 3;
         bricksDestroyed = 0;
@@ -104,7 +155,7 @@ public abstract class Arkanoid extends Scene {
     }
 
     protected void restoreInputProcessor() {
-        Gdx.input.setInputProcessor(game.stage);
+        Gdx.input.setInputProcessor(inputMultiplexer);
     }
 
     protected abstract void returnToMainMenu();
@@ -143,54 +194,48 @@ public abstract class Arkanoid extends Scene {
         return (row % 3 == 0) ? Brick.BrickType.UNBREAKABLE : Brick.BrickType.BREAKABLE;
     }
 
+    protected void setBackground(Texture texture) {
+        this.backgroundTexture = texture;
+    }
+
     @Override
     public void render(SpriteBatch batch) {
         float delta = Gdx.graphics.getDeltaTime();
-
-        // Clear screen
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-        // Only update game logic if not paused
+        if (pauseCooldown > 0) {
+            pauseCooldown -= delta;
+        }
         if (!pauseMenu.isPaused()) {
             handleInput(delta);
             updateGameplay(delta);
             handleCollisions();
         }
-
-        // Render gameplay
         renderGameplay(batch);
         renderUI(batch);
-
-        // If paused, capture game state and render pause menu
         if (pauseMenu.isPaused()) {
-            // Always capture fresh snapshot when just paused
-            captureGameSnapshot(batch);
+            if (gameSnapshot == null) {
+                captureGameSnapshot(batch);
+            }
             pauseMenu.render(batch, gameSnapshot);
         } else {
-            // Clear snapshot reference when not paused (don't dispose, framebuffer owns it)
-            gameSnapshot = null;
+            if (gameSnapshot != null) {
+                gameSnapshot = null;
+            }
         }
     }
 
     private void captureGameSnapshot(SpriteBatch batch) {
         batch.end();
-
-        // Render game to framebuffer
         gameFrameBuffer.begin();
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
         batch.begin();
         renderGameplay(batch);
         renderUI(batch);
         batch.end();
-
         gameFrameBuffer.end();
-
-        // Get the texture from framebuffer (don't dispose this, framebuffer manages it)
         gameSnapshot = gameFrameBuffer.getColorBufferTexture();
-
         batch.begin();
     }
 
@@ -202,9 +247,6 @@ public abstract class Arkanoid extends Scene {
         if (Gdx.input.isKeyPressed(Input.Keys.F3) && Gdx.input.isKeyJustPressed(Input.Keys.B)) {
             showHitboxes = !showHitboxes;
             log.info("Hitbox rendering: {}", showHitboxes ? "ON" : "OFF");
-        }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            onPausePressed();
         }
     }
 
@@ -224,6 +266,13 @@ public abstract class Arkanoid extends Scene {
         }
         if (collisionCooldown > 0) {
             collisionCooldown -= delta;
+        }
+        if (heartBlinking) {
+            heartBlinkTimer += delta;
+            if (heartBlinkTimer >= HEART_BLINK_DURATION) {
+                heartBlinking = false;
+                heartBlinkTimer = 0f;
+            }
         }
         if (!ball.isActive()) {
             ball.reset(paddle.getCenterX(), paddle.getBounds().y + paddle.getBounds().height + ball.getRadius() + 5);
@@ -394,6 +443,9 @@ public abstract class Arkanoid extends Scene {
     }
 
     protected void renderGameplay(SpriteBatch batch) {
+        if (backgroundTexture != null) {
+            batch.draw(backgroundTexture, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        }
         batch.setColor(0f, 0f, 0f, 0.3f);
         batch.draw(pixelTexture, 0, 0, SIDE_PANEL_WIDTH, WINDOW_HEIGHT);
         batch.draw(pixelTexture, SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH, 0, SIDE_PANEL_WIDTH, WINDOW_HEIGHT);
@@ -409,84 +461,120 @@ public abstract class Arkanoid extends Scene {
         }
 
         if (showHitboxes) {
-            // batch.end();
             renderHitboxes(batch);
-            // batch.begin();
         }
     }
 
     protected void renderHitboxes(SpriteBatch batch) {
+        batch.end();
         shapeRenderer.setProjectionMatrix(batch.getProjectionMatrix());
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-        shapeRenderer.setColor(0, 1, 0, 1);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         Rectangle ballBounds = ball.getBounds();
-        float ballCenterX = ballBounds.x;
-        float ballCenterY = ballBounds.y;
         float ballRadius = ball.getRadius();
-        shapeRenderer.circle(ballCenterX, ballCenterY, ballRadius, 32);
+        shapeRenderer.setColor(0, 1, 0, 1);
+        shapeRenderer.circle(ballBounds.x, ballBounds.y, ballRadius, 32);
         shapeRenderer.setColor(0, 1, 0, 0.5f);
         shapeRenderer.rect(ballBounds.x - ballRadius, ballBounds.y - ballRadius, ballRadius * 2, ballRadius * 2);
         shapeRenderer.setColor(1, 1, 0, 1);
-        shapeRenderer.circle(ballCenterX, ballCenterY, 2, 8);
-        shapeRenderer.setColor(0, 0.5f, 1, 1);
+        shapeRenderer.circle(ballBounds.x, ballBounds.y, 2, 8);
         Rectangle paddleBounds = paddle.getBounds();
+        shapeRenderer.setColor(0, 0.5f, 1, 1);
         shapeRenderer.rect(paddleBounds.x, paddleBounds.y, paddleBounds.width, paddleBounds.height);
         shapeRenderer.setColor(0, 1, 1, 1);
-        float paddleTop = paddleBounds.y + paddleBounds.height;
-        shapeRenderer.line(paddleBounds.x, paddleTop, paddleBounds.x + paddleBounds.width, paddleTop);
+        shapeRenderer.line(paddleBounds.x, paddleBounds.y + paddleBounds.height,
+                          paddleBounds.x + paddleBounds.width, paddleBounds.y + paddleBounds.height);
         for (Brick brick : bricks) {
-            if (!brick.isDestroyed()) {
-                Rectangle brickBounds = brick.getBounds();
-                if (brick.getType() == Brick.BrickType.UNBREAKABLE) {
-                    shapeRenderer.setColor(1, 0, 0, 1);
-                } else {
-                    shapeRenderer.setColor(1, 0.5f, 0, 1);
-                }
-                shapeRenderer.rect(brickBounds.x, brickBounds.y, brickBounds.width, brickBounds.height);
-                shapeRenderer.setColor(1, 1, 1, 0.5f);
-                float brickCenterX = brickBounds.x + brickBounds.width / 2f;
-                float brickCenterY = brickBounds.y + brickBounds.height / 2f;
-                shapeRenderer.circle(brickCenterX, brickCenterY, 2, 8);
-            }
+            if (brick.isDestroyed()) continue;
+            Rectangle brickBounds = brick.getBounds();
+            shapeRenderer.setColor(brick.getType() == Brick.BrickType.UNBREAKABLE ?
+                                  Color.RED : new Color(1, 0.5f, 0, 1));
+            shapeRenderer.rect(brickBounds.x, brickBounds.y, brickBounds.width, brickBounds.height);
+            shapeRenderer.setColor(1, 1, 1, 0.5f);
+            shapeRenderer.circle(brickBounds.x + brickBounds.width / 2f,
+                               brickBounds.y + brickBounds.height / 2f, 2, 8);
         }
         shapeRenderer.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);
+        batch.begin();
+    }
+
+    private void drawUIBox(SpriteBatch batch, float x, float y, float width, float height) {
+        batch.end();
+        shapeRenderer.setProjectionMatrix(batch.getProjectionMatrix());
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(0f, 0f, 0f, 0.3f);
+        shapeRenderer.rect(x, y, width, height);
+        shapeRenderer.end();
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.setColor(1f, 1f, 1f, 0.4f);
+        shapeRenderer.rect(x, y, width, height);
+        shapeRenderer.end();
+        Gdx.gl.glDisable(GL20.GL_BLEND);
+        batch.begin();
     }
 
     protected void renderUI(SpriteBatch batch) {
         batch.setColor(1f, 1f, 1f, 1f);
         fontUI30.setColor(Color.WHITE);
+        com.badlogic.gdx.graphics.g2d.GlyphLayout layout = new com.badlogic.gdx.graphics.g2d.GlyphLayout();
+
+        float boxWidth = SIDE_PANEL_WIDTH - 20;
+        float boxX = 10;
+
         String scoreLabel = "Score";
         String scoreValue = String.format("%d", score);
-        com.badlogic.gdx.graphics.g2d.GlyphLayout layout = new com.badlogic.gdx.graphics.g2d.GlyphLayout();
+        layout.setText(fontUI30, scoreLabel);
+        float scoreLabelHeight = layout.height;
+        layout.setText(fontUI30, scoreValue);
+        float scoreValueHeight = layout.height;
+        float scoreBoxHeight = scoreLabelHeight + scoreValueHeight + 30;
+        float scoreBoxY = WINDOW_HEIGHT - 50 - scoreBoxHeight + 10;
+
+        drawUIBox(batch, boxX, scoreBoxY, boxWidth, scoreBoxHeight);
+
         layout.setText(fontUI30, scoreLabel);
         float scoreLabelX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
         fontUI30.draw(batch, scoreLabel, scoreLabelX, WINDOW_HEIGHT - 50);
         layout.setText(fontUI30, scoreValue);
         float scoreValueX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
         fontUI30.draw(batch, scoreValue, scoreValueX, WINDOW_HEIGHT - 60 - layout.height);
+
         String bestLabel = "Best";
         String bestValue = String.format("%d", score);
+        layout.setText(fontUI30, bestLabel);
+        float bestLabelHeight = layout.height;
+        layout.setText(fontUI30, bestValue);
+        float bestValueHeight = layout.height;
+        float bestBoxHeight = bestLabelHeight + bestValueHeight + 30;
+        float bestBoxY = WINDOW_HEIGHT - 140 - bestBoxHeight + 10;
+
+        drawUIBox(batch, boxX, bestBoxY, boxWidth, bestBoxHeight);
+
         layout.setText(fontUI30, bestLabel);
         float bestLabelX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
         fontUI30.draw(batch, bestLabel, bestLabelX, WINDOW_HEIGHT - 140);
         layout.setText(fontUI30, bestValue);
         float bestValueX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
         fontUI30.draw(batch, bestValue, bestValueX, WINDOW_HEIGHT - 150 - layout.height);
-        String livesLabel = "Lives " + lives;
-        layout.setText(fontUI30, livesLabel);
-        float livesLabelX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
-        fontUI30.draw(batch, livesLabel, livesLabelX, WINDOW_HEIGHT - 230);
+        String livesText = " x " + lives;
+        layout.setText(fontUI30, livesText);
+        float heartAndTextWidth = HEART_ICON_SIZE + 5f + layout.width;
+        float heartStartX = (SIDE_PANEL_WIDTH - heartAndTextWidth) / 2f;
+        float heartStartY = 40f;
+        float blinkAlpha = heartBlinking && (heartBlinkTimer % HEART_BLINK_SPEED) / HEART_BLINK_SPEED < 0.5f ? 0.2f : 1.0f;
+        Color originalColor = fontUI30.getColor().cpy();
+        batch.setColor(1f, 1f, 1f, blinkAlpha);
+        batch.draw(heartTexture, heartStartX, heartStartY, HEART_ICON_SIZE, HEART_ICON_SIZE);
+        fontUI30.setColor(originalColor.r, originalColor.g, originalColor.b, blinkAlpha);
+        float textY = heartStartY + (HEART_ICON_SIZE + layout.height) / 2f;
+        fontUI30.draw(batch, livesText, heartStartX + HEART_ICON_SIZE + 5f, textY);
+        batch.setColor(Color.WHITE);
+        fontUI30.setColor(originalColor);
 
-        String livesIcon = "";
-        for (int i = 0; i < lives; i++) {
-            livesIcon += "♥ ";
-        }
-        layout.setText(fontUI30, livesIcon);
-        float livesIconX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
-        fontUI30.draw(batch, livesIcon, livesIconX, WINDOW_HEIGHT - 240 - layout.height);
         String powerupsText = "Powerups";
         layout.setText(fontUI30, powerupsText);
         float powerupsX = SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH + (SIDE_PANEL_WIDTH - layout.width) / 2f;
@@ -494,12 +582,8 @@ public abstract class Arkanoid extends Scene {
     }
 
     protected boolean checkLevelComplete() {
-        for (Brick brick : bricks) {
-            if (brick.getType() == Brick.BrickType.BREAKABLE && !brick.isDestroyed()) {
-                return false;
-            }
-        }
-        return bricksDestroyed > 0;
+        if (bricksDestroyed == 0) return false;
+        return bricks.stream().noneMatch(brick -> brick.getType() == Brick.BrickType.BREAKABLE && !brick.isDestroyed());
     }
 
     protected void onBrickDestroyed(Brick brick) {
@@ -510,6 +594,8 @@ public abstract class Arkanoid extends Scene {
 
     protected void onBallLost() {
         lives--;
+        heartBlinking = true;
+        heartBlinkTimer = 0f;
         ball.reset(paddle.getCenterX(), paddle.getBounds().y + paddle.getBounds().height + ball.getRadius() + 5);
         log.info("Ball lost! Lives remaining: {}", lives);
         if (lives <= 0) {
@@ -537,7 +623,9 @@ public abstract class Arkanoid extends Scene {
         if (gameFrameBuffer != null) {
             gameFrameBuffer.dispose();
         }
-        // Don't dispose gameSnapshot - it's managed by gameFrameBuffer
+        if (gameSnapshot != null) {
+            gameSnapshot.dispose();
+        }
     }
 
     public Paddle getPaddle() {

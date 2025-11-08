@@ -22,13 +22,19 @@ import java.util.Map;
 
 import static org.vibecoders.moongazer.Constants.*;
 
-/**
- * Reusable pause menu that can be used in any game scene.
- * Features blur effect and freezes the game state.
- */
 public class PauseMenu {
     private static final Logger log = LoggerFactory.getLogger(PauseMenu.class);
 
+    private enum FadeState {
+        HIDDEN,
+        FADING_IN,
+        VISIBLE,
+        FADING_OUT
+    }
+    private static final float FADE_DURATION = 0.25f;
+    private static final int BUTTON_WIDTH = 300;
+    private static final int BUTTON_HEIGHT = 80;
+    private static final int BUTTON_SPACING = 65;
     private boolean isPaused = false;
     private UITextButton[] buttons;
     private Table menuTable;
@@ -39,6 +45,19 @@ public class PauseMenu {
     private int currentChoice = -1;
     private HashMap<Integer, Long> currentKeyDown = new HashMap<>();
     private PauseMenuSettings settingsOverlay;
+    private boolean pendingResume = false;
+    private float fadeAlpha = 0f;
+    private FadeState fadeState = FadeState.HIDDEN;
+
+    private static class ButtonConfig {
+        final String label;
+        final Runnable action;
+
+        ButtonConfig(String label, Runnable action) {
+            this.label = label;
+            this.action = action;
+        }
+    }
 
     private Runnable onResume;
     private Runnable onRestart;
@@ -54,96 +73,77 @@ public class PauseMenu {
         settingsOverlay = new PauseMenuSettings();
         settingsOverlay.setOnClose(() -> {
             Gdx.input.setInputProcessor(menuStage);
+            menuStage.setKeyboardFocus(menuTable);
         });
     }
-
     private void initUI() {
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pixmap.setColor(0, 0, 0, 0.7f);
         pixmap.fill();
         blurOverlay = new Texture(pixmap);
         pixmap.dispose();
-
         titleFont = Assets.getFont("ui", 40);
         buttonFont = Assets.getFont("ui", 24);
-
         menuStage = new Stage();
         menuTable = new Table();
         menuTable.setFillParent(true);
         menuStage.addActor(menuTable);
-
-        UITextButton resumeButton = new UITextButton("Back to Game", buttonFont);
-        UITextButton restartButton = new UITextButton("Restart", buttonFont);
-        UITextButton settingsButton = new UITextButton("Settings", buttonFont);
-        UITextButton mainMenuButton = new UITextButton("Return to Main Menu", buttonFont);
-        UITextButton quitButton = new UITextButton("Quit Game", buttonFont);
-
-        buttons = new UITextButton[] { resumeButton, restartButton, settingsButton, mainMenuButton, quitButton };
-
-        int buttonWidth = 350;
-        int buttonHeight = 70;
-
-        for (UITextButton button : buttons) {
-            button.setSize(buttonWidth, buttonHeight);
+        ButtonConfig[] configs = createButtonConfigs();
+        buttons = new UITextButton[configs.length];
+        int centerX = WINDOW_WIDTH / 2 - BUTTON_WIDTH / 2;
+        int startY = WINDOW_HEIGHT / 2 - BUTTON_HEIGHT / 2;
+        for (int i = 0; i < configs.length; i++) {
+            buttons[i] = buildButton(configs[i], i, centerX, startY);
         }
-
-        int centerX = WINDOW_WIDTH / 2 - buttonWidth / 2;
-        int startY = WINDOW_HEIGHT / 2 + 100;
-        int spacing = 60;
-
-        resumeButton.setPosition(centerX, startY);
-        restartButton.setPosition(centerX, startY - spacing);
-        settingsButton.setPosition(centerX, startY - spacing * 2);
-        mainMenuButton.setPosition(centerX, startY - spacing * 3);
-        quitButton.setPosition(centerX, startY - spacing * 4);
-
-        resumeButton.onClick(() -> {
-            log.debug("Resume clicked");
-            Audio.playSfxConfirm();
-            resume();
-        });
-
-        restartButton.onClick(() -> {
-            log.debug("Restart clicked");
-            Audio.playSfxConfirm();
-            if (onRestart != null) {
-                resume();
-                onRestart.run();
-            }
-        });
-
-        settingsButton.onClick(() -> {
-            log.debug("Settings clicked from pause menu");
-            Audio.playSfxSelect();
-            openSettings();
-        });
-
-        mainMenuButton.onClick(() -> {
-            log.debug("Main menu clicked");
-            Audio.playSfxConfirm();
-            if (onMainMenu != null) {
-                resume();
-                onMainMenu.run();
-            }
-        });
-
-        quitButton.onClick(() -> {
-            log.debug("Quit clicked");
-            Audio.playSfxQuitGame();
-            if (onQuit != null) {
-                onQuit.run();
-            } else {
-                Gdx.app.exit();
-            }
-        });
-
-        menuTable.addActor(resumeButton.getActor());
-        menuTable.addActor(restartButton.getActor());
-        menuTable.addActor(settingsButton.getActor());
-        menuTable.addActor(mainMenuButton.getActor());
-        menuTable.addActor(quitButton.getActor());
-
         initKeyboardHandling();
+    }
+    private ButtonConfig[] createButtonConfigs() {
+        return new ButtonConfig[] {
+                new ButtonConfig("Resume", () -> {
+                    log.debug("Resume clicked");
+                    Audio.playSfxConfirm();
+                    resume();
+                }),
+                new ButtonConfig("Restart", () -> {
+                    log.debug("Restart clicked");
+                    Audio.playSfxConfirm();
+                    if (onRestart != null) {
+                        resume();
+                        onRestart.run();
+                    }
+                }),
+                new ButtonConfig("Settings", () -> {
+                    log.debug("Settings clicked from pause menu");
+                    Audio.playSfxSelect();
+                    settingsOverlay.open();
+                }),
+                new ButtonConfig("Main Menu", () -> {
+                    log.debug("Main menu clicked");
+                    Audio.playSfxConfirm();
+                    if (onMainMenu != null) {
+                        resume();
+                        onMainMenu.run();
+                    }
+                }),
+                new ButtonConfig("Quit Game", () -> {
+                    log.debug("Quit clicked");
+                    Audio.playSfxQuitGame();
+                    if (onQuit != null) {
+                        onQuit.run();
+                    } else {
+                        Gdx.app.exit();
+                    }
+                })
+        };
+    }
+
+    private UITextButton buildButton(ButtonConfig config, int index, int centerX, int startY) {
+        UITextButton button = new UITextButton(config.label, buttonFont);
+        button.setSize(BUTTON_WIDTH, BUTTON_HEIGHT);
+        button.setPosition(centerX, startY - BUTTON_SPACING * index);
+        button.onClick(config.action);
+        menuTable.addActor(button.getActor());
+        return button;
     }
 
     private void initKeyboardHandling() {
@@ -163,23 +163,21 @@ public class PauseMenu {
                 }
             });
         }
-
-        menuTable.addListener(new InputListener() {
+        menuStage.addListener(new InputListener() {
             @Override
             public boolean keyDown(InputEvent event, int keycode) {
                 handleKeyDown(keycode);
                 currentKeyDown.put(keycode, TimeUtils.millis());
                 return true;
             }
-
             @Override
             public boolean keyUp(InputEvent event, int keycode) {
                 currentKeyDown.remove(keycode);
                 return true;
             }
         });
+        menuStage.setKeyboardFocus(menuTable);
     }
-
     private void handleKeyDown(int keycode) {
         switch (keycode) {
             case Input.Keys.UP:
@@ -203,7 +201,6 @@ public class PauseMenu {
             default:
                 break;
         }
-
         if (currentChoice != -1) {
             for (int i = 0; i < buttons.length; i++) {
                 if (i == currentChoice) {
@@ -219,34 +216,45 @@ public class PauseMenu {
         if (!isPaused) {
             isPaused = true;
             currentChoice = -1;
+            fadeAlpha = 0f;
+            fadeState = FadeState.FADING_IN;
             Gdx.input.setInputProcessor(menuStage);
+            menuStage.setKeyboardFocus(menuTable);
             log.info("Game paused");
+        } else if (fadeState == FadeState.FADING_OUT) {
+            fadeState = FadeState.FADING_IN;
         }
     }
 
     public void resume() {
-        if (isPaused) {
-            isPaused = false;
-            currentChoice = -1;
-            currentKeyDown.clear();
-            if (onResume != null) {
-                onResume.run();
-            }
-            log.info("Game resumed");
+        if (isPaused && fadeState != FadeState.FADING_OUT) {
+            pendingResume = true;
         }
     }
 
-    private void openSettings() {
-        settingsOverlay.open();
+    private void processResume() {
+        if (!isPaused || fadeState == FadeState.FADING_OUT) {
+            return;
+        }
+        currentChoice = -1;
+        currentKeyDown.clear();
+        fadeState = FadeState.FADING_OUT;
+        log.info("Game resuming (fading out)");
     }
-
     public boolean isPaused() {
         return isPaused;
     }
-
     public void render(SpriteBatch batch, Texture gameSnapshot) {
-        if (!isPaused) return;
-
+        if (!isPaused)
+            return;
+        float delta = Gdx.graphics.getDeltaTime();
+        if (pendingResume) {
+            pendingResume = false;
+            processResume();
+        }
+        updateFade(delta);
+        if (!isPaused)
+            return;
         if (!settingsOverlay.isOpen()) {
             for (Map.Entry<Integer, Long> entry : currentKeyDown.entrySet()) {
                 Integer keyCode = entry.getKey();
@@ -257,52 +265,86 @@ public class PauseMenu {
                 }
             }
         }
-
         if (gameSnapshot != null) {
             batch.draw(gameSnapshot, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0, 1, 1);
         }
-
-        batch.setColor(1, 1, 1, 1);
-        batch.draw(blurOverlay, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-
-        if (settingsOverlay.isOpen()) {
-            settingsOverlay.render(batch);
+        if (fadeAlpha <= 0f) {
             return;
         }
-
+        batch.setColor(1f, 1f, 1f, fadeAlpha);
+        batch.draw(blurOverlay, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        batch.setColor(Color.WHITE);
+        if (settingsOverlay.isOpen()) {
+            settingsOverlay.render(batch, fadeAlpha);
+            return;
+        }
         String pausedText = "PAUSED";
         com.badlogic.gdx.graphics.g2d.GlyphLayout layout = new com.badlogic.gdx.graphics.g2d.GlyphLayout();
         layout.setText(titleFont, pausedText);
         float titleX = (WINDOW_WIDTH - layout.width) / 2f;
         float titleY = WINDOW_HEIGHT / 2f + 200;
-
-        titleFont.setColor(Color.WHITE);
+        Color originalColor = titleFont.getColor().cpy();
+        titleFont.setColor(1f, 1f, 1f, fadeAlpha);
         titleFont.draw(batch, pausedText, titleX, titleY);
-
+        titleFont.setColor(originalColor);
         batch.end();
-
-        menuStage.act(Gdx.graphics.getDeltaTime());
+        if (menuStage != null && menuStage.getRoot() != null) {
+            menuStage.getRoot().getColor().a = fadeAlpha;
+        }
+        menuStage.act(delta);
         menuStage.draw();
-
         batch.begin();
     }
+    private void updateFade(float delta) {
+        switch (fadeState) {
+            case FADING_IN:
+                fadeAlpha = Math.min(1f, fadeAlpha + delta / FADE_DURATION);
+                if (fadeAlpha >= 1f) {
+                    fadeAlpha = 1f;
+                    fadeState = FadeState.VISIBLE;
+                }
+                break;
+            case FADING_OUT:
+                fadeAlpha = Math.max(0f, fadeAlpha - delta / FADE_DURATION);
+                if (fadeAlpha <= 0f) {
+                    completeFadeOut();
+                }
+                break;
+            case VISIBLE:
+                fadeAlpha = 1f;
+                break;
+            case HIDDEN:
+            default:
+                fadeAlpha = 0f;
+                break;
+        }
+    }
 
+    private void completeFadeOut() {
+        fadeAlpha = 0f;
+        fadeState = FadeState.HIDDEN;
+        isPaused = false;
+        currentKeyDown.clear();
+        if (menuStage != null && menuStage.getRoot() != null) {
+            menuStage.getRoot().getColor().a = 1f;
+        }
+        if (onResume != null) {
+            onResume.run();
+        }
+        log.info("Game resumed");
+    }
     public void setOnResume(Runnable onResume) {
         this.onResume = onResume;
     }
-
     public void setOnRestart(Runnable onRestart) {
         this.onRestart = onRestart;
     }
-
     public void setOnMainMenu(Runnable onMainMenu) {
         this.onMainMenu = onMainMenu;
     }
-
     public void setOnQuit(Runnable onQuit) {
         this.onQuit = onQuit;
     }
-
     public void dispose() {
         if (blurOverlay != null) {
             blurOverlay.dispose();

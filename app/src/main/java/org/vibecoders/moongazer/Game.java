@@ -38,10 +38,13 @@ public class Game extends ApplicationAdapter {
     public Scene selectionScene;
     public Scene storyModeScene;
     public Scene endlessModeScene;
+    public Scene storyStageScene;
     public ArrayList<Scene> gameScenes;
 
     @Override
     public void create() {
+        log.info("Loading settings...");
+        Settings.loadSettings();
         log.info("Loading intro assets...");
         Assets.loadIntroAndWait();
         log.info("Intro assets loaded successfully.");
@@ -104,6 +107,9 @@ public class Game extends ApplicationAdapter {
             case ENDLESS_MODE:
                 currentScene = endlessModeScene;
                 break;
+            case STORY_STAGE:
+                currentScene = storyStageScene;
+                break;
             default:
                 log.warn("Unknown state: {}", state);
         }
@@ -126,14 +132,14 @@ public class Game extends ApplicationAdapter {
     }
 
     public <T extends Scene> T recreateScene(
-            T oldScene,
+            Scene storyStageScene2,
             Supplier<T> constructor,
             Consumer<T> assign) {
-        if (oldScene != null) {
-            if (gameScenes.contains(oldScene)) {
-                gameScenes.remove(oldScene);
+        if (storyStageScene2 != null) {
+            if (gameScenes.contains(storyStageScene2)) {
+                gameScenes.remove(storyStageScene2);
             }
-            oldScene.dispose();
+            storyStageScene2.dispose();
         }
         T newScene = constructor.get();
         assign.accept(newScene);

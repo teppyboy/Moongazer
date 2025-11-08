@@ -1,32 +1,24 @@
 package org.vibecoders.moongazer.scenes.arkanoid;
 
 import org.vibecoders.moongazer.Game;
-import org.vibecoders.moongazer.arkanoid.*;
+import org.vibecoders.moongazer.arkanoid.Brick;
 import org.vibecoders.moongazer.managers.Assets;
 import com.badlogic.gdx.graphics.Texture;
-import static org.vibecoders.moongazer.Constants.*;
 
 public class ArkanoidEndless extends Arkanoid {
 
     private int currentWave = 1;
     private float unbreakableChance = 0.1f;
-    private Texture backgroundTexture;
 
     public ArkanoidEndless(Game game) {
         super(game);
-        backgroundTexture = Assets.getAsset("textures/arkanoid/bg/endless.jpg", Texture.class);
     }
 
     @Override
     protected void init() {
         super.init();
+        setBackground(Assets.getAsset("textures/arkanoid/bg/endless.jpg", Texture.class));
         startWave(currentWave);
-    }
-
-    @Override
-    protected void renderGameplay(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
-        batch.draw(backgroundTexture, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-        super.renderGameplay(batch);
     }
 
     private void startWave(int wave) {

@@ -1,3 +1,10 @@
+# Ignore Moongazer files
+settings.json
+userdata.db
+
+# Ignore slop files
+.claude
+
 # Ignore Gradle project-specific cache directory
 .gradle
 
