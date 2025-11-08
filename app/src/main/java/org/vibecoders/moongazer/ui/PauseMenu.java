@@ -243,20 +243,12 @@ public class PauseMenu {
     }
 
     public void resume() {
-        if (isPaused) {
+        if (isPaused && fadeState != FadeState.FADING_OUT) {
             pendingResume = true;
         }
     }
 
     private void processResume() {
-        isPaused = false;
-        currentChoice = -1;
-        currentKeyDown.clear();
-        if (onResume != null) {
-            onResume.run();
-        }
-        log.info("Game resumed");
-    }
         if (!isPaused || fadeState == FadeState.FADING_OUT) {
             return;
         }
@@ -265,11 +257,7 @@ public class PauseMenu {
         currentKeyDown.clear();
         fadeState = FadeState.FADING_OUT;
 
-        if (onResume != null) {
-            onResume.run();
-        }
-
-        log.info("Game resumed");
+        log.info("Game resuming (fading out)");
     }
 
     public boolean isPaused() {
@@ -279,13 +267,13 @@ public class PauseMenu {
     public void render(SpriteBatch batch, Texture gameSnapshot) {
         if (!isPaused) return;
 
+        float delta = Gdx.graphics.getDeltaTime();
+
         // Process pending resume at the start of render, before any input processing
         if (pendingResume) {
             pendingResume = false;
             processResume();
-            return; // Exit immediately after resume
         }
-        float delta = Gdx.graphics.getDeltaTime();
         updateFade(delta);
         if (!isPaused) return;
 
@@ -377,6 +365,10 @@ public class PauseMenu {
         if (menuStage != null && menuStage.getRoot() != null) {
             menuStage.getRoot().getColor().a = 1f;
         }
+        if (onResume != null) {
+            onResume.run();
+        }
+        log.info("Game resumed");
     }
 
     public void setOnResume(Runnable onResume) {
