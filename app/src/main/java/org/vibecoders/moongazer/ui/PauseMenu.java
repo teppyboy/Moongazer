@@ -31,12 +31,10 @@ public class PauseMenu {
         VISIBLE,
         FADING_OUT
     }
-
     private static final float FADE_DURATION = 0.25f;
     private static final int BUTTON_WIDTH = 300;
     private static final int BUTTON_HEIGHT = 80;
     private static final int BUTTON_SPACING = 65;
-
     private boolean isPaused = false;
     private UITextButton[] buttons;
     private Table menuTable;
@@ -78,35 +76,27 @@ public class PauseMenu {
             menuStage.setKeyboardFocus(menuTable);
         });
     }
-
     private void initUI() {
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pixmap.setColor(0, 0, 0, 0.7f);
         pixmap.fill();
         blurOverlay = new Texture(pixmap);
         pixmap.dispose();
-
         titleFont = Assets.getFont("ui", 40);
         buttonFont = Assets.getFont("ui", 24);
-
         menuStage = new Stage();
         menuTable = new Table();
         menuTable.setFillParent(true);
         menuStage.addActor(menuTable);
-
         ButtonConfig[] configs = createButtonConfigs();
         buttons = new UITextButton[configs.length];
-
         int centerX = WINDOW_WIDTH / 2 - BUTTON_WIDTH / 2;
         int startY = WINDOW_HEIGHT / 2 - BUTTON_HEIGHT / 2;
-
         for (int i = 0; i < configs.length; i++) {
             buttons[i] = buildButton(configs[i], i, centerX, startY);
         }
-
         initKeyboardHandling();
     }
-
     private ButtonConfig[] createButtonConfigs() {
         return new ButtonConfig[] {
                 new ButtonConfig("Resume", () -> {
@@ -173,7 +163,6 @@ public class PauseMenu {
                 }
             });
         }
-
         menuStage.addListener(new InputListener() {
             @Override
             public boolean keyDown(InputEvent event, int keycode) {
@@ -181,18 +170,14 @@ public class PauseMenu {
                 currentKeyDown.put(keycode, TimeUtils.millis());
                 return true;
             }
-
             @Override
             public boolean keyUp(InputEvent event, int keycode) {
                 currentKeyDown.remove(keycode);
                 return true;
             }
         });
-
-        // Set keyboard focus to menuTable so it receives input events
         menuStage.setKeyboardFocus(menuTable);
     }
-
     private void handleKeyDown(int keycode) {
         switch (keycode) {
             case Input.Keys.UP:
@@ -216,7 +201,6 @@ public class PauseMenu {
             default:
                 break;
         }
-
         if (currentChoice != -1) {
             for (int i = 0; i < buttons.length; i++) {
                 if (i == currentChoice) {
@@ -252,31 +236,25 @@ public class PauseMenu {
         if (!isPaused || fadeState == FadeState.FADING_OUT) {
             return;
         }
-
         currentChoice = -1;
         currentKeyDown.clear();
         fadeState = FadeState.FADING_OUT;
-
         log.info("Game resuming (fading out)");
     }
-
     public boolean isPaused() {
         return isPaused;
     }
-
     public void render(SpriteBatch batch, Texture gameSnapshot) {
-        if (!isPaused) return;
-
+        if (!isPaused)
+            return;
         float delta = Gdx.graphics.getDeltaTime();
-
-        // Process pending resume at the start of render, before any input processing
         if (pendingResume) {
             pendingResume = false;
             processResume();
         }
         updateFade(delta);
-        if (!isPaused) return;
-
+        if (!isPaused)
+            return;
         if (!settingsOverlay.isOpen()) {
             for (Map.Entry<Integer, Long> entry : currentKeyDown.entrySet()) {
                 Integer keyCode = entry.getKey();
@@ -287,51 +265,36 @@ public class PauseMenu {
                 }
             }
         }
-
         if (gameSnapshot != null) {
             batch.draw(gameSnapshot, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0, 1, 1);
         }
-
-        float alpha = fadeAlpha;
-        if (alpha <= 0f) {
+        if (fadeAlpha <= 0f) {
             return;
         }
-
-        batch.setColor(1f, 1f, 1f, alpha);
+        batch.setColor(1f, 1f, 1f, fadeAlpha);
         batch.draw(blurOverlay, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         batch.setColor(Color.WHITE);
-
         if (settingsOverlay.isOpen()) {
-            settingsOverlay.render(batch, alpha);
+            settingsOverlay.render(batch, fadeAlpha);
             return;
         }
-
         String pausedText = "PAUSED";
         com.badlogic.gdx.graphics.g2d.GlyphLayout layout = new com.badlogic.gdx.graphics.g2d.GlyphLayout();
         layout.setText(titleFont, pausedText);
         float titleX = (WINDOW_WIDTH - layout.width) / 2f;
         float titleY = WINDOW_HEIGHT / 2f + 200;
-
-        Color fontColor = titleFont.getColor();
-        float prevR = fontColor.r;
-        float prevG = fontColor.g;
-        float prevB = fontColor.b;
-        float prevA = fontColor.a;
-        titleFont.setColor(1f, 1f, 1f, alpha);
+        Color originalColor = titleFont.getColor().cpy();
+        titleFont.setColor(1f, 1f, 1f, fadeAlpha);
         titleFont.draw(batch, pausedText, titleX, titleY);
-        titleFont.setColor(prevR, prevG, prevB, prevA);
-
+        titleFont.setColor(originalColor);
         batch.end();
-
         if (menuStage != null && menuStage.getRoot() != null) {
-            menuStage.getRoot().getColor().a = alpha;
+            menuStage.getRoot().getColor().a = fadeAlpha;
         }
         menuStage.act(delta);
         menuStage.draw();
-
         batch.begin();
     }
-
     private void updateFade(float delta) {
         switch (fadeState) {
             case FADING_IN:
@@ -370,23 +333,18 @@ public class PauseMenu {
         }
         log.info("Game resumed");
     }
-
     public void setOnResume(Runnable onResume) {
         this.onResume = onResume;
     }
-
     public void setOnRestart(Runnable onRestart) {
         this.onRestart = onRestart;
     }
-
     public void setOnMainMenu(Runnable onMainMenu) {
         this.onMainMenu = onMainMenu;
     }
-
     public void setOnQuit(Runnable onQuit) {
         this.onQuit = onQuit;
     }
-
     public void dispose() {
         if (blurOverlay != null) {
             blurOverlay.dispose();
