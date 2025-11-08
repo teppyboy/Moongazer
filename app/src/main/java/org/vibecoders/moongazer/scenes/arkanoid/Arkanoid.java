@@ -217,7 +217,17 @@ public abstract class Arkanoid extends Scene {
         renderUI(batch);
         if (pauseMenu.isPaused()) {
             if (gameSnapshot == null) {
-                captureGameSnapshot(batch);
+                batch.end();
+                gameFrameBuffer.begin();
+                Gdx.gl.glClearColor(0, 0, 0, 1);
+                Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+                batch.begin();
+                renderGameplay(batch);
+                renderUI(batch);
+                batch.end();
+                gameFrameBuffer.end();
+                gameSnapshot = gameFrameBuffer.getColorBufferTexture();
+                batch.begin();
             }
             pauseMenu.render(batch, gameSnapshot);
         } else {
@@ -225,20 +235,6 @@ public abstract class Arkanoid extends Scene {
                 gameSnapshot = null;
             }
         }
-    }
-
-    private void captureGameSnapshot(SpriteBatch batch) {
-        batch.end();
-        gameFrameBuffer.begin();
-        Gdx.gl.glClearColor(0, 0, 0, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        batch.begin();
-        renderGameplay(batch);
-        renderUI(batch);
-        batch.end();
-        gameFrameBuffer.end();
-        gameSnapshot = gameFrameBuffer.getColorBufferTexture();
-        batch.begin();
     }
 
     protected void handleInput(float delta) {
@@ -263,7 +259,6 @@ public abstract class Arkanoid extends Scene {
     protected void updateGameplay(float delta) {
         paddle.update(delta, SIDE_PANEL_WIDTH, SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH);
 
-        // Update all balls
         for (Ball ball : balls) {
             ball.update(delta);
         }
@@ -290,7 +285,6 @@ public abstract class Arkanoid extends Scene {
             }
         }
 
-        // Reset main ball if no balls are active
         if (balls.size() == 1 && !balls.get(0).isActive()) {
             Ball mainBall = balls.get(0);
             mainBall.reset(paddle.getCenterX(), paddle.getBounds().y + paddle.getBounds().height + mainBall.getRadius() + 5);
@@ -298,7 +292,6 @@ public abstract class Arkanoid extends Scene {
     }
 
     protected void handleCollisions() {
-        // Handle collisions for each ball
         for (int ballIndex = balls.size() - 1; ballIndex >= 0; ballIndex--) {
             Ball ball = balls.get(ballIndex);
 
@@ -310,35 +303,27 @@ public abstract class Arkanoid extends Scene {
             float ballY = ball.getBounds().y;
             float ballRadius = ball.getRadius();
 
-            // Left wall collision
             if (ballX - ballRadius <= SIDE_PANEL_WIDTH) {
                 ball.getBounds().x = SIDE_PANEL_WIDTH + ballRadius + 1f;
                 ball.reverseX();
             }
-            // Right wall collision
             if (ballX + ballRadius >= SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH) {
                 ball.getBounds().x = SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH - ballRadius - 1f;
                 ball.reverseX();
             }
-            // Top wall collision
             if (ballY + ballRadius >= WINDOW_HEIGHT) {
                 ball.getBounds().y = WINDOW_HEIGHT - ballRadius - 1f;
                 ball.reverseY();
             }
-            // Bottom - ball falls
             if (ballY - ballRadius <= 0) {
-                // Remove this ball from the list
                 balls.remove(ballIndex);
                 log.info("Ball lost! Remaining balls: {}", balls.size());
-
-                // If no balls left, trigger ball lost
                 if (balls.isEmpty()) {
                     onBallLost();
                 }
                 continue;
             }
 
-            // Brick collisions
             boolean brickHit = false;
             for (Brick brick : bricks) {
                 if (!brick.isDestroyed() && Intersector.overlaps(ballBounds, brick.getBounds())) {
@@ -346,13 +331,10 @@ public abstract class Arkanoid extends Scene {
                         continue;
                     }
 
-                    // Check if super ball mode is active
                     boolean isSuperBallMode = ball.isSuperBall();
                     boolean isBreakableBrick = brick.getType() == Brick.BrickType.BREAKABLE;
 
-                    // Super ball passes through breakable bricks without bouncing
                     if (isSuperBallMode && isBreakableBrick) {
-                        // Destroy the brick but don't reverse ball direction
                         brick.hit();
                         lastHitBrick = brick;
                         collisionCooldown = COLLISION_COOLDOWN_TIME;
@@ -361,19 +343,15 @@ public abstract class Arkanoid extends Scene {
                             lastHitBrick = null;
                             onBrickDestroyed(brick);
 
-                            // Spawn power-up if brick has one
                             if (brick.getPowerUpType() != Brick.PowerUpType.NONE) {
                                 spawnRandomPowerUp(brick);
                             } else if (Math.random() < 0.15) {
-                                // 15% chance for normal bricks to drop random power-up
                                 spawnRandomPowerUp(brick);
                             }
                         }
-                        // Don't set brickHit = true, allow ball to continue through
                         continue;
                     }
 
-                    // Normal collision handling for unbreakable bricks or when super ball is inactive
                     Rectangle brickBounds = brick.getBounds();
                     float overlapLeft = (ballX + ballRadius) - brickBounds.x;
                     float overlapRight = (brickBounds.x + brickBounds.width) - (ballX - ballRadius);
@@ -404,11 +382,9 @@ public abstract class Arkanoid extends Scene {
                         lastHitBrick = null;
                         onBrickDestroyed(brick);
 
-                        // Spawn power-up if brick has one
                         if (brick.getPowerUpType() != Brick.PowerUpType.NONE) {
                             spawnRandomPowerUp(brick);
                         } else if (Math.random() < 0.15) {
-                            // 15% chance for normal bricks to drop random power-up
                             spawnRandomPowerUp(brick);
                         }
                     }
@@ -417,7 +393,6 @@ public abstract class Arkanoid extends Scene {
                 }
             }
 
-            // Paddle collision
             if (!brickHit && ball.isActive()) {
                 Rectangle paddleBounds = paddle.getBounds();
                 boolean ballIsAbovePaddle = ballY - ballRadius > paddleBounds.y;
@@ -507,7 +482,6 @@ public abstract class Arkanoid extends Scene {
         float powerUpWidth = 32;
         float powerUpHeight = 32;
 
-        // Check if brick has a specific power-up type
         if (brick.getPowerUpType() != Brick.PowerUpType.NONE) {
             switch (brick.getPowerUpType()) {
                 case EXPAND_PADDLE:
@@ -528,14 +502,12 @@ public abstract class Arkanoid extends Scene {
                 case SUPER_BALL:
                     powerUp = factory.createSuperBall(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
                     break;
-                // Future implementations
                 case LASER:
                 case EXPLOSIVE:
                     log.warn("Power-up type {} not yet implemented", brick.getPowerUpType());
                     return;
             }
         } else {
-            // Random power-up for non-specific bricks
             double rand = Math.random();
             if (rand < 0.20) {
                 powerUp = factory.createExpandPaddle(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
@@ -557,39 +529,21 @@ public abstract class Arkanoid extends Scene {
         }
     }
 
-    /**
-     * Checks if a power-up can stack with currently active effects.
-     * Stacking rules:
-     * - Expand Paddle: can stack with all other power-ups
-     * - Slow Ball: can stack with all except Fast Ball
-     * - Fast Ball: can stack with all except Slow Ball
-     * - Other power-ups: can stack with Expand Paddle and Slow/Fast (if allowed)
-     *
-     * @param powerUpName the name of the power-up to check
-     * @return true if the power-up can be activated, false otherwise
-     */
     private boolean canPowerUpStack(String powerUpName) {
-        // Expand Paddle and instant effects (Multi Ball, Extra Life) can always stack
         if (powerUpName.equals("Expand Paddle") ||
             powerUpName.equals("Multi Ball") ||
             powerUpName.equals("Extra Life")) {
             return true;
         }
 
-        // Check for conflicting effects
         for (ActivePowerUpEffect activeEffect : activePowerUpEffects) {
             String activeEffectName = activeEffect.getEffectType();
-
-            // Fast Ball and Slow Ball cannot stack with each other
             if (powerUpName.equals("Speed x2") && activeEffectName.equals("speed x0.5")) {
                 return false;
             }
             if (powerUpName.equals("speed x0.5") && activeEffectName.equals("Speed x2")) {
                 return false;
             }
-
-            // Super Ball cannot stack with itself (already handled by refresh logic above)
-            // Other power-ups can stack
         }
 
         return true;
@@ -605,7 +559,6 @@ public abstract class Arkanoid extends Scene {
         batch.setColor(1f, 1f, 1f, 1f);
         paddle.render(batch);
 
-        // Render all balls
         for (Ball ball : balls) {
             ball.render(batch);
         }
