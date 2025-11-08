@@ -3,9 +3,9 @@ package org.vibecoders.moongazer.arkanoid.PowerUps;
 import org.vibecoders.moongazer.arkanoid.PowerUp;
 import org.vibecoders.moongazer.scenes.arkanoid.Arkanoid;
 
-public class ClassicMultiBallPowerUp extends PowerUp {
+public class BulletPaddlePowerUp extends PowerUp {
     
-    public ClassicMultiBallPowerUp(float x, float y, float width, float height) {
+    public BulletPaddlePowerUp(float x, float y, float width, float height) {
         super(x, y, width, height);
         loadTexture("textures/arkanoid/perk2.png");
     }
@@ -20,11 +20,11 @@ public class ClassicMultiBallPowerUp extends PowerUp {
 
     @Override
     public int getDuration() {
-        return -1;
+        return 5000;
     }
 
     @Override
     public String getName() {
-        return "Multi Ball";
+        return "Bullet Paddle";
     }
 }
