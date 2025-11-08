@@ -360,43 +360,38 @@ public abstract class Arkanoid extends Scene {
     }
 
     protected void renderHitboxes(SpriteBatch batch) {
+        batch.end();
         shapeRenderer.setProjectionMatrix(batch.getProjectionMatrix());
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-        shapeRenderer.setColor(0, 1, 0, 1);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         Rectangle ballBounds = ball.getBounds();
-        float ballCenterX = ballBounds.x;
-        float ballCenterY = ballBounds.y;
         float ballRadius = ball.getRadius();
-        shapeRenderer.circle(ballCenterX, ballCenterY, ballRadius, 32);
+        shapeRenderer.setColor(0, 1, 0, 1);
+        shapeRenderer.circle(ballBounds.x, ballBounds.y, ballRadius, 32);
         shapeRenderer.setColor(0, 1, 0, 0.5f);
         shapeRenderer.rect(ballBounds.x - ballRadius, ballBounds.y - ballRadius, ballRadius * 2, ballRadius * 2);
         shapeRenderer.setColor(1, 1, 0, 1);
-        shapeRenderer.circle(ballCenterX, ballCenterY, 2, 8);
-        shapeRenderer.setColor(0, 0.5f, 1, 1);
+        shapeRenderer.circle(ballBounds.x, ballBounds.y, 2, 8);
         Rectangle paddleBounds = paddle.getBounds();
+        shapeRenderer.setColor(0, 0.5f, 1, 1);
         shapeRenderer.rect(paddleBounds.x, paddleBounds.y, paddleBounds.width, paddleBounds.height);
         shapeRenderer.setColor(0, 1, 1, 1);
-        float paddleTop = paddleBounds.y + paddleBounds.height;
-        shapeRenderer.line(paddleBounds.x, paddleTop, paddleBounds.x + paddleBounds.width, paddleTop);
+        shapeRenderer.line(paddleBounds.x, paddleBounds.y + paddleBounds.height,
+                          paddleBounds.x + paddleBounds.width, paddleBounds.y + paddleBounds.height);
         for (Brick brick : bricks) {
-            if (!brick.isDestroyed()) {
-                Rectangle brickBounds = brick.getBounds();
-                if (brick.getType() == Brick.BrickType.UNBREAKABLE) {
-                    shapeRenderer.setColor(1, 0, 0, 1);
-                } else {
-                    shapeRenderer.setColor(1, 0.5f, 0, 1);
-                }
-                shapeRenderer.rect(brickBounds.x, brickBounds.y, brickBounds.width, brickBounds.height);
-                shapeRenderer.setColor(1, 1, 1, 0.5f);
-                float brickCenterX = brickBounds.x + brickBounds.width / 2f;
-                float brickCenterY = brickBounds.y + brickBounds.height / 2f;
-                shapeRenderer.circle(brickCenterX, brickCenterY, 2, 8);
-            }
+            if (brick.isDestroyed()) continue;
+            Rectangle brickBounds = brick.getBounds();
+            shapeRenderer.setColor(brick.getType() == Brick.BrickType.UNBREAKABLE ?
+                                  Color.RED : new Color(1, 0.5f, 0, 1));
+            shapeRenderer.rect(brickBounds.x, brickBounds.y, brickBounds.width, brickBounds.height);
+            shapeRenderer.setColor(1, 1, 1, 0.5f);
+            shapeRenderer.circle(brickBounds.x + brickBounds.width / 2f,
+                               brickBounds.y + brickBounds.height / 2f, 2, 8);
         }
         shapeRenderer.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);
+        batch.begin();
     }
 
     protected void renderUI(SpriteBatch batch) {
@@ -419,15 +414,18 @@ public abstract class Arkanoid extends Scene {
         layout.setText(fontUI30, bestValue);
         float bestValueX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
         fontUI30.draw(batch, bestValue, bestValueX, WINDOW_HEIGHT - 150 - layout.height);
-        float heartStartX = 30f;
+        String livesText = " x " + lives;
+        layout.setText(fontUI30, livesText);
+        float heartAndTextWidth = HEART_ICON_SIZE + 5f + layout.width;
+        float heartStartX = (SIDE_PANEL_WIDTH - heartAndTextWidth) / 2f;
         float heartStartY = 40f;
         float blinkAlpha = heartBlinking && (heartBlinkTimer % HEART_BLINK_SPEED) / HEART_BLINK_SPEED < 0.5f ? 0.2f : 1.0f;
         Color originalColor = fontUI30.getColor().cpy();
         batch.setColor(1f, 1f, 1f, blinkAlpha);
         batch.draw(heartTexture, heartStartX, heartStartY, HEART_ICON_SIZE, HEART_ICON_SIZE);
         fontUI30.setColor(originalColor.r, originalColor.g, originalColor.b, blinkAlpha);
-        String livesText = " x " + lives;
-        fontUI30.draw(batch, livesText, heartStartX + HEART_ICON_SIZE + 5f, heartStartY + HEART_ICON_SIZE - 5f);
+        float textY = heartStartY + (HEART_ICON_SIZE + layout.height) / 2f;
+        fontUI30.draw(batch, livesText, heartStartX + HEART_ICON_SIZE + 5f, textY);
         batch.setColor(Color.WHITE);
         fontUI30.setColor(originalColor);
 
