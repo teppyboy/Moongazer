@@ -3,29 +3,29 @@ package org.vibecoders.moongazer.arkanoid.PowerUps;
 import org.vibecoders.moongazer.arkanoid.PowerUp;
 import org.vibecoders.moongazer.scenes.arkanoid.Arkanoid;
 
-public class SlowBall extends PowerUp {
-    public SlowBall(float x, float y, float width, float height) {
+public class SuperBall extends PowerUp {
+    public SuperBall(float x, float y, float width, float height) {
         super(x, y, width, height);
-        loadTexture("textures/arkanoid/perk4.png");
+        loadTexture("textures/arkanoid/perk5.png");
     }
 
     @Override
     public void applyEffect(Arkanoid arkanoid) {
-        arkanoid.getBall().setSpeedMultiplier(0.5f);
+        arkanoid.getBall().setSuperBall(true);
     }
 
     @Override
     public void removeEffect(Arkanoid arkanoid) {
-        arkanoid.getBall().setSpeedMultiplier(1.0f);
+        arkanoid.getBall().setSuperBall(false);
     }
 
     @Override
     public int getDuration() {
-        return 5000;
+        return 15000;
     }
 
     @Override
     public String getName() {
-        return "speed x0.5";
+        return "Super Ball";
     }
 }
