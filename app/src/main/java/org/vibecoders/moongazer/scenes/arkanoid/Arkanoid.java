@@ -2,6 +2,8 @@ package org.vibecoders.moongazer.scenes.arkanoid;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -20,7 +22,6 @@ import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.arkanoid.*;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.scenes.Scene;
-import org.vibecoders.moongazer.scenes.Transition;
 import org.vibecoders.moongazer.ui.PauseMenu;
 
 import java.util.ArrayList;
@@ -41,11 +42,22 @@ public abstract class Arkanoid extends Scene {
     protected Brick lastHitBrick = null;
     protected float collisionCooldown = 0f;
     private Texture pixelTexture;
+    private Texture heartTexture;
+    private boolean heartBlinking = false;
+    private float heartBlinkTimer = 0f;
+    private static final float HEART_BLINK_DURATION = 1.5f;
+    private static final float HEART_BLINK_SPEED = 0.15f;
     protected ShapeRenderer shapeRenderer;
     protected boolean showHitboxes = false;
     protected PauseMenu pauseMenu;
     private FrameBuffer gameFrameBuffer;
     private Texture gameSnapshot;
+    private float pauseCooldown = 0f;
+    private static final float PAUSE_COOLDOWN_TIME = 0.2f;
+    private InputMultiplexer inputMultiplexer;
+    private InputAdapter gameInputAdapter;
+    private boolean gameInputEnabled = true;
+    private boolean escKeyDownInGame = false;
 
     public Arkanoid(Game game) {
         super(game);
@@ -56,10 +68,14 @@ public abstract class Arkanoid extends Scene {
         font = Assets.getFont("ui", 18);
         fontUI30 = Assets.getFont("ui", 30);
         pixelTexture = Assets.getBlackTexture();
+        heartTexture = Assets.getAsset("textures/arkanoid/heart.png", Texture.class);
         shapeRenderer = new ShapeRenderer();
 
         // Initialize frame buffer for capturing game state
         gameFrameBuffer = new FrameBuffer(Pixmap.Format.RGBA8888, WINDOW_WIDTH, WINDOW_HEIGHT, false);
+
+        // Initialize input handling
+        setupInputHandling();
 
         // Initialize pause menu
         pauseMenu = new PauseMenu();
@@ -69,14 +85,60 @@ public abstract class Arkanoid extends Scene {
         log.info("Arkanoid gameplay initialized");
     }
 
+    private void setupInputHandling() {
+        // Create input adapter for game-specific controls (including ESC for pause)
+        gameInputAdapter = new InputAdapter() {
+            @Override
+            public boolean keyDown(int keycode) {
+                if (keycode == Input.Keys.ESCAPE) {
+                    if (gameInputEnabled && !pauseMenu.isPaused() && pauseCooldown <= 0) {
+                        escKeyDownInGame = true;
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            @Override
+            public boolean keyUp(int keycode) {
+                if (keycode == Input.Keys.ESCAPE) {
+                    if (gameInputEnabled && escKeyDownInGame && !pauseMenu.isPaused()) {
+                        escKeyDownInGame = false;
+                        gameInputEnabled = false; // Disable immediately to prevent re-triggering
+                        onPausePressed();
+                        return true;
+                    }
+
+                    if (keycode == Input.Keys.ESCAPE) {
+                        escKeyDownInGame = false;
+                    }
+                }
+                return false;
+            }
+        };
+
+        // Create multiplexer to handle both game.stage and game input
+        inputMultiplexer = new InputMultiplexer();
+        inputMultiplexer.addProcessor(gameInputAdapter);
+        inputMultiplexer.addProcessor(game.stage);
+
+        Gdx.input.setInputProcessor(inputMultiplexer);
+    }
+
     protected void setupPauseMenuCallbacks() {
         pauseMenu.setOnResume(() -> {
             log.info("Resuming game from pause menu");
+            pauseCooldown = PAUSE_COOLDOWN_TIME;
+            gameInputEnabled = true; // Re-enable game input
+            escKeyDownInGame = false; // Reset ESC key state
             restoreInputProcessor();
         });
 
         pauseMenu.setOnRestart(() -> {
             log.info("Restarting game");
+            pauseCooldown = 0;
+            gameInputEnabled = true;
+            escKeyDownInGame = false;
             restartGame();
             restoreInputProcessor();
         });
@@ -101,7 +163,7 @@ public abstract class Arkanoid extends Scene {
     }
 
     protected void restoreInputProcessor() {
-        Gdx.input.setInputProcessor(game.stage);
+        Gdx.input.setInputProcessor(inputMultiplexer);
     }
 
     protected abstract void returnToMainMenu();
@@ -146,6 +208,11 @@ public abstract class Arkanoid extends Scene {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        // Update pause cooldown
+        if (pauseCooldown > 0) {
+            pauseCooldown -= delta;
+        }
+
         // Only update game logic if not paused
         if (!pauseMenu.isPaused()) {
             handleInput(delta);
@@ -159,12 +226,16 @@ public abstract class Arkanoid extends Scene {
 
         // If paused, capture game state and render pause menu
         if (pauseMenu.isPaused()) {
-            // Always capture fresh snapshot when just paused
-            captureGameSnapshot(batch);
+            // Capture the current screen to a texture for the blur effect
+            if (gameSnapshot == null) {
+                captureGameSnapshot(batch);
+            }
             pauseMenu.render(batch, gameSnapshot);
         } else {
-            // Clear snapshot reference when not paused (don't dispose, framebuffer owns it)
-            gameSnapshot = null;
+            // Clear snapshot reference when not paused (don't dispose - it's the framebuffer's texture)
+            if (gameSnapshot != null) {
+                gameSnapshot = null;
+            }
         }
     }
 
@@ -183,7 +254,7 @@ public abstract class Arkanoid extends Scene {
 
         gameFrameBuffer.end();
 
-        // Get the texture from framebuffer (don't dispose this, framebuffer manages it)
+        // Get the texture from framebuffer
         gameSnapshot = gameFrameBuffer.getColorBufferTexture();
 
         batch.begin();
@@ -198,9 +269,6 @@ public abstract class Arkanoid extends Scene {
             showHitboxes = !showHitboxes;
             log.info("Hitbox rendering: {}", showHitboxes ? "ON" : "OFF");
         }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            onPausePressed();
-        }
     }
 
     protected void updateGameplay(float delta) {
@@ -209,6 +277,16 @@ public abstract class Arkanoid extends Scene {
         if (collisionCooldown > 0) {
             collisionCooldown -= delta;
         }
+
+        // Update heart blink animation
+        if (heartBlinking) {
+            heartBlinkTimer += delta;
+            if (heartBlinkTimer >= HEART_BLINK_DURATION) {
+                heartBlinking = false;
+                heartBlinkTimer = 0f;
+            }
+        }
+
         if (!ball.isActive()) {
             ball.reset(paddle.getCenterX(), paddle.getBounds().y + paddle.getBounds().height + ball.getRadius() + 5);
         }
@@ -379,11 +457,37 @@ public abstract class Arkanoid extends Scene {
         layout.setText(fontUI30, bestValue);
         float bestValueX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
         fontUI30.draw(batch, bestValue, bestValueX, WINDOW_HEIGHT - 150 - layout.height);
-        String livesIcon = "";
-        for (int i = 0; i < lives; i++) {
-            livesIcon += "♥ ";
+
+        // Render hearts at bottom left as "heart icon x lives"
+        float heartSize = 50f; // Size of heart icon
+        float heartStartX = 30f; // Left margin
+        float heartStartY = 40f; // Bottom margin
+
+        // Calculate blink alpha for both heart icon and lives text
+        float blinkAlpha = 1.0f;
+        if (heartBlinking) {
+            // Create a blinking effect by oscillating alpha
+            float blinkCycle = (heartBlinkTimer % HEART_BLINK_SPEED) / HEART_BLINK_SPEED;
+            blinkAlpha = blinkCycle < 0.5f ? 0.2f : 1.0f;
         }
-        fontUI30.draw(batch, livesIcon, 30, WINDOW_HEIGHT - 190);
+
+        // Save original colors
+        Color batchColor = batch.getColor().cpy();
+        Color fontColor = fontUI30.getColor().cpy();
+
+        // Draw heart icon with blinking effect
+        batch.setColor(1f, 1f, 1f, blinkAlpha);
+        batch.draw(heartTexture, heartStartX, heartStartY, heartSize, heartSize);
+
+        // Draw "x lives" text with blinking effect
+        fontUI30.setColor(fontColor.r, fontColor.g, fontColor.b, blinkAlpha);
+        String livesText = " x " + lives;
+        fontUI30.draw(batch, livesText, heartStartX + heartSize + 5f, heartStartY + heartSize - 5f);
+
+        // IMPORTANT: Restore colors to full opacity before drawing anything else
+        batch.setColor(1f, 1f, 1f, 1f);
+        fontUI30.setColor(fontColor.r, fontColor.g, fontColor.b, 1f);
+
         String powerupsText = "Powerups";
         layout.setText(fontUI30, powerupsText);
         float powerupsX = SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH + (SIDE_PANEL_WIDTH - layout.width) / 2f;
@@ -407,6 +511,8 @@ public abstract class Arkanoid extends Scene {
 
     protected void onBallLost() {
         lives--;
+        heartBlinking = true;
+        heartBlinkTimer = 0f;
         ball.reset(paddle.getCenterX(), paddle.getBounds().y + paddle.getBounds().height + ball.getRadius() + 5);
         log.info("Ball lost! Lives remaining: {}", lives);
         if (lives <= 0) {
@@ -434,6 +540,8 @@ public abstract class Arkanoid extends Scene {
         if (gameFrameBuffer != null) {
             gameFrameBuffer.dispose();
         }
-        // Don't dispose gameSnapshot - it's managed by gameFrameBuffer
+        if (gameSnapshot != null) {
+            gameSnapshot.dispose();
+        }
     }
 }
