@@ -10,5 +10,6 @@ public enum State {
     GAMEPLAY_TEST,
     SELECTION,
     STORY_MODE,
-    ENDLESS_MODE
+    ENDLESS_MODE,
+    STORY_STAGE
 }

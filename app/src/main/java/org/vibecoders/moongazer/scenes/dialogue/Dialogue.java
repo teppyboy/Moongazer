@@ -140,12 +140,12 @@ public abstract class Dialogue extends Scene {
         return characters.get(speakerAsset);
     }
 
-    protected void setDialogueBranches(HashMap<String, List<DialogueStep>> dialogueBranches, String startBranch) {
+    public void setDialogueBranches(HashMap<String, List<DialogueStep>> dialogueBranches, String startBranch) {
         this.dialogueBranches = dialogueBranches;
         this.currentBranch = startBranch;
     }
 
-    protected void setDialogueBranches(HashMap<String, List<DialogueStep>> dialogueBranches) {
+    public void setDialogueBranches(HashMap<String, List<DialogueStep>> dialogueBranches) {
         this.dialogueBranches = dialogueBranches;
         this.currentBranch = "default";
     }
@@ -279,15 +279,15 @@ public abstract class Dialogue extends Scene {
         }
     }
 
-    protected void setOnComplete(Runnable onComplete) {
+    public void setOnComplete(Runnable onComplete) {
         this.onComplete = onComplete;
     }
 
-    protected void setOnExit(ExitCallback onExit) {
+    public void setOnExit(ExitCallback onExit) {
         this.onExit = onExit;
     }
 
-    protected void start() {
+    public void start() {
         if (!started) {
             started = true;
             container.setVisible(true);
