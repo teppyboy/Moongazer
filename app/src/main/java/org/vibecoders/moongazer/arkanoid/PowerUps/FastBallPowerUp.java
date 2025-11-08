@@ -3,21 +3,21 @@ package org.vibecoders.moongazer.arkanoid.PowerUps;
 import org.vibecoders.moongazer.arkanoid.PowerUp;
 import org.vibecoders.moongazer.scenes.arkanoid.Arkanoid;
 
-public class ExpandPaddlePowerUp extends PowerUp {
+public class FastBallPowerUp extends PowerUp {
     
-    public ExpandPaddlePowerUp(float x, float y, float width, float height) {
+    public FastBallPowerUp(float x, float y, float width, float height) {
         super(x, y, width, height);
-        loadTexture("textures/arkanoid/perk2.png");
+        loadTexture("textures/arkanoid/perk3.png");
     }
 
     @Override
     public void applyEffect(Arkanoid arkanoid) {
-        arkanoid.getPaddle().setSize((int) (arkanoid.getPaddle().getWidth() * 2), arkanoid.getPaddle().getHeight());
+        arkanoid.getBall().setSpeedMultiplier(2f);
     }
 
     @Override
     public void removeEffect(Arkanoid arkanoid) {
-        arkanoid.getPaddle().setSize((int) (arkanoid.getPaddle().getWidth() / 2), arkanoid.getPaddle().getHeight());
+        arkanoid.getBall().setSpeedMultiplier(1f);
     }
 
     @Override
@@ -27,6 +27,6 @@ public class ExpandPaddlePowerUp extends PowerUp {
 
     @Override
     public String getName() {
-        return "Expand Paddle";
+        return "Speed x2";
     }
 }

@@ -1,18 +1,19 @@
 package org.vibecoders.moongazer.arkanoid.PowerUps;
 
+import org.vibecoders.moongazer.arkanoid.PowerUp;
 import org.vibecoders.moongazer.scenes.arkanoid.Arkanoid;
 
 public class ActivePowerUpEffect {
-    private PowerUpType effect;
+    private PowerUp powerUp;
     private long startTime;
     private int duration;
     private String effectType;
 
-    public ActivePowerUpEffect(PowerUpType effect) {
-        this.effect = effect;
+    public ActivePowerUpEffect(PowerUp powerUp) {
+        this.powerUp = powerUp;
         this.startTime = System.currentTimeMillis();
-        this.duration = effect.getDuration();
-        this.effectType = effect.getName();
+        this.duration = powerUp.getDuration();
+        this.effectType = powerUp.getName();
     }
 
     public boolean hasExpired() {
@@ -21,15 +22,15 @@ public class ActivePowerUpEffect {
     }
 
     public void removeEffect(Arkanoid arkanoid) {
-        effect.removeEffect(arkanoid);
+        powerUp.removeEffect(arkanoid);
     }
 
     public void refreshDuration() {
         this.startTime = System.currentTimeMillis();
     }
 
-    public PowerUpType getEffect() {
-        return effect;
+    public PowerUp getPowerUp() {
+        return powerUp;
     }
 
     public String getEffectType() {
