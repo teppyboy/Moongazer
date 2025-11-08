@@ -42,6 +42,7 @@ public abstract class Arkanoid extends Scene {
     protected float collisionCooldown = 0f;
     private Texture pixelTexture;
     private Texture heartTexture;
+    private Texture backgroundTexture = null;
     private boolean heartBlinking = false;
     private float heartBlinkTimer = 0f;
     private static final float HEART_BLINK_DURATION = 1.5f;
@@ -184,6 +185,10 @@ public abstract class Arkanoid extends Scene {
 
     protected Brick.BrickType getBrickType(int row, int col) {
         return (row % 3 == 0) ? Brick.BrickType.UNBREAKABLE : Brick.BrickType.BREAKABLE;
+    }
+
+    protected void setBackground(Texture texture) {
+        this.backgroundTexture = texture;
     }
 
     @Override
@@ -345,6 +350,9 @@ public abstract class Arkanoid extends Scene {
     }
 
     protected void renderGameplay(SpriteBatch batch) {
+        if (backgroundTexture != null) {
+            batch.draw(backgroundTexture, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        }
         batch.setColor(0f, 0f, 0f, 0.3f);
         batch.draw(pixelTexture, 0, 0, SIDE_PANEL_WIDTH, WINDOW_HEIGHT);
         batch.draw(pixelTexture, SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH, 0, SIDE_PANEL_WIDTH, WINDOW_HEIGHT);
@@ -394,20 +402,60 @@ public abstract class Arkanoid extends Scene {
         batch.begin();
     }
 
+    private void drawUIBox(SpriteBatch batch, float x, float y, float width, float height) {
+        batch.end();
+        shapeRenderer.setProjectionMatrix(batch.getProjectionMatrix());
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(0f, 0f, 0f, 0.3f);
+        shapeRenderer.rect(x, y, width, height);
+        shapeRenderer.end();
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.setColor(1f, 1f, 1f, 0.4f);
+        shapeRenderer.rect(x, y, width, height);
+        shapeRenderer.end();
+        Gdx.gl.glDisable(GL20.GL_BLEND);
+        batch.begin();
+    }
+
     protected void renderUI(SpriteBatch batch) {
         batch.setColor(1f, 1f, 1f, 1f);
         fontUI30.setColor(Color.WHITE);
+        com.badlogic.gdx.graphics.g2d.GlyphLayout layout = new com.badlogic.gdx.graphics.g2d.GlyphLayout();
+
+        float boxWidth = SIDE_PANEL_WIDTH - 20;
+        float boxX = 10;
+
         String scoreLabel = "Score";
         String scoreValue = String.format("%d", score);
-        com.badlogic.gdx.graphics.g2d.GlyphLayout layout = new com.badlogic.gdx.graphics.g2d.GlyphLayout();
+        layout.setText(fontUI30, scoreLabel);
+        float scoreLabelHeight = layout.height;
+        layout.setText(fontUI30, scoreValue);
+        float scoreValueHeight = layout.height;
+        float scoreBoxHeight = scoreLabelHeight + scoreValueHeight + 30;
+        float scoreBoxY = WINDOW_HEIGHT - 50 - scoreBoxHeight + 10;
+
+        drawUIBox(batch, boxX, scoreBoxY, boxWidth, scoreBoxHeight);
+
         layout.setText(fontUI30, scoreLabel);
         float scoreLabelX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
         fontUI30.draw(batch, scoreLabel, scoreLabelX, WINDOW_HEIGHT - 50);
         layout.setText(fontUI30, scoreValue);
         float scoreValueX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
         fontUI30.draw(batch, scoreValue, scoreValueX, WINDOW_HEIGHT - 60 - layout.height);
+
         String bestLabel = "Best";
         String bestValue = String.format("%d", score);
+        layout.setText(fontUI30, bestLabel);
+        float bestLabelHeight = layout.height;
+        layout.setText(fontUI30, bestValue);
+        float bestValueHeight = layout.height;
+        float bestBoxHeight = bestLabelHeight + bestValueHeight + 30;
+        float bestBoxY = WINDOW_HEIGHT - 140 - bestBoxHeight + 10;
+
+        drawUIBox(batch, boxX, bestBoxY, boxWidth, bestBoxHeight);
+
         layout.setText(fontUI30, bestLabel);
         float bestLabelX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
         fontUI30.draw(batch, bestLabel, bestLabelX, WINDOW_HEIGHT - 140);
