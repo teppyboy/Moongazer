@@ -21,7 +21,7 @@ import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.arkanoid.*;
 import org.vibecoders.moongazer.arkanoid.PowerUps.ActivePowerUpEffect;
 import org.vibecoders.moongazer.arkanoid.PowerUps.ClassicPowerUpFactory;
-import org.vibecoders.moongazer.arkanoid.PowerUps.PowerUpType;
+
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.scenes.Scene;
 import org.vibecoders.moongazer.ui.PauseMenu;
@@ -261,7 +261,7 @@ public abstract class Arkanoid extends Scene {
             if (activeEffect.hasExpired()) {
                 activeEffect.removeEffect(this);
                 activePowerUpEffects.remove(i);
-                log.info("{} effect expired!", activeEffect.getEffect().getName());
+                log.info("{} effect expired!", activeEffect.getEffectType());
             }
         }
         if (collisionCooldown > 0) {
@@ -387,13 +387,11 @@ public abstract class Arkanoid extends Scene {
                     powerUp.y < paddleBounds.y + paddleBounds.height &&
                     powerUp.y + powerUp.height > paddleBounds.y) {
 
-                PowerUpType type = powerUp.getType();
-
                 boolean effectExists = false;
                 for (ActivePowerUpEffect activeEffect : activePowerUpEffects) {
-                    if (activeEffect.getEffectType().equals(type.getName())) {
+                    if (activeEffect.getEffectType().equals(powerUp.getName())) {
                         activeEffect.refreshDuration();
-                        log.info("{} duration refreshed!", type.getName());
+                        log.info("{} duration refreshed!", powerUp.getName());
                         effectExists = true;
                         break;
                     }
@@ -402,13 +400,13 @@ public abstract class Arkanoid extends Scene {
                 if (!effectExists) {
                     powerUp.applyEffect(this);
 
-                    if (type.getDuration() > 0) {
-                        activePowerUpEffects.add(new ActivePowerUpEffect(type));
+                    if (powerUp.getDuration() > 0) {
+                        activePowerUpEffects.add(new ActivePowerUpEffect(powerUp));
                         log.info("{} activated for {} seconds",
-                                type.getName(),
-                                type.getDuration() / 1000f);
-                    } else if (type.getDuration() == -1) {
-                        log.info("{} collected (permanent)", type.getName());
+                                powerUp.getName(),
+                                powerUp.getDuration() / 1000f);
+                    } else if (powerUp.getDuration() == -1) {
+                        log.info("{} collected (permanent)", powerUp.getName());
                     }
                 }
 
