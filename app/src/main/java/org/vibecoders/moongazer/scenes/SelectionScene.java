@@ -2,6 +2,7 @@ package org.vibecoders.moongazer.scenes;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.enums.State;
 import org.vibecoders.moongazer.managers.Assets;
@@ -22,15 +23,15 @@ public class SelectionScene extends Scene {
     SelectionScene(Game game) {
         super(game);
 
-        backgroundTexture = Assets.getAsset("textures/mode_selection/Bg3.png", Texture.class);
+        backgroundTexture = Assets.getAsset("textures/ui/GameSelectionBackground.png", Texture.class);
         root.setFillParent(true);
 
         storyModeButton = new UIImageButton("textures/ui/StoryMode.png");
         endlessModeButton = new UIImageButton("textures/ui/EndlessMode.png");
         storyModeButton.setSize(500, 500);
-        storyModeButton.setPosition(WINDOW_WIDTH / 2 - 500 - 100, (WINDOW_HEIGHT - 500) / 2);
+        storyModeButton.setPosition(WINDOW_WIDTH / 2 + 100, (WINDOW_HEIGHT - 500) / 2);
         endlessModeButton.setSize(500, 500);
-        endlessModeButton.setPosition(WINDOW_WIDTH / 2 + 100, (WINDOW_HEIGHT - 500) / 2);
+        endlessModeButton.setPosition(WINDOW_WIDTH / 2 - 500 - 100, (WINDOW_HEIGHT - 500) / 2);
         root.addActor(storyModeButton.getActor());
         root.addActor(endlessModeButton.getActor());
 
@@ -40,6 +41,7 @@ public class SelectionScene extends Scene {
                 game.transition = new Transition(game, this, game.storyModeScene, State.STORY_MODE, 500);
             }
         });
+
         endlessModeButton.onClick(() -> {
             log.debug("Endless mode clicked");
             if (game.transition == null) {

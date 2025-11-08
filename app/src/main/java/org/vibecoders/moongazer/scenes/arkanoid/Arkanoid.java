@@ -13,14 +13,15 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
 
-import org.lwjgl.opengl.GL32;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.arkanoid.*;
+import org.vibecoders.moongazer.arkanoid.PowerUps.ActivePowerUpEffect;
+import org.vibecoders.moongazer.arkanoid.PowerUps.ClassicPowerUpFactory;
+import org.vibecoders.moongazer.arkanoid.PowerUps.PowerUpType;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.scenes.Scene;
-import org.vibecoders.moongazer.scenes.Transition;
 import org.vibecoders.moongazer.ui.PauseMenu;
 
 import java.util.ArrayList;
@@ -36,7 +37,7 @@ public abstract class Arkanoid extends Scene {
     protected BitmapFont font;
     protected BitmapFont fontUI30;
     protected int score = 0;
-    protected int lives = 3;
+    public int lives = 3;
     protected int bricksDestroyed = 0;
     protected Brick lastHitBrick = null;
     protected float collisionCooldown = 0f;
@@ -46,6 +47,8 @@ public abstract class Arkanoid extends Scene {
     protected PauseMenu pauseMenu;
     private FrameBuffer gameFrameBuffer;
     private Texture gameSnapshot;
+    protected List<PowerUp> activePowerUps;
+    protected List<ActivePowerUpEffect> activePowerUpEffects;
 
     public Arkanoid(Game game) {
         super(game);
@@ -114,6 +117,8 @@ public abstract class Arkanoid extends Scene {
         ball = new Ball(SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH / 2f, paddleY + PADDLE_HEIGHT + ballRadius + 5,
                 ballRadius);
         bricks = new ArrayList<>();
+        activePowerUps = new ArrayList<>();
+        activePowerUpEffects = new ArrayList<>();
     }
 
     protected void createBrickGrid(int rows, int cols) {
@@ -206,6 +211,17 @@ public abstract class Arkanoid extends Scene {
     protected void updateGameplay(float delta) {
         paddle.update(delta, SIDE_PANEL_WIDTH, SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH);
         ball.update(delta);
+        for (PowerUp powerUp : activePowerUps) {
+            powerUp.update(delta);
+        }
+        for (int i = activePowerUpEffects.size() - 1; i >= 0; i--) {
+            ActivePowerUpEffect activeEffect = activePowerUpEffects.get(i);
+            if (activeEffect.hasExpired()) {
+                activeEffect.removeEffect(this);
+                activePowerUpEffects.remove(i);
+                log.info("{} effect expired!", activeEffect.getEffect().getName());
+            }
+        }
         if (collisionCooldown > 0) {
             collisionCooldown -= delta;
         }
@@ -272,6 +288,10 @@ public abstract class Arkanoid extends Scene {
                 if (brick.getType() == Brick.BrickType.BREAKABLE && brick.isDestroyed()) {
                     lastHitBrick = null;
                     onBrickDestroyed(brick);
+
+                    if (Math.random() < 0.5) {
+                        spawnRandomPowerUp(brick);
+                    }
                 }
                 brickHit = true;
                 break;
@@ -297,9 +317,80 @@ public abstract class Arkanoid extends Scene {
                         finalSpeed * (float) Math.sin(angleInRadians));
             }
         }
+        handlePowerUpCollisions();
         if (checkLevelComplete()) {
             onLevelComplete();
         }
+    }
+
+    private void handlePowerUpCollisions() {
+        for (int i = activePowerUps.size() - 1; i >= 0; i--) {
+            PowerUp powerUp = activePowerUps.get(i);
+
+            if (powerUp.y < 0) {
+                activePowerUps.remove(i);
+                continue;
+            }
+
+            Rectangle paddleBounds = paddle.getBounds();
+            if (powerUp.x < paddleBounds.x + paddleBounds.width &&
+                    powerUp.x + powerUp.width > paddleBounds.x &&
+                    powerUp.y < paddleBounds.y + paddleBounds.height &&
+                    powerUp.y + powerUp.height > paddleBounds.y) {
+
+                PowerUpType type = powerUp.getType();
+
+                boolean effectExists = false;
+                for (ActivePowerUpEffect activeEffect : activePowerUpEffects) {
+                    if (activeEffect.getEffectType().equals(type.getName())) {
+                        activeEffect.refreshDuration();
+                        log.info("{} duration refreshed!", type.getName());
+                        effectExists = true;
+                        break;
+                    }
+                }
+
+                if (!effectExists) {
+                    powerUp.applyEffect(this);
+
+                    if (type.getDuration() > 0) {
+                        activePowerUpEffects.add(new ActivePowerUpEffect(type));
+                        log.info("{} activated for {} seconds",
+                                type.getName(),
+                                type.getDuration() / 1000f);
+                    } else if (type.getDuration() == -1) {
+                        log.info("{} collected (permanent)", type.getName());
+                    }
+                }
+
+                activePowerUps.remove(i);
+            }
+        }
+    }
+
+    private void spawnRandomPowerUp(Brick brick) {
+        ClassicPowerUpFactory factory = new ClassicPowerUpFactory();
+        PowerUp powerUp;
+
+        double rand = Math.random();
+        if (rand < 0.25) {
+            powerUp = factory.createExpandPaddle(
+                    brick.getX() + brick.getWidth() / 2f - 16,
+                    brick.getY(), 32, 32);
+        } else if (rand < 0.5){
+            powerUp = factory.createExtraLife(
+                    brick.getX() + brick.getWidth() / 2f - 16,
+                    brick.getY(), 32, 32);
+        } else if (rand < 0.75){
+            powerUp = factory.createFastBall(
+                    brick.getX() + brick.getWidth() / 2f - 16,
+                    brick.getY(), 32, 32);
+        } else {
+            powerUp = factory.createSlowBall(
+                    brick.getX() + brick.getWidth() / 2f - 16,
+                    brick.getY(), 32, 32);
+        }
+        activePowerUps.add(powerUp);
     }
 
     protected void renderGameplay(SpriteBatch batch) {
@@ -312,6 +403,11 @@ public abstract class Arkanoid extends Scene {
         for (Brick brick : bricks) {
             brick.render(batch);
         }
+
+        for (PowerUp powerUp : activePowerUps) {
+            powerUp.render(batch);
+        }
+
         if (showHitboxes) {
             // batch.end();
             renderHitboxes(batch);
@@ -379,11 +475,18 @@ public abstract class Arkanoid extends Scene {
         layout.setText(fontUI30, bestValue);
         float bestValueX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
         fontUI30.draw(batch, bestValue, bestValueX, WINDOW_HEIGHT - 150 - layout.height);
+        String livesLabel = "Lives " + lives;
+        layout.setText(fontUI30, livesLabel);
+        float livesLabelX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
+        fontUI30.draw(batch, livesLabel, livesLabelX, WINDOW_HEIGHT - 230);
+
         String livesIcon = "";
         for (int i = 0; i < lives; i++) {
             livesIcon += "♥ ";
         }
-        fontUI30.draw(batch, livesIcon, 30, WINDOW_HEIGHT - 190);
+        layout.setText(fontUI30, livesIcon);
+        float livesIconX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
+        fontUI30.draw(batch, livesIcon, livesIconX, WINDOW_HEIGHT - 240 - layout.height);
         String powerupsText = "Powerups";
         layout.setText(fontUI30, powerupsText);
         float powerupsX = SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH + (SIDE_PANEL_WIDTH - layout.width) / 2f;
@@ -435,5 +538,17 @@ public abstract class Arkanoid extends Scene {
             gameFrameBuffer.dispose();
         }
         // Don't dispose gameSnapshot - it's managed by gameFrameBuffer
+    }
+
+    public Paddle getPaddle() {
+        return paddle;
+    }
+
+    public Brick getLastHitBrick() {
+        return lastHitBrick;
+    }
+
+    public Ball getBall() {
+        return ball;
     }
 }

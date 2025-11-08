@@ -138,6 +138,7 @@ public class Assets {
         assetManager.load("textures/ui/ScrollVerticalKnob.png", Texture.class);
         assetManager.load("textures/stage/MapTest.png", Texture.class);
         assetManager.load("textures/ui/shorepiano.png", Texture.class);
+        assetManager.load("textures/ui/GameSelectionBackground.png", Texture.class);
         // VN scene textures
         assetManager.load("textures/vn_scene/iuno.png", Texture.class);
         assetManager.load("textures/vn_scene/separator.png", Texture.class);
