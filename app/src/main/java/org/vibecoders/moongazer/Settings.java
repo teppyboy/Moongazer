@@ -100,15 +100,9 @@ public class Settings {
             SettingsData data = json.fromJson(SettingsData.class, jsonString);
 
             if (data != null) {
-                if (data.masterVolume > 0) {
-                    masterVolume = data.masterVolume;
-                }
-                if (data.musicVolume > 0) {
-                    musicVolume = data.musicVolume;
-                }
-                if (data.sfxVolume > 0) {
-                    sfxVolume = data.sfxVolume;
-                }
+                masterVolume = data.masterVolume;
+                musicVolume = data.musicVolume;
+                sfxVolume = data.sfxVolume;
                 if (data.keybinds != null && !data.keybinds.isEmpty()) {
                     keybinds.clear();
                     keybinds.putAll(data.keybinds);
