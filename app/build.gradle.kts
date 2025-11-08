@@ -56,7 +56,7 @@ dependencies {
 // Apply a specific Java toolchain to ease working on different environments.
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(23)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
@@ -75,7 +75,7 @@ tasks.register<JavaExec>("runGameplayTest") {
 
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
-    options.release.set(23)
+    options.release.set(25)
 }
 
 tasks.named<Test>("test") {

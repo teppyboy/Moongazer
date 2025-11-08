@@ -1,7 +1,6 @@
 package org.vibecoders.moongazer.arkanoid;
 
 import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.math.Vector2;
 
 /**
  * Base type for anything that can be rendered by the client.

@@ -11,7 +11,6 @@ public class Ball extends MovableObject {
     private float radius;
     private Texture texture;
     private boolean active;
-    
     private float previousY;          // For swept collision detection
     private boolean isHeavyBall = false;  // Heavy ball passes through bricks
     private boolean isStuckToPaddle = false;  // For sticky paddle power-up

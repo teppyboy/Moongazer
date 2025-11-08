@@ -19,6 +19,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.arkanoid.*;
+import org.vibecoders.moongazer.arkanoid.PowerUps.ActivePowerUpEffect;
+import org.vibecoders.moongazer.arkanoid.PowerUps.ClassicPowerUpFactory;
+
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.scenes.Scene;
 import org.vibecoders.moongazer.ui.PauseMenu;
@@ -36,7 +39,7 @@ public abstract class Arkanoid extends Scene {
     protected BitmapFont font;
     protected BitmapFont fontUI30;
     protected int score = 0;
-    protected int lives = 3;
+    public int lives = 3;
     protected int bricksDestroyed = 0;
     protected Brick lastHitBrick = null;
     protected float collisionCooldown = 0f;
@@ -52,6 +55,8 @@ public abstract class Arkanoid extends Scene {
     protected PauseMenu pauseMenu;
     private FrameBuffer gameFrameBuffer;
     private Texture gameSnapshot;
+    protected List<PowerUp> activePowerUps;
+    protected List<ActivePowerUpEffect> activePowerUpEffects;
     private float pauseCooldown = 0f;
     private static final float PAUSE_COOLDOWN_TIME = 0.2f;
     private InputMultiplexer inputMultiplexer;
@@ -163,6 +168,8 @@ public abstract class Arkanoid extends Scene {
         ball = new Ball(SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH / 2f, paddleY + PADDLE_HEIGHT + ballRadius + 5,
                 ballRadius);
         bricks = new ArrayList<>();
+        activePowerUps = new ArrayList<>();
+        activePowerUpEffects = new ArrayList<>();
     }
 
     protected void createBrickGrid(int rows, int cols) {
@@ -246,6 +253,17 @@ public abstract class Arkanoid extends Scene {
     protected void updateGameplay(float delta) {
         paddle.update(delta, SIDE_PANEL_WIDTH, SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH);
         ball.update(delta);
+        for (PowerUp powerUp : activePowerUps) {
+            powerUp.update(delta);
+        }
+        for (int i = activePowerUpEffects.size() - 1; i >= 0; i--) {
+            ActivePowerUpEffect activeEffect = activePowerUpEffects.get(i);
+            if (activeEffect.hasExpired()) {
+                activeEffect.removeEffect(this);
+                activePowerUpEffects.remove(i);
+                log.info("{} effect expired!", activeEffect.getEffectType());
+            }
+        }
         if (collisionCooldown > 0) {
             collisionCooldown -= delta;
         }
@@ -319,6 +337,10 @@ public abstract class Arkanoid extends Scene {
                 if (brick.getType() == Brick.BrickType.BREAKABLE && brick.isDestroyed()) {
                     lastHitBrick = null;
                     onBrickDestroyed(brick);
+
+                    if (Math.random() < 0.5) {
+                        spawnRandomPowerUp(brick);
+                    }
                 }
                 brickHit = true;
                 break;
@@ -344,9 +366,78 @@ public abstract class Arkanoid extends Scene {
                         finalSpeed * (float) Math.sin(angleInRadians));
             }
         }
+        handlePowerUpCollisions();
         if (checkLevelComplete()) {
             onLevelComplete();
         }
+    }
+
+    private void handlePowerUpCollisions() {
+        for (int i = activePowerUps.size() - 1; i >= 0; i--) {
+            PowerUp powerUp = activePowerUps.get(i);
+
+            if (powerUp.y < 0) {
+                activePowerUps.remove(i);
+                continue;
+            }
+
+            Rectangle paddleBounds = paddle.getBounds();
+            if (powerUp.x < paddleBounds.x + paddleBounds.width &&
+                    powerUp.x + powerUp.width > paddleBounds.x &&
+                    powerUp.y < paddleBounds.y + paddleBounds.height &&
+                    powerUp.y + powerUp.height > paddleBounds.y) {
+
+                boolean effectExists = false;
+                for (ActivePowerUpEffect activeEffect : activePowerUpEffects) {
+                    if (activeEffect.getEffectType().equals(powerUp.getName())) {
+                        activeEffect.refreshDuration();
+                        log.info("{} duration refreshed!", powerUp.getName());
+                        effectExists = true;
+                        break;
+                    }
+                }
+
+                if (!effectExists) {
+                    powerUp.applyEffect(this);
+
+                    if (powerUp.getDuration() > 0) {
+                        activePowerUpEffects.add(new ActivePowerUpEffect(powerUp));
+                        log.info("{} activated for {} seconds",
+                                powerUp.getName(),
+                                powerUp.getDuration() / 1000f);
+                    } else if (powerUp.getDuration() == -1) {
+                        log.info("{} collected (permanent)", powerUp.getName());
+                    }
+                }
+
+                activePowerUps.remove(i);
+            }
+        }
+    }
+
+    private void spawnRandomPowerUp(Brick brick) {
+        ClassicPowerUpFactory factory = new ClassicPowerUpFactory();
+        PowerUp powerUp;
+
+        double rand = Math.random();
+        if (rand < 0.25) {
+            powerUp = factory.createExpandPaddle(
+                    brick.getX() + brick.getWidth() / 2f - 16,
+                    brick.getY(), 32, 32);
+        } else if (rand < 0.5){
+            powerUp = factory.createExtraLife(
+                    brick.getX() + brick.getWidth() / 2f - 16,
+                    brick.getY(), 32, 32);
+        } else if (rand < 0.75){
+            powerUp = factory.createFastBall(
+                    brick.getX() + brick.getWidth() / 2f - 16,
+                    brick.getY(), 32, 32);
+        } else {
+            powerUp = factory.createSlowBall(
+                    brick.getX() + brick.getWidth() / 2f - 16,
+                    brick.getY(), 32, 32);
+        }
+        activePowerUps.add(powerUp);
     }
 
     protected void renderGameplay(SpriteBatch batch) {
@@ -362,6 +453,11 @@ public abstract class Arkanoid extends Scene {
         for (Brick brick : bricks) {
             brick.render(batch);
         }
+
+        for (PowerUp powerUp : activePowerUps) {
+            powerUp.render(batch);
+        }
+
         if (showHitboxes) {
             renderHitboxes(batch);
         }
@@ -528,5 +624,17 @@ public abstract class Arkanoid extends Scene {
         if (gameSnapshot != null) {
             gameSnapshot.dispose();
         }
+    }
+
+    public Paddle getPaddle() {
+        return paddle;
+    }
+
+    public Brick getLastHitBrick() {
+        return lastHitBrick;
+    }
+
+    public Ball getBall() {
+        return ball;
     }
 }
