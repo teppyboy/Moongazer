@@ -43,6 +43,8 @@ public class Game extends ApplicationAdapter {
 
     @Override
     public void create() {
+        log.info("Loading settings...");
+        Settings.loadSettings();
         log.info("Loading intro assets...");
         Assets.loadIntroAndWait();
         log.info("Intro assets loaded successfully.");
