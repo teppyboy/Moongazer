@@ -14,6 +14,7 @@ import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.utils.TimeUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,7 @@ import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.managers.Audio;
 import org.vibecoders.moongazer.scenes.Scene;
 import org.vibecoders.moongazer.ui.PauseMenu;
+import org.vibecoders.moongazer.ui.GameOverMenu;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,16 +46,27 @@ public abstract class Arkanoid extends Scene {
     protected Brick lastHitBrick = null;
     protected float collisionCooldown = 0f;
     protected static final int MAX_BALLS = 3; // Maximum number of balls for MultiBall
+
+    // Ball stuck detection - tracks if ball is bouncing in small Y range
+    private float stuckDetectionTimer = 0f;
+    private float minBallY = Float.MAX_VALUE;
+    private float maxBallY = Float.MIN_VALUE;
+    private static final float STUCK_CHECK_DURATION = 5.0f;
+    private static final float STUCK_Y_RANGE_THRESHOLD = 100f;
+    private static final float MIN_HORIZONTAL_VELOCITY_THRESHOLD = 50f;
+    private static final float MIN_HORIZONTAL_RATIO = 0.3f;
+
     private Texture pixelTexture;
     private Texture heartTexture;
     private Texture backgroundTexture = null;
-    private boolean heartBlinking = false;
-    private float heartBlinkTimer = 0f;
+    protected boolean heartBlinking = false;
+    protected float heartBlinkTimer = 0f;
     private static final float HEART_BLINK_DURATION = 1.5f;
     private static final float HEART_BLINK_SPEED = 0.15f;
     protected ShapeRenderer shapeRenderer;
     protected boolean showHitboxes = false;
     protected PauseMenu pauseMenu;
+    protected GameOverMenu gameOverMenu;
     private FrameBuffer gameFrameBuffer;
     private Texture gameSnapshot;
     protected List<PowerUp> activePowerUps;
@@ -62,7 +75,7 @@ public abstract class Arkanoid extends Scene {
     private static final float PAUSE_COOLDOWN_TIME = 0.2f;
     private InputMultiplexer inputMultiplexer;
     private InputAdapter gameInputAdapter;
-    private boolean gameInputEnabled = true;
+    protected boolean gameInputEnabled = true;
     private boolean escKeyDownInGame = false;
 
     public Arkanoid(Game game) {
@@ -80,6 +93,9 @@ public abstract class Arkanoid extends Scene {
         setupInputHandling();
         pauseMenu = new PauseMenu();
         setupPauseMenuCallbacks();
+
+        gameOverMenu = new GameOverMenu();
+        setupGameOverMenuCallbacks();
 
         initGameplay();
         log.info("Arkanoid gameplay initialized");
@@ -148,10 +164,33 @@ public abstract class Arkanoid extends Scene {
         });
     }
 
+    protected void setupGameOverMenuCallbacks() {
+        gameOverMenu.setOnPlayAgain(() -> {
+            log.info("Playing again from game over menu");
+            Audio.stopGameOverMusic();
+            gameInputEnabled = true;
+            restartGame();
+            restoreInputProcessor();
+        });
+
+        gameOverMenu.setOnMainMenu(() -> {
+            log.info("Returning to main menu from game over");
+            Audio.stopGameOverMusic();
+            returnToMainMenu();
+        });
+
+        gameOverMenu.setOnQuit(() -> {
+            log.info("Quitting game from game over");
+            Gdx.app.exit();
+        });
+    }
+
     protected void restartGame() {
         score = 0;
         lives = 3;
         bricksDestroyed = 0;
+        heartBlinking = false;
+        heartBlinkTimer = 0f;
         initGameplay();
     }
 
@@ -209,13 +248,18 @@ public abstract class Arkanoid extends Scene {
         if (pauseCooldown > 0) {
             pauseCooldown -= delta;
         }
-        if (!pauseMenu.isPaused()) {
+
+        // Don't update gameplay if paused or game over
+        if (!pauseMenu.isPaused() && !gameOverMenu.isVisible()) {
             handleInput(delta);
             updateGameplay(delta);
             handleCollisions();
         }
+
         renderGameplay(batch);
         renderUI(batch);
+
+        // Handle pause menu
         if (pauseMenu.isPaused()) {
             if (gameSnapshot == null) {
                 batch.end();
@@ -231,7 +275,25 @@ public abstract class Arkanoid extends Scene {
                 batch.begin();
             }
             pauseMenu.render(batch, gameSnapshot);
-        } else {
+        }
+        // Handle game over menu
+        else if (gameOverMenu.isVisible()) {
+            if (gameSnapshot == null) {
+                batch.end();
+                gameFrameBuffer.begin();
+                Gdx.gl.glClearColor(0, 0, 0, 1);
+                Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+                batch.begin();
+                renderGameplay(batch);
+                renderUI(batch);
+                batch.end();
+                gameFrameBuffer.end();
+                gameSnapshot = gameFrameBuffer.getColorBufferTexture();
+                batch.begin();
+            }
+            gameOverMenu.render(batch, gameSnapshot);
+        }
+        else {
             if (gameSnapshot != null) {
                 gameSnapshot = null;
             }
@@ -293,6 +355,66 @@ public abstract class Arkanoid extends Scene {
         if (balls.size() == 1 && !balls.get(0).isActive()) {
             Ball mainBall = balls.get(0);
             mainBall.reset(paddle.getCenterX(), paddle.getBounds().y + paddle.getBounds().height + mainBall.getRadius() + 5);
+        }
+
+        // Detect if main ball is stuck (bouncing in small Y range for extended period)
+        if (!balls.isEmpty() && balls.get(0).isActive()) {
+            Ball mainBall = balls.get(0);
+            float currentBallY = mainBall.getBounds().y;
+
+            // Track min/max Y position over time
+            stuckDetectionTimer += delta;
+
+            if (currentBallY < minBallY) minBallY = currentBallY;
+            if (currentBallY > maxBallY) maxBallY = currentBallY;
+
+            // Check every 5 seconds if ball is stuck in small Y range
+            if (stuckDetectionTimer >= STUCK_CHECK_DURATION) {
+                float yRange = maxBallY - minBallY;
+
+                if (yRange < STUCK_Y_RANGE_THRESHOLD) {
+                    log.warn("Ball stuck detected! Y range over {}s: {}px (threshold: {}px)",
+                             STUCK_CHECK_DURATION, yRange, STUCK_Y_RANGE_THRESHOLD);
+                    log.warn("Applying escape velocity...");
+
+                    // Apply escape velocity with random angle
+                    float currentVelX = mainBall.getVelocity().x;
+                    float currentVelY = mainBall.getVelocity().y;
+                    float speed = (float) Math.sqrt(currentVelX * currentVelX + currentVelY * currentVelY);
+
+                    // Apply a random escape angle (30-60 degrees from horizontal)
+                    float escapeAngle = (float) Math.toRadians(30 + Math.random() * 30);
+                    float directionX = currentVelX > 0 ? 1 : -1;
+
+                    mainBall.setVelocity(
+                        directionX * speed * (float) Math.cos(escapeAngle),
+                        speed * (float) Math.sin(escapeAngle)
+                    );
+                }
+
+                // Reset tracking
+                stuckDetectionTimer = 0f;
+                minBallY = Float.MAX_VALUE;
+                maxBallY = Float.MIN_VALUE;
+            }
+        } else {
+            // Reset stuck detection when ball is not active
+            stuckDetectionTimer = 0f;
+            minBallY = Float.MAX_VALUE;
+            maxBallY = Float.MIN_VALUE;
+        }
+    }
+
+    private void adjustBallVelocityIfTooVertical(Ball ball, boolean preserveHorizontalDirection) {
+        if (Math.abs(ball.getVelocity().x) < MIN_HORIZONTAL_VELOCITY_THRESHOLD) {
+            float currentVelX = ball.getVelocity().x;
+            float currentVelY = ball.getVelocity().y;
+            float speed = (float) Math.sqrt(currentVelX * currentVelX + currentVelY * currentVelY);
+            float directionX = preserveHorizontalDirection ? (currentVelX >= 0 ? 1 : -1) : (Math.random() > 0.5 ? 1 : -1);
+            float horizontalVel = speed * MIN_HORIZONTAL_RATIO * directionX;
+            float verticalVel = (float) Math.sqrt(speed * speed - horizontalVel * horizontalVel) * (currentVelY >= 0 ? 1 : -1);
+            ball.setVelocity(horizontalVel, verticalVel);
+            log.debug("Adjusted velocity to prevent vertical stuck: ({}, {})", horizontalVel, verticalVel);
         }
     }
 
@@ -363,6 +485,9 @@ public abstract class Arkanoid extends Scene {
                     float minOverlapX = Math.min(overlapLeft, overlapRight);
                     float minOverlapY = Math.min(overlapTop, overlapBottom);
                     float separationDistance = ballRadius + 1.0f;
+
+                    boolean isUnbreakableBrick = brick.getType() == Brick.BrickType.UNBREAKABLE;
+
                     if (minOverlapX < minOverlapY) {
                         ball.reverseX();
                         if (overlapLeft < overlapRight) {
@@ -370,12 +495,20 @@ public abstract class Arkanoid extends Scene {
                         } else {
                             ball.getBounds().x = brickBounds.x + brickBounds.width + ballRadius + separationDistance;
                         }
+
+                        if (isUnbreakableBrick) {
+                            adjustBallVelocityIfTooVertical(ball, true);
+                        }
                     } else {
                         ball.reverseY();
                         if (overlapTop < overlapBottom) {
                             ball.getBounds().y = brickBounds.y + brickBounds.height + ballRadius + separationDistance;
                         } else {
                             ball.getBounds().y = brickBounds.y - ballRadius - separationDistance;
+                        }
+
+                        if (isUnbreakableBrick) {
+                            adjustBallVelocityIfTooVertical(ball, true);
                         }
                     }
                     brick.hit();
@@ -698,6 +831,59 @@ public abstract class Arkanoid extends Scene {
         layout.setText(fontUI30, powerupsText);
         float powerupsX = SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH + (SIDE_PANEL_WIDTH - layout.width) / 2f;
         fontUI30.draw(batch, powerupsText, powerupsX, WINDOW_HEIGHT - 50);
+
+        // Render active powerup effects
+        renderActivePowerups(batch, layout);
+    }
+
+    private void renderActivePowerups(SpriteBatch batch, com.badlogic.gdx.graphics.g2d.GlyphLayout layout) {
+        // Start rendering below the "Powerups" title (with some spacing)
+        float startY = WINDOW_HEIGHT - 100; // Below the title
+        float iconSize = 32;
+        float lineHeight = 45; // Space between each powerup line
+        float rightPanelX = SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH + 15;
+        float textOffsetX = iconSize + 8; // Text offset from icon
+
+        int index = 0;
+        for (ActivePowerUpEffect effect : activePowerUpEffects) {
+            float currentY = startY - (index * lineHeight);
+
+            // Get remaining time
+            float remainingTime = effect.getRemainingTime();
+            if (remainingTime < 0) continue; // Skip permanent effects
+
+            // Check if time is low (less than 3 seconds)
+            boolean isLowTime = remainingTime <= 3.0f;
+
+            float alpha = 1.0f;
+            Color textColor = Color.WHITE;
+            if (isLowTime) {
+                alpha = (TimeUtils.millis() / 250) % 2 == 0 ? 0.3f : 1.0f;
+                textColor = Color.RED;
+            }
+
+            // Draw icon
+            Texture powerupTexture = effect.getPowerUp().getTexture();
+            if (powerupTexture != null) {
+                batch.setColor(1f, 1f, 1f, alpha);
+                batch.draw(powerupTexture, rightPanelX, currentY - iconSize, iconSize, iconSize);
+                batch.setColor(Color.WHITE);
+            }
+
+            // Draw text (name + time) aligned with icon center
+            String effectText = effect.getEffectType() + ": " + String.format("%.1fs", remainingTime);
+            layout.setText(font, effectText);
+
+            // Center text vertically with icon
+            float textY = currentY - (iconSize / 2f) + (layout.height / 2f);
+
+            Color originalColor = font.getColor().cpy();
+            font.setColor(textColor.r, textColor.g, textColor.b, alpha);
+            font.draw(batch, effectText, rightPanelX + textOffsetX, textY);
+            font.setColor(originalColor);
+
+            index++;
+        }
     }
 
     protected boolean checkLevelComplete() {
@@ -717,16 +903,47 @@ public abstract class Arkanoid extends Scene {
         heartBlinking = true;
         heartBlinkTimer = 0f;
 
+        // Remove all active powerup effects
+        clearAllActivePowerups();
+
         // Reset to single ball
         balls.clear();
         float ballRadius = 12f;
         Ball mainBall = new Ball(paddle.getCenterX(), paddle.getBounds().y + paddle.getBounds().height + ballRadius + 5, ballRadius);
         balls.add(mainBall);
 
+        // Reset stuck detection tracking
+        stuckDetectionTimer = 0f;
+        minBallY = Float.MAX_VALUE;
+        maxBallY = Float.MIN_VALUE;
+
         log.info("Ball lost! Lives remaining: {}", lives);
         if (lives <= 0) {
             onGameOver();
         }
+    }
+
+    /**
+     * Clears all active powerup effects and removes their effects from the game
+     */
+    private void clearAllActivePowerups() {
+        if (activePowerUpEffects.isEmpty()) {
+            return;
+        }
+
+        log.info("Clearing {} active powerup effects due to life loss", activePowerUpEffects.size());
+
+        // Remove all effects
+        for (ActivePowerUpEffect effect : activePowerUpEffects) {
+            effect.removeEffect(this);
+            log.debug("Removed {} effect", effect.getEffectType());
+        }
+
+        // Clear the list
+        activePowerUpEffects.clear();
+
+        // Also clear falling powerups
+        activePowerUps.clear();
     }
 
     protected abstract void onLevelComplete();
@@ -745,6 +962,9 @@ public abstract class Arkanoid extends Scene {
         }
         if (pauseMenu != null) {
             pauseMenu.dispose();
+        }
+        if (gameOverMenu != null) {
+            gameOverMenu.dispose();
         }
         if (gameFrameBuffer != null) {
             gameFrameBuffer.dispose();

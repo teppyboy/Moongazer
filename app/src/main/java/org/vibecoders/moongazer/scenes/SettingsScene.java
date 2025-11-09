@@ -65,7 +65,7 @@ public class SettingsScene extends Scene {
                 masterVolSlider.setValue(Settings.getMasterVolume());
                 masterVolSlider.onChanged(() -> {
                     Settings.setMasterVolume(masterVolSlider.getValue());
-                    Audio.musicSetVolume();
+                    Audio.updateAllMusicVolume();
                 });
                 row.add(masterVolSlider.slider).width(300).right().padRight(40);
             } else if (volume.equals("Music Volume")) {
@@ -73,7 +73,7 @@ public class SettingsScene extends Scene {
                 musicSlider.setValue(Settings.getMusicVolume());
                 musicSlider.onChanged(() -> {
                     Settings.setMusicVolume(musicSlider.getValue());
-                    Audio.musicSetVolume();
+                    Audio.updateAllMusicVolume();
                 });
                 row.add(musicSlider.slider).width(300).right().padRight(40);
             } else if (volume.equals("SFX Volume")) {

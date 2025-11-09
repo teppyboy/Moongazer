@@ -16,7 +16,10 @@ public class SuperBall extends PowerUp {
 
     @Override
     public void removeEffect(Arkanoid arkanoid) {
-        arkanoid.getBall().setSuperBall(false);
+        // Check if ball still exists before removing effect
+        if (arkanoid.getBall() != null) {
+            arkanoid.getBall().setSuperBall(false);
+        }
     }
 
     @Override

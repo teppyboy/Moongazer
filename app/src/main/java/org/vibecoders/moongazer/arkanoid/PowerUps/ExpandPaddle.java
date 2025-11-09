@@ -16,7 +16,9 @@ public class ExpandPaddle extends PowerUp {
 
     @Override
     public void removeEffect(Arkanoid arkanoid) {
-        arkanoid.getPaddle().setSize((int) (arkanoid.getPaddle().getWidth() / 2), arkanoid.getPaddle().getHeight());
+        if (arkanoid.getPaddle() != null) {
+            arkanoid.getPaddle().setSize((int) (arkanoid.getPaddle().getWidth() / 2), arkanoid.getPaddle().getHeight());
+        }
     }
 
     @Override

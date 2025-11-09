@@ -9,11 +9,23 @@ import com.badlogic.gdx.files.FileHandle;
 import java.util.HashMap;
 import java.util.Map;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Audio {
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(Audio.class);
     private static boolean initialized = false;
     private static final Map<String, Music> musicTracks = new HashMap<>();
     private static final Map<String, Sound> soundEffects = new HashMap<>();
+
+    // Endless mode music playlist
+    private static List<Music> endlessMusicPlaylist = null;
+    private static int currentEndlessTrackIndex = 0;
+    private static boolean endlessMusicActive = false;
+
+    // Game over music
+    private static Music gameOverMusic = null;
+    private static boolean gameOverMusicActive = false;
 
     public static void init() {
         if (initialized) return;
@@ -93,15 +105,252 @@ public class Audio {
     public static void playSfxBrickHit() { playSfx("brickHit"); }
     public static void playSfxBallLoss() { playSfx("ballLoss"); }
 
+    /**
+     * Initializes and starts the endless mode music playlist
+     */
+    public static void initEndlessMusic() {
+        if (endlessMusicPlaylist != null) {
+            log.info("Endless music playlist already initialized");
+            return; // Already initialized
+        }
+
+        log.info("=== Initializing endless mode music playlist ===");
+        endlessMusicPlaylist = new ArrayList<>();
+
+        // Track base names (without extension)
+        String[] trackNames = {
+            "endlessost1",
+            "endlessost2",
+            "endlessost3",
+            "endlessost4",
+            "endlessost5"
+        };
+
+        for (String trackName : trackNames) {
+            // Try OGG first (better LibGDX support), then MP3
+            String[] extensions = {".ogg", ".mp3"};
+            boolean loaded = false;
+
+            for (String ext : extensions) {
+                try {
+                    String fullPath = "audio/endlessost/" + trackName + ext;
+                    log.info("Trying to load: {}", fullPath);
+
+                    FileHandle fileHandle = Assets.getAsset(fullPath, FileHandle.class);
+
+                    // Log file info
+                    log.info("FileHandle info - exists: {}, length: {} bytes",
+                             fileHandle.exists(), fileHandle.length());
+
+                    if (fileHandle.length() == 0) {
+                        log.error("File is empty (0 bytes): {}", fullPath);
+                        continue;
+                    }
+
+                    Music music = Gdx.audio.newMusic(fileHandle);
+                    endlessMusicPlaylist.add(music);
+                    log.info("✓✓✓ Successfully loaded: {}{}", trackName, ext);
+                    loaded = true;
+                    break; // Successfully loaded, no need to try other formats
+
+                } catch (Exception e) {
+                    log.debug("Failed to load {}{}: {}", trackName, ext, e.getMessage());
+                }
+            }
+
+            if (!loaded) {
+                log.error("✗✗✗ Could not load {} in any supported format (.ogg or .mp3)", trackName);
+                log.error("Please convert this file to OGG format using Audacity or ffmpeg:");
+                log.error("  ffmpeg -i {}.mp3 -c:a libvorbis -q:a 5 {}.ogg", trackName, trackName);
+            }
+        }
+
+        if (endlessMusicPlaylist.isEmpty()) {
+            log.error("!!! NO ENDLESS MUSIC TRACKS WERE LOADED !!!");
+            log.error("═══════════════════════════════════════════════════════════");
+            log.error("SOLUTION: Convert your MP3 files to OGG format");
+            log.error("═══════════════════════════════════════════════════════════");
+            log.error("Option 1 - Using Audacity (Free GUI tool):");
+            log.error("  1. Download from: https://www.audacityteam.org/");
+            log.error("  2. Open your MP3 file");
+            log.error("  3. File > Export > Export as OGG Vorbis");
+            log.error("  4. Save to: app/src/main/resources/audio/endlessost/");
+            log.error("");
+            log.error("Option 2 - Using FFmpeg (Command line):");
+            log.error("  ffmpeg -i endlessost1.mp3 -c:a libvorbis -q:a 5 endlessost1.ogg");
+            log.error("═══════════════════════════════════════════════════════════");
+        } else {
+            log.info("✓✓✓ Endless playlist loaded with {} tracks", endlessMusicPlaylist.size());
+        }
+    }
+
+    /**
+     * Starts playing the endless mode music playlist
+     */
+    public static void startEndlessMusic() {
+        if (endlessMusicPlaylist == null) {
+            initEndlessMusic();
+        }
+
+        if (endlessMusicPlaylist == null || endlessMusicPlaylist.isEmpty()) {
+            log.error("Cannot start endless music - playlist is empty or null!");
+            return;
+        }
+
+        menuMusicStop();
+        currentEndlessTrackIndex = 0;
+        endlessMusicActive = true;
+        playCurrentEndlessTrack();
+        log.info("Endless mode music started");
+    }
+
+    /**
+     * Plays the current track in the endless playlist
+     */
+    private static void playCurrentEndlessTrack() {
+        if (endlessMusicPlaylist == null || endlessMusicPlaylist.isEmpty() || !endlessMusicActive) {
+            return;
+        }
+
+        Music currentTrack = endlessMusicPlaylist.get(currentEndlessTrackIndex);
+        currentTrack.setVolume(Settings.getMusicVolume() * Settings.getMasterVolume());
+        currentTrack.setLooping(false);
+        currentTrack.setOnCompletionListener(music -> {
+            if (endlessMusicActive) {
+                currentEndlessTrackIndex = (currentEndlessTrackIndex + 1) % endlessMusicPlaylist.size();
+                playCurrentEndlessTrack();
+            }
+        });
+        currentTrack.play();
+    }
+
+    /**
+     * Updates the volume of endless music based on settings
+     */
+    public static void updateEndlessMusicVolume() {
+        if (endlessMusicPlaylist != null && endlessMusicActive && 
+            currentEndlessTrackIndex >= 0 && currentEndlessTrackIndex < endlessMusicPlaylist.size()) {
+            Music currentTrack = endlessMusicPlaylist.get(currentEndlessTrackIndex);
+            if (currentTrack.isPlaying()) {
+                currentTrack.setVolume(Settings.getMusicVolume() * Settings.getMasterVolume());
+            }
+        }
+    }
+
+    /**
+     * Stops and disposes endless mode music
+     */
+    public static void stopEndlessMusic() {
+        if (endlessMusicPlaylist == null) {
+            return;
+        }
+
+        endlessMusicActive = false;
+
+        for (Music music : endlessMusicPlaylist) {
+            if (music.isPlaying()) {
+                music.stop();
+            }
+            music.dispose();
+        }
+
+        endlessMusicPlaylist.clear();
+        endlessMusicPlaylist = null;
+        currentEndlessTrackIndex = 0;
+        log.info("Endless mode music stopped and disposed");
+    }
+
+    /**
+     * Updates music volume for both menu and endless music
+     */
+    public static void updateAllMusicVolume() {
+        menuMusicSetVolume();
+        updateEndlessMusicVolume();
+        updateGameOverMusicVolume();
+    }
+
+    /**
+     * Starts playing the game over music (looping)
+     */
+    public static void startGameOverMusic() {
+        log.info("=== Starting Game Over Music ===");
+
+        // Stop endless music if playing
+        if (endlessMusicActive) {
+            log.info("Stopping endless music for game over");
+            // Don't dispose, just stop
+            endlessMusicActive = false;
+            if (endlessMusicPlaylist != null) {
+                for (Music music : endlessMusicPlaylist) {
+                    if (music.isPlaying()) {
+                        music.stop();
+                    }
+                }
+            }
+        }
+
+        // Stop menu music if playing
+        menuMusicStop();
+
+        // Load and play game over music
+        try {
+            if (gameOverMusic == null) {
+                FileHandle fileHandle = Assets.getAsset("audio/gameoverost.ogg", FileHandle.class);
+                gameOverMusic = Gdx.audio.newMusic(fileHandle);
+                log.info("Game over music loaded");
+            }
+
+            gameOverMusic.setVolume(Settings.getMusicVolume() * Settings.getMasterVolume());
+            gameOverMusic.setLooping(true); // Loop game over music
+            gameOverMusic.play();
+            gameOverMusicActive = true;
+            log.info("Game over music started (looping)");
+        } catch (Exception e) {
+            log.error("Failed to load game over music", e);
+        }
+    }
+
+    /**
+     * Stops and disposes game over music
+     */
+    public static void stopGameOverMusic() {
+        if (gameOverMusic == null) {
+            return;
+        }
+
+        gameOverMusicActive = false;
+
+        if (gameOverMusic.isPlaying()) {
+            gameOverMusic.stop();
+        }
+        gameOverMusic.dispose();
+        gameOverMusic = null;
+        log.info("Game over music stopped and disposed");
+    }
+
+    /**
+     * Updates the volume of game over music based on settings
+     */
+    public static void updateGameOverMusicVolume() {
+        if (gameOverMusic != null && gameOverMusicActive && gameOverMusic.isPlaying()) {
+            gameOverMusic.setVolume(Settings.getMusicVolume() * Settings.getMasterVolume());
+        }
+    }
+
     public static void dispose() {
+        stopEndlessMusic();
+        stopGameOverMusic();
+
         for (Music music : musicTracks.values()) {
             if (music != null) music.dispose();
         }
         musicTracks.clear();
+        
         for (Sound sound : soundEffects.values()) {
             if (sound != null) sound.dispose();
         }
         soundEffects.clear();
+        
         initialized = false;
         log.info("Audio manager disposed");
     }

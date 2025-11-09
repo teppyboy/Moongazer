@@ -23,7 +23,42 @@ public class ArkanoidEndless extends Arkanoid {
     protected void init() {
         super.init();
         setBackground(Assets.getAsset("textures/arkanoid/bg/endless.jpg", Texture.class));
+
+        // Stop menu music and start endless music
+        org.vibecoders.moongazer.managers.Audio.menuMusicStop();
+        org.vibecoders.moongazer.managers.Audio.startEndlessMusic();
+
         startWave(currentWave);
+    }
+
+    @Override
+    protected void setupGameOverMenuCallbacks() {
+        gameOverMenu.setOnPlayAgain(() -> {
+            log.info("Playing again - Starting from Wave 1");
+
+            // Stop game over music and restart endless music
+            org.vibecoders.moongazer.managers.Audio.stopGameOverMusic();
+            org.vibecoders.moongazer.managers.Audio.startEndlessMusic();
+
+            gameInputEnabled = true;
+            restartGame(); // This will reset heartBlinking and all game state
+            restoreInputProcessor();
+        });
+
+        gameOverMenu.setOnMainMenu(() -> {
+            log.info("Returning to main menu from game over");
+
+            // Stop game over music and restart menu music
+            org.vibecoders.moongazer.managers.Audio.stopGameOverMusic();
+            org.vibecoders.moongazer.managers.Audio.menuMusicPlay();
+
+            returnToMainMenu();
+        });
+
+        gameOverMenu.setOnQuit(() -> {
+            log.info("Quitting game from game over");
+            com.badlogic.gdx.Gdx.app.exit();
+        });
     }
 
     private void startWave(int wave) {
@@ -120,6 +155,74 @@ public class ArkanoidEndless extends Arkanoid {
                  powerUpCounts[0], powerUpCounts[1], powerUpCounts[2], powerUpCounts[3],
                  powerUpCounts[4], powerUpCounts[5], unbreakableCount, normalCount,
                  (int)((float)normalCount / totalBricks * 100));
+
+        // Ensure no breakable brick is completely surrounded by unbreakable bricks
+        ensureNoTrappedBricks(rows, cols);
+    }
+
+    /**
+     * Ensures that no breakable brick is completely surrounded by unbreakable bricks.
+     * If found, converts one neighboring unbreakable brick to breakable.
+     */
+    private void ensureNoTrappedBricks(int rows, int cols) {
+        boolean fixed = false;
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                int index = row * cols + col;
+                Brick brick = bricks.get(index);
+
+                // Only check breakable bricks
+                if (brick.getType() != Brick.BrickType.BREAKABLE) continue;
+
+                // Check all 4 directions (top, bottom, left, right)
+                boolean topBlocked = (row == 0) || (bricks.get((row - 1) * cols + col).getType() == Brick.BrickType.UNBREAKABLE);
+                boolean bottomBlocked = (row == rows - 1) || (bricks.get((row + 1) * cols + col).getType() == Brick.BrickType.UNBREAKABLE);
+                boolean leftBlocked = (col == 0) || (bricks.get(row * cols + (col - 1)).getType() == Brick.BrickType.UNBREAKABLE);
+                boolean rightBlocked = (col == cols - 1) || (bricks.get(row * cols + (col + 1)).getType() == Brick.BrickType.UNBREAKABLE);
+
+                // If completely surrounded, open one path
+                if (topBlocked && bottomBlocked && leftBlocked && rightBlocked) {
+                    if (row > 0) {
+                        int topIndex = (row - 1) * cols + col;
+                        convertToBreakable(bricks.get(topIndex), topIndex);
+                        fixed = true;
+                        log.warn("Fixed trapped brick at ({}, {}) by opening TOP", row, col);
+                    } else if (col > 0) {
+                        int leftIndex = row * cols + (col - 1);
+                        convertToBreakable(bricks.get(leftIndex), leftIndex);
+                        fixed = true;
+                        log.warn("Fixed trapped brick at ({}, {}) by opening LEFT", row, col);
+                    } else if (col < cols - 1) {
+                        int rightIndex = row * cols + (col + 1);
+                        convertToBreakable(bricks.get(rightIndex), rightIndex);
+                        fixed = true;
+                        log.warn("Fixed trapped brick at ({}, {}) by opening RIGHT", row, col);
+                    } else if (row < rows - 1) {
+                        int bottomIndex = (row + 1) * cols + col;
+                        convertToBreakable(bricks.get(bottomIndex), bottomIndex);
+                        fixed = true;
+                        log.warn("Fixed trapped brick at ({}, {}) by opening BOTTOM", row, col);
+                    }
+                }
+            }
+        }
+        if (!fixed) {
+            log.info("No trapped bricks found - generation is valid!");
+        }
+    }
+
+    /**
+     * Converts an unbreakable brick to a normal breakable brick
+     */
+    private void convertToBreakable(Brick brick, int brickIndex) {
+        if (brick.getType() == Brick.BrickType.UNBREAKABLE) {
+            float x = brick.getBounds().x;
+            float y = brick.getBounds().y;
+            float width = brick.getBounds().width;
+            float height = brick.getBounds().height;
+            Brick newBrick = new Brick(x, y, width, height, Brick.BrickType.BREAKABLE);
+            bricks.set(brickIndex, newBrick);
+        }
     }
 
     @Override
@@ -135,13 +238,12 @@ public class ArkanoidEndless extends Arkanoid {
     @Override
     protected void onGameOver() {
         log.info("Game Over! Final Score: {} (Wave: {})", score, currentWave);
-        score = 0;
-        lives = 3;
-        bricksDestroyed = 0;
-        currentWave = 1;
-        unbreakableChance = 0.1f;
-        initGameplay();
-        startWave(currentWave);
+
+        heartBlinking = false;
+        heartBlinkTimer = 0f;
+
+        org.vibecoders.moongazer.managers.Audio.startGameOverMusic();
+        gameOverMenu.show(score);
     }
 
     @Override
@@ -157,6 +259,8 @@ public class ArkanoidEndless extends Arkanoid {
         bricksDestroyed = 0;
         currentWave = 1;
         unbreakableChance = 0.1f;
+        heartBlinking = false;
+        heartBlinkTimer = 0f;
         initGameplay();
         startWave(currentWave);
     }
@@ -164,6 +268,11 @@ public class ArkanoidEndless extends Arkanoid {
     @Override
     protected void returnToMainMenu() {
         log.info("Returning to main menu from endless mode");
+
+        // Stop endless music and restart menu music
+        org.vibecoders.moongazer.managers.Audio.stopEndlessMusic();
+        org.vibecoders.moongazer.managers.Audio.menuMusicPlay();
+
         pauseMenu.resume();
         restoreInputProcessor();
         if (game.transition == null) {
