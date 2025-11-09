@@ -16,21 +16,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.managers.Audio;
-
 import java.util.HashMap;
 import java.util.Map;
-
 import static org.vibecoders.moongazer.Constants.*;
 
 public class PauseMenu {
     private static final Logger log = LoggerFactory.getLogger(PauseMenu.class);
-
-    private enum FadeState {
-        HIDDEN,
-        FADING_IN,
-        VISIBLE,
-        FADING_OUT
-    }
+    private enum FadeState { HIDDEN, FADING_IN, VISIBLE, FADING_OUT }
     private static final float FADE_DURATION = 0.25f;
     private static final int BUTTON_WIDTH = 300;
     private static final int BUTTON_HEIGHT = 80;
@@ -48,11 +40,14 @@ public class PauseMenu {
     private boolean pendingResume = false;
     private float fadeAlpha = 0f;
     private FadeState fadeState = FadeState.HIDDEN;
+    private Runnable onResume;
+    private Runnable onRestart;
+    private Runnable onMainMenu;
+    private Runnable onQuit;
 
     private static class ButtonConfig {
         final String label;
         final Runnable action;
-
         ButtonConfig(String label, Runnable action) {
             this.label = label;
             this.action = action;

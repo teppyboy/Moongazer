@@ -20,9 +20,7 @@ import org.vibecoders.moongazer.managers.Audio;
 import org.vibecoders.moongazer.ui.UICloseButton;
 import org.vibecoders.moongazer.ui.UITextButton;
 import org.vibecoders.moongazer.ui.UISlider;
-
 import java.util.HashMap;
-
 import static org.vibecoders.moongazer.Constants.*;
 
 public class SettingsScene extends Scene {
@@ -36,25 +34,17 @@ public class SettingsScene extends Scene {
 
     public SettingsScene(Game game) {
         super(game);
-
         root.setFillParent(true);
         BitmapFont font = Assets.getFont("ui", 24);
         Label.LabelStyle labelStyle = new Label.LabelStyle(font, Color.WHITE);
-
-        // Main panel
         Table mainPanel = new Table();
         mainPanel.setSize(800, 600);
-        mainPanel.setPosition((Gdx.graphics.getWidth() - 800) / 2f,
-                (Gdx.graphics.getHeight() - 600) / 2f);
-
+        mainPanel.setPosition((Gdx.graphics.getWidth() - 800) / 2f, (Gdx.graphics.getHeight() - 600) / 2f);
         Label title = new Label("Settings", labelStyle);
         mainPanel.add(title).colspan(2).padTop(60).padBottom(40);
         mainPanel.row();
-
-        // Volume settings
         TextureRegionDrawable bg = new TextureRegionDrawable(Assets.getWhiteTexture());
         var tintedBg = bg.tint(new Color(0.2f, 0.2f, 0.2f, 0.3f));
-
         String[] volumes = { "Master Volume", "Music Volume", "SFX Volume" };
         for (String volume : volumes) {
             Table row = new Table();
@@ -79,23 +69,16 @@ public class SettingsScene extends Scene {
             } else if (volume.equals("SFX Volume")) {
                 sfxSlider = new UISlider();
                 sfxSlider.setValue(Settings.getSfxVolume());
-                sfxSlider.onChanged(() -> {
-                    Settings.setSfxVolume(sfxSlider.getValue());
-                });
+                sfxSlider.onChanged(() -> { Settings.setSfxVolume(sfxSlider.getValue()); });
                 row.add(sfxSlider.slider).width(300).right().padRight(40);
             }
             mainPanel.add(row).width(700).height(60).padBottom(5);
             mainPanel.row();
         }
-
-        // Keybind settings
         Table section = new Table();
         section.setBackground(tintedBg);
-        section.add(new Label("Keybinds", labelStyle)).colspan(2).expandX().left()
-                .padLeft(20).padTop(15).padBottom(10);
+        section.add(new Label("Keybinds", labelStyle)).colspan(2).expandX().left().padLeft(20).padTop(15).padBottom(10);
         section.row();
-
-        // Player keybinds
         String[] players = { "Player 1", "Player 2" };
         String[] prefixes = { "p1", "p2" };
         String[] actions = { "_left", "_right" };

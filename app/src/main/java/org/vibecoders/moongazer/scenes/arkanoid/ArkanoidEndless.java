@@ -80,36 +80,76 @@ public class ArkanoidEndless extends Arkanoid {
     @Override
     protected void createBrickGrid(int rows, int cols) {
         bricks.clear();
-        float availableWidth = GAMEPLAY_AREA_WIDTH;
         float brickTotalWidth = BRICK_WIDTH + BRICK_PADDING;
-        int maxCols = (int) (availableWidth / brickTotalWidth);
+        int maxCols = (int) (GAMEPLAY_AREA_WIDTH / brickTotalWidth);
         cols = Math.min(cols, maxCols);
         int totalBricks = rows * cols;
 
+        // Reduce power-up counts - more rare
         int[] powerUpCounts = {
-            Math.min(2 + (currentWave / 10), 3),
-            Math.min(2 + (currentWave / 8), 4),
-            Math.min(3 + (currentWave / 6), 5),
-            Math.min(3 + (currentWave / 5), 6),
-            Math.min(2 + (currentWave / 7), 4),
-            Math.min(2 + (currentWave / 7), 4)
+            Math.min(1 + (currentWave / 15), 2),  // Super Ball: 1-2
+            Math.min(1 + (currentWave / 12), 2),  // Multi Ball: 1-2
+            Math.min(1 + (currentWave / 10), 3),  // Extra Life: 1-3
+            Math.min(2 + (currentWave / 8), 3),   // Expand Paddle: 2-3
+            Math.min(1 + (currentWave / 10), 2),  // Fast Ball: 1-2
+            Math.min(1 + (currentWave / 10), 2)   // Slow Ball: 1-2
         };
         
         int powerUpTotal = 0;
         for (int count : powerUpCounts) powerUpTotal += count;
-        int unbreakableCount = (int) (totalBricks * unbreakableChance);
-        int minNormalCount = totalBricks / 2;
-        int normalCount = totalBricks - unbreakableCount - powerUpTotal;
 
-        if (normalCount < minNormalCount) {
-            normalCount = minNormalCount;
-            float scale = (float)(totalBricks - unbreakableCount - normalCount) / powerUpTotal;
-            for (int i = 0; i < powerUpCounts.length; i++) {
-                powerUpCounts[i] = Math.max(1, (int)(powerUpCounts[i] * scale));
+        int unbreakableCount = (int) (totalBricks * unbreakableChance);
+
+        // Calculate breakable brick distribution by level
+        int breakableTotal = totalBricks - unbreakableCount - powerUpTotal;
+
+        // Ensure at least one breakable brick
+        if (breakableTotal <= 0) {
+            System.out.println("Warning: Not enough space for breakable bricks. Reducing power-ups and unbreakable bricks.");
+            // First, try reducing power-ups
+            int excess = unbreakableCount + powerUpTotal - (totalBricks - 1);
+            int powerUpExcess = Math.min(powerUpTotal, excess);
+            powerUpTotal -= powerUpExcess;
+            // Reduce individual powerUpCounts proportionally
+            int toRemove = powerUpExcess;
+            for (int i = powerUpCounts.length - 1; i >= 0 && toRemove > 0; i--) {
+                int remove = Math.min(powerUpCounts[i], toRemove);
+                powerUpCounts[i] -= remove;
+                toRemove -= remove;
+            }
+            // If still not enough, reduce unbreakable bricks
+            excess = unbreakableCount + powerUpTotal - (totalBricks - 1);
+            if (excess > 0) {
+                unbreakableCount -= Math.min(unbreakableCount, excess);
+            }
+            breakableTotal = totalBricks - unbreakableCount - powerUpTotal;
+            if (breakableTotal <= 0) {
+                // As a last resort, set breakableTotal to 1 and adjust others
+                breakableTotal = 1;
+                powerUpTotal = 0;
+                unbreakableCount = totalBricks - 1;
+                for (int i = 0; i < powerUpCounts.length; i++) powerUpCounts[i] = 0;
             }
         }
 
-        List<Brick.PowerUpType> brickTypes = new ArrayList<>();
+        // Level distribution: 50% level 1, 30% level 2, 20% level 3
+        int level1Count = (int) (breakableTotal * 0.50f);
+        int level2Count = (int) (breakableTotal * 0.30f);
+        int level3Count = breakableTotal - level1Count - level2Count;
+
+        // Adjust for wave difficulty - more high level bricks as waves progress
+        float difficultyFactor = Math.min(currentWave / 20f, 0.5f); // Max 50% shift
+        int shiftFromLevel1 = (int) (level1Count * difficultyFactor);
+        level1Count = Math.max(0, level1Count - shiftFromLevel1);
+        int shiftToLevel2 = shiftFromLevel1 / 2 + shiftFromLevel1 % 2;
+        int shiftToLevel3 = shiftFromLevel1 / 2;
+        level2Count += shiftToLevel2;
+        level3Count += shiftToLevel3;
+
+        // Create brick data list
+        List<BrickData> brickDataList = new ArrayList<>();
+
+        // Add power-up bricks (all level 1)
         Brick.PowerUpType[] types = {
             Brick.PowerUpType.SUPER_BALL,
             Brick.PowerUpType.MULTI_BALL,
@@ -121,12 +161,31 @@ public class ArkanoidEndless extends Arkanoid {
         
         for (int i = 0; i < types.length; i++) {
             for (int j = 0; j < powerUpCounts[i]; j++) {
-                brickTypes.add(types[i]);
+                brickDataList.add(new BrickData(Brick.BrickType.BREAKABLE, 1, types[i]));
             }
         }
-        for (int i = 0; i < unbreakableCount; i++) brickTypes.add(null);
-        while (brickTypes.size() < totalBricks) brickTypes.add(Brick.PowerUpType.NONE);
-        Collections.shuffle(brickTypes);
+
+        // Add unbreakable bricks
+        for (int i = 0; i < unbreakableCount; i++) {
+            brickDataList.add(new BrickData(Brick.BrickType.UNBREAKABLE, -1, Brick.PowerUpType.NONE));
+        }
+
+        // Add level 1 breakable bricks
+        for (int i = 0; i < level1Count; i++) {
+            brickDataList.add(new BrickData(Brick.BrickType.BREAKABLE, 1, Brick.PowerUpType.NONE));
+        }
+
+        // Add level 2 breakable bricks
+        for (int i = 0; i < level2Count; i++) {
+            brickDataList.add(new BrickData(Brick.BrickType.BREAKABLE, 2, Brick.PowerUpType.NONE));
+        }
+
+        // Add level 3 breakable bricks
+        for (int i = 0; i < level3Count; i++) {
+            brickDataList.add(new BrickData(Brick.BrickType.BREAKABLE, 3, Brick.PowerUpType.NONE));
+        }
+
+        Collections.shuffle(brickDataList);
 
         float gridWidth = cols * brickTotalWidth;
         float startX = SIDE_PANEL_WIDTH + (GAMEPLAY_AREA_WIDTH - gridWidth) / 2f;
@@ -137,27 +196,43 @@ public class ArkanoidEndless extends Arkanoid {
             for (int col = 0; col < cols; col++) {
                 float x = startX + col * brickTotalWidth;
                 float y = startY - row * (BRICK_HEIGHT + BRICK_PADDING);
-                Brick.PowerUpType powerUpType = brickTypes.get(brickIndex++);
+                BrickData data = brickDataList.get(brickIndex++);
+
                 Brick brick;
-                if (powerUpType == null) {
+                if (data.type == Brick.BrickType.UNBREAKABLE) {
                     brick = new Brick(x, y, BRICK_WIDTH, BRICK_HEIGHT, Brick.BrickType.UNBREAKABLE);
-                } else if (powerUpType == Brick.PowerUpType.NONE) {
-                    brick = new Brick(x, y, BRICK_WIDTH, BRICK_HEIGHT, Brick.BrickType.BREAKABLE);
+                } else if (data.powerUpType == Brick.PowerUpType.NONE) {
+                    brick = Brick.createBreakableBrick(x, y, BRICK_WIDTH, BRICK_HEIGHT, data.level);
                 } else {
-                    brick = new Brick(x, y, BRICK_WIDTH, BRICK_HEIGHT, Brick.BrickType.BREAKABLE, powerUpType);
+                    brick = Brick.createBreakableBrick(x, y, BRICK_WIDTH, BRICK_HEIGHT, data.level, data.powerUpType);
                 }
                 bricks.add(brick);
             }
         }
 
         log.info("Brick grid created: {} rows x {} cols = {} bricks", rows, cols, totalBricks);
-        log.info("Distribution - SuperBall: {}, MultiBall: {}, ExtraLife: {}, ExpandPaddle: {}, FastBall: {}, SlowBall: {}, Unbreakable: {}, Normal: {} ({}%)",
-                 powerUpCounts[0], powerUpCounts[1], powerUpCounts[2], powerUpCounts[3],
-                 powerUpCounts[4], powerUpCounts[5], unbreakableCount, normalCount,
-                 (int)((float)normalCount / totalBricks * 100));
+        log.info("Distribution - PowerUps: {}, Unbreakable: {}, Level1: {}, Level2: {}, Level3: {}",
+                 powerUpTotal, unbreakableCount, level1Count, level2Count, level3Count);
+        log.info("PowerUp breakdown - SuperBall: {}, MultiBall: {}, ExtraLife: {}, ExpandPaddle: {}, FastBall: {}, SlowBall: {}",
+                 powerUpCounts[0], powerUpCounts[1], powerUpCounts[2], powerUpCounts[3], powerUpCounts[4], powerUpCounts[5]);
 
-        // Ensure no breakable brick is completely surrounded by unbreakable bricks
+        // Ensure no trapped bricks
         ensureNoTrappedBricks(rows, cols);
+    }
+
+    /**
+     * Helper class to store brick data during generation
+     */
+    private static class BrickData {
+        final Brick.BrickType type;
+        final int level;
+        final Brick.PowerUpType powerUpType;
+
+        BrickData(Brick.BrickType type, int level, Brick.PowerUpType powerUpType) {
+            this.type = type;
+            this.level = level;
+            this.powerUpType = powerUpType;
+        }
     }
 
     /**

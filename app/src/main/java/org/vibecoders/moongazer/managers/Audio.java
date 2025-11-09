@@ -8,7 +8,6 @@ import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
 import java.util.HashMap;
 import java.util.Map;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,13 +16,9 @@ public class Audio {
     private static boolean initialized = false;
     private static final Map<String, Music> musicTracks = new HashMap<>();
     private static final Map<String, Sound> soundEffects = new HashMap<>();
-
-    // Endless mode music playlist
     private static List<Music> endlessMusicPlaylist = null;
     private static int currentEndlessTrackIndex = 0;
     private static boolean endlessMusicActive = false;
-
-    // Game over music
     private static Music gameOverMusic = null;
     private static boolean gameOverMusicActive = false;
 
@@ -72,19 +67,6 @@ public class Audio {
 
     public static void menuMusicPlay() { playMusic("menu"); }
     public static void menuMusicStop() { stopMusic("menu"); }
-    public static void menuMusicSetVolume() {
-        Music music = musicTracks.get("menu");
-        if (music != null) music.setVolume(Settings.getMusicVolume() * Settings.getMasterVolume());
-    }
-
-    public static void musicSetVolume() {
-        for (Music music : musicTracks.values()) {
-            if (music != null && music.isPlaying()) {
-                music.setVolume(Settings.getMusicVolume() * Settings.getMasterVolume());
-            }
-        }
-    }
-
     public static void stage1MusicPlay() { playMusic("stage1"); }
     public static void stage1MusicStop() { stopMusic("stage1"); }
     public static void stage2MusicPlay() { playMusic("stage2"); }
@@ -95,7 +77,6 @@ public class Audio {
     public static void stage4MusicStop() { stopMusic("stage4"); }
     public static void stage5MusicPlay() { playMusic("stage5"); }
     public static void stage5MusicStop() { stopMusic("stage5"); }
-
     public static void playSfxSelect() { playSfx("select"); }
     public static void playSfxReturn() { playSfx("return"); }
     public static void playSfxConfirm() { playSfx("confirm"); }
@@ -105,59 +86,44 @@ public class Audio {
     public static void playSfxBrickHit() { playSfx("brickHit"); }
     public static void playSfxBallLoss() { playSfx("ballLoss"); }
 
-    /**
-     * Initializes and starts the endless mode music playlist
-     */
+    public static void musicSetVolume() {
+        for (Music music : musicTracks.values()) {
+            if (music != null && music.isPlaying()) {
+                music.setVolume(Settings.getMusicVolume() * Settings.getMasterVolume());
+            }
+        }
+    }
+
     public static void initEndlessMusic() {
         if (endlessMusicPlaylist != null) {
             log.info("Endless music playlist already initialized");
-            return; // Already initialized
+            return;
         }
-
         log.info("=== Initializing endless mode music playlist ===");
         endlessMusicPlaylist = new ArrayList<>();
-
-        // Track base names (without extension)
-        String[] trackNames = {
-            "endlessost1",
-            "endlessost2",
-            "endlessost3",
-            "endlessost4",
-            "endlessost5"
-        };
-
+        String[] trackNames = {"endlessost1", "endlessost2", "endlessost3", "endlessost4", "endlessost5"};
         for (String trackName : trackNames) {
-            // Try OGG first (better LibGDX support), then MP3
             String[] extensions = {".ogg", ".mp3"};
             boolean loaded = false;
-
             for (String ext : extensions) {
                 try {
                     String fullPath = "audio/endlessost/" + trackName + ext;
                     log.info("Trying to load: {}", fullPath);
-
                     FileHandle fileHandle = Assets.getAsset(fullPath, FileHandle.class);
-
-                    // Log file info
-                    log.info("FileHandle info - exists: {}, length: {} bytes",
-                             fileHandle.exists(), fileHandle.length());
-
+                    log.info("FileHandle info - exists: {}, length: {} bytes", fileHandle.exists(), fileHandle.length());
                     if (fileHandle.length() == 0) {
                         log.error("File is empty (0 bytes): {}", fullPath);
                         continue;
                     }
-
                     Music music = Gdx.audio.newMusic(fileHandle);
                     endlessMusicPlaylist.add(music);
                     log.info("✓✓✓ Successfully loaded: {}{}", trackName, ext);
                     loaded = true;
-                    break; // Successfully loaded, no need to try other formats
-
+                    break;
                 } catch (Exception e) {
                     log.debug("Failed to load {}{}: {}", trackName, ext, e.getMessage());
                 }
             }
-
             if (!loaded) {
                 log.error("✗✗✗ Could not load {} in any supported format (.ogg or .mp3)", trackName);
                 log.error("Please convert this file to OGG format using Audacity or ffmpeg:");
@@ -184,19 +150,12 @@ public class Audio {
         }
     }
 
-    /**
-     * Starts playing the endless mode music playlist
-     */
     public static void startEndlessMusic() {
-        if (endlessMusicPlaylist == null) {
-            initEndlessMusic();
-        }
-
+        if (endlessMusicPlaylist == null) initEndlessMusic();
         if (endlessMusicPlaylist == null || endlessMusicPlaylist.isEmpty()) {
             log.error("Cannot start endless music - playlist is empty or null!");
             return;
         }
-
         menuMusicStop();
         currentEndlessTrackIndex = 0;
         endlessMusicActive = true;
@@ -204,14 +163,8 @@ public class Audio {
         log.info("Endless mode music started");
     }
 
-    /**
-     * Plays the current track in the endless playlist
-     */
     private static void playCurrentEndlessTrack() {
-        if (endlessMusicPlaylist == null || endlessMusicPlaylist.isEmpty() || !endlessMusicActive) {
-            return;
-        }
-
+        if (endlessMusicPlaylist == null || endlessMusicPlaylist.isEmpty() || !endlessMusicActive) return;
         Music currentTrack = endlessMusicPlaylist.get(currentEndlessTrackIndex);
         currentTrack.setVolume(Settings.getMusicVolume() * Settings.getMasterVolume());
         currentTrack.setLooping(false);
@@ -224,9 +177,6 @@ public class Audio {
         currentTrack.play();
     }
 
-    /**
-     * Updates the volume of endless music based on settings
-     */
     public static void updateEndlessMusicVolume() {
         if (endlessMusicPlaylist != null && endlessMusicActive && 
             currentEndlessTrackIndex >= 0 && currentEndlessTrackIndex < endlessMusicPlaylist.size()) {
@@ -244,27 +194,19 @@ public class Audio {
         if (endlessMusicPlaylist == null) {
             return;
         }
-
         endlessMusicActive = false;
-
         for (Music music : endlessMusicPlaylist) {
-            if (music.isPlaying()) {
-                music.stop();
-            }
+            if (music.isPlaying()) music.stop();
             music.dispose();
         }
-
         endlessMusicPlaylist.clear();
         endlessMusicPlaylist = null;
         currentEndlessTrackIndex = 0;
         log.info("Endless mode music stopped and disposed");
     }
 
-    /**
-     * Updates music volume for both menu and endless music
-     */
     public static void updateAllMusicVolume() {
-        menuMusicSetVolume();
+        musicSetVolume();
         updateEndlessMusicVolume();
         updateGameOverMusicVolume();
     }
