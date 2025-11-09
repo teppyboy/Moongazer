@@ -345,8 +345,6 @@ public abstract class Arkanoid extends Scene {
 
                             if (brick.getPowerUpType() != Brick.PowerUpType.NONE) {
                                 spawnRandomPowerUp(brick);
-                            } else if (Math.random() < 0.15) {
-                                spawnRandomPowerUp(brick);
                             }
                         }
                         continue;
@@ -383,8 +381,6 @@ public abstract class Arkanoid extends Scene {
                         onBrickDestroyed(brick);
 
                         if (brick.getPowerUpType() != Brick.PowerUpType.NONE) {
-                            spawnRandomPowerUp(brick);
-                        } else if (Math.random() < 0.15) {
                             spawnRandomPowerUp(brick);
                         }
                     }
