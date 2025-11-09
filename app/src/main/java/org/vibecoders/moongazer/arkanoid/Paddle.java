@@ -16,9 +16,16 @@ public class Paddle extends MovableObject {
     private float smoothingFactor = 0.25f;
     private boolean isSticky = false;
 
+    private float originalY;
+    private float currentYOffset = 0f;
+    private float targetYOffset = 0f;
+    private static final float MAX_Y_OFFSET = 8f;
+    private static final float BOUNCE_SPEED = 12f;
+
     public Paddle(float x, float y, float width, float height) {
         super(x, y, width, height);
         this.targetX = x;
+        this.originalY = y;
         this.texture = Assets.getAsset("textures/arkanoid/paddle.png", Texture.class);
     }
 
@@ -48,6 +55,23 @@ public class Paddle extends MovableObject {
 
         bounds.x = MathUtils.clamp(bounds.x, minX, maxX - bounds.width);
         targetX = MathUtils.clamp(targetX, minX, maxX - bounds.width);
+
+        updateBounceEffect(delta);
+    }
+
+    private void updateBounceEffect(float delta) {
+        if (targetYOffset > 0) {
+            targetYOffset = Math.max(0, targetYOffset - BOUNCE_SPEED * delta);
+        }
+        float diff = targetYOffset - currentYOffset;
+        currentYOffset += diff * 10f * delta;
+        bounds.y = originalY - currentYOffset;
+    }
+
+    public void onBallHit(float ballVelocityY) {
+        float impactStrength = Math.abs(ballVelocityY) / 350f;
+        impactStrength = MathUtils.clamp(impactStrength, 0.3f, 1.0f);
+        targetYOffset = MAX_Y_OFFSET * impactStrength;
     }
 
     public void render(SpriteBatch batch) {
@@ -93,5 +117,12 @@ public class Paddle extends MovableObject {
 
     public boolean isSticky() {
         return isSticky;
+    }
+
+    public void setOriginalY(float y) {
+        this.originalY = y;
+        this.currentYOffset = 0f;
+        this.targetYOffset = 0f;
+        this.bounds.y = y;
     }
 }

@@ -22,6 +22,7 @@ import org.vibecoders.moongazer.arkanoid.*;
 import org.vibecoders.moongazer.arkanoid.PowerUps.ActivePowerUpEffect;
 import org.vibecoders.moongazer.arkanoid.PowerUps.ClassicPowerUpFactory;
 import org.vibecoders.moongazer.managers.Assets;
+import org.vibecoders.moongazer.managers.Audio;
 import org.vibecoders.moongazer.scenes.Scene;
 import org.vibecoders.moongazer.ui.PauseMenu;
 import org.vibecoders.moongazer.ui.GameOverMenu;
@@ -320,6 +321,10 @@ public abstract class Arkanoid extends Scene {
             ball.update(delta);
         }
 
+        for (Brick brick : bricks) {
+            brick.update(delta);
+        }
+
         for (PowerUp powerUp : activePowerUps) {
             powerUp.update(delta);
         }
@@ -526,6 +531,8 @@ public abstract class Arkanoid extends Scene {
                 if (Intersector.overlaps(ballBounds, paddleBounds) &&
                         ball.getVelocity().y < 0 &&
                         ballIsAbovePaddle) {
+                    paddle.onBallHit(ball.getVelocity().y);
+                    Audio.playSfxPaddleHit();
                     ball.getBounds().y = paddleBounds.y + paddleBounds.height + ballRadius + 2f;
                     float hitPos = (ballX - paddleBounds.x) / paddleBounds.width;
                     hitPos = Math.max(0.1f, Math.min(0.9f, hitPos));
@@ -562,7 +569,7 @@ public abstract class Arkanoid extends Scene {
                     powerUp.x + powerUp.width > paddleBounds.x &&
                     powerUp.y < paddleBounds.y + paddleBounds.height &&
                     powerUp.y + powerUp.height > paddleBounds.y) {
-
+                Audio.playSfxPowerupReceive();
                 // Check power-up stacking rules
                 boolean canStack = canPowerUpStack(powerUp.getName());
 
@@ -893,6 +900,7 @@ public abstract class Arkanoid extends Scene {
 
     protected void onBallLost() {
         lives--;
+        Audio.playSfxBallLoss();
         heartBlinking = true;
         heartBlinkTimer = 0f;
 
