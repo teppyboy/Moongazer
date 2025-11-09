@@ -165,6 +165,15 @@ public class Assets {
             loadAny("audio/sfx/return.mp3");
             loadAny("audio/sfx/confirm.mp3");
             loadAny("audio/sfx/quit.mp3");
+            // Load endless mode music (both OGG and MP3 formats)
+            // Try OGG first (better support)
+            loadAny("audio/endlessost/endlessost1.ogg");
+            loadAny("audio/endlessost/endlessost2.ogg");
+            loadAny("audio/endlessost/endlessost3.ogg");
+            loadAny("audio/endlessost/endlessost4.ogg");
+            loadAny("audio/endlessost/endlessost5.ogg");
+            // Load game over OST
+            loadAny("audio/gameoverost.ogg");
         });
         loadingThread.start();
     }

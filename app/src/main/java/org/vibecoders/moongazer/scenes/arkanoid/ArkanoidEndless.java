@@ -23,6 +23,11 @@ public class ArkanoidEndless extends Arkanoid {
     protected void init() {
         super.init();
         setBackground(Assets.getAsset("textures/arkanoid/bg/endless.jpg", Texture.class));
+
+        // Stop menu music and start endless music
+        org.vibecoders.moongazer.managers.Audio.menuMusicStop();
+        org.vibecoders.moongazer.managers.Audio.startEndlessMusic();
+
         startWave(currentWave);
     }
 
@@ -30,6 +35,11 @@ public class ArkanoidEndless extends Arkanoid {
     protected void setupGameOverMenuCallbacks() {
         gameOverMenu.setOnPlayAgain(() -> {
             log.info("Playing again - Starting from Wave 1");
+
+            // Stop game over music and restart endless music
+            org.vibecoders.moongazer.managers.Audio.stopGameOverMusic();
+            org.vibecoders.moongazer.managers.Audio.startEndlessMusic();
+
             gameInputEnabled = true;
             restartGame(); // This will reset heartBlinking and all game state
             restoreInputProcessor();
@@ -37,6 +47,11 @@ public class ArkanoidEndless extends Arkanoid {
 
         gameOverMenu.setOnMainMenu(() -> {
             log.info("Returning to main menu from game over");
+
+            // Stop game over music and restart menu music
+            org.vibecoders.moongazer.managers.Audio.stopGameOverMusic();
+            org.vibecoders.moongazer.managers.Audio.menuMusicPlay();
+
             returnToMainMenu();
         });
 
@@ -228,6 +243,9 @@ public class ArkanoidEndless extends Arkanoid {
         heartBlinking = false;
         heartBlinkTimer = 0f;
 
+        // Stop endless music and start game over music
+        org.vibecoders.moongazer.managers.Audio.startGameOverMusic();
+
         // Show game over menu with final score
         gameOverMenu.show(score);
 
@@ -261,6 +279,11 @@ public class ArkanoidEndless extends Arkanoid {
     @Override
     protected void returnToMainMenu() {
         log.info("Returning to main menu from endless mode");
+
+        // Stop endless music and restart menu music
+        org.vibecoders.moongazer.managers.Audio.stopEndlessMusic();
+        org.vibecoders.moongazer.managers.Audio.menuMusicPlay();
+
         pauseMenu.resume();
         restoreInputProcessor();
         if (game.transition == null) {

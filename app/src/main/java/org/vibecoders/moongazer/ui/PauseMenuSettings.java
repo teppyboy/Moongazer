@@ -82,7 +82,7 @@ public class PauseMenuSettings {
                 masterVolSlider.setValue(Settings.getMasterVolume());
                 masterVolSlider.onChanged(() -> {
                     Settings.setMasterVolume(masterVolSlider.getValue());
-                    Audio.musicSetVolume();
+                    Audio.updateAllMusicVolume();
                 });
                 sliders[i] = masterVolSlider;
                 row.add(masterVolSlider.slider).width(300).right().padRight(40);
@@ -91,7 +91,7 @@ public class PauseMenuSettings {
                 musicSlider.setValue(Settings.getMusicVolume());
                 musicSlider.onChanged(() -> {
                     Settings.setMusicVolume(musicSlider.getValue());
-                    Audio.musicSetVolume();
+                    Audio.updateAllMusicVolume();
                 });
                 sliders[i] = musicSlider;
                 row.add(musicSlider.slider).width(300).right().padRight(40);
