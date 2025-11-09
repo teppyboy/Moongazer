@@ -17,30 +17,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.managers.Audio;
-
 import java.util.HashMap;
 import java.util.Map;
-
 import static org.vibecoders.moongazer.Constants.*;
 
-/**
- * Game Over menu displayed when the player runs out of lives.
- * Shows total score, best score, and options to play again, return to main menu, or quit.
- */
 public class GameOverMenu {
     private static final Logger log = LoggerFactory.getLogger(GameOverMenu.class);
-
-    private enum FadeState {
-        HIDDEN,
-        FADING_IN,
-        VISIBLE
-    }
-
+    private enum FadeState { HIDDEN, FADING_IN, VISIBLE }
     private static final float FADE_DURATION = 0.4f;
     private static final int BUTTON_WIDTH = 300;
     private static final int BUTTON_HEIGHT = 80;
     private static final int BUTTON_SPACING = 65;
-
     private boolean isVisible = false;
     private UITextButton[] buttons;
     private Table menuTable;
@@ -54,11 +41,8 @@ public class GameOverMenu {
     private float fadeAlpha = 0f;
     private FadeState fadeState = FadeState.HIDDEN;
     private GlyphLayout glyphLayout;
-
     private int totalScore = 0;
     private int bestScore = 0;
-
-    // Callbacks
     private Runnable onPlayAgain;
     private Runnable onMainMenu;
     private Runnable onQuit;
@@ -66,7 +50,6 @@ public class GameOverMenu {
     private static class ButtonConfig {
         final String label;
         final Runnable action;
-
         ButtonConfig(String label, Runnable action) {
             this.label = label;
             this.action = action;
@@ -83,12 +66,10 @@ public class GameOverMenu {
         pixmap.fill();
         darkOverlay = new Texture(pixmap);
         pixmap.dispose();
-
         titleFont = Assets.getFont("ui", 48);
         scoreFont = Assets.getFont("ui", 32);
         buttonFont = Assets.getFont("ui", 24);
         glyphLayout = new GlyphLayout();
-
         menuStage = new Stage();
         menuTable = new Table();
         menuTable.setFillParent(true);
