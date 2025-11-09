@@ -11,8 +11,6 @@ import com.badlogic.gdx.utils.Pool;
 public abstract class UIButton {
     public Actor actor;
     public Button button;
-
-    // Object pool for InputEvent to reduce garbage collection
     private static final Pool<InputEvent> eventPool = new Pool<InputEvent>() {
         @Override
         protected InputEvent newObject() {
@@ -37,7 +35,6 @@ public abstract class UIButton {
     }
 
     public void click() {
-        // Use pooled objects to avoid garbage collection
         InputEvent down = eventPool.obtain();
         down.setType(InputEvent.Type.touchDown);
         down.setButton(Input.Buttons.LEFT);
@@ -45,7 +42,6 @@ public abstract class UIButton {
         down.setStageY(button.getY());
         button.fire(down);
         eventPool.free(down);
-
         InputEvent up = eventPool.obtain();
         up.setType(InputEvent.Type.touchUp);
         up.setButton(Input.Buttons.LEFT);

@@ -22,7 +22,6 @@ public class Brick extends GameObject {
     private boolean destroyed;
     private int durability;
     private int maxDurability;
-
     private boolean disappearing = false;
     private float disappearTimer = 0f;
     private float totalDisappearTime = 1f;
@@ -44,7 +43,7 @@ public class Brick extends GameObject {
 
     /**
      * Create a breakable brick with specific level (1, 2, or 3)
-     * Level 3 = hardest (3 hits), Level 1 = easiest (1 hit)
+     * Level 1 = easiest (1 hit), Level 2 = medium (2 hits), Level 3 = hardest (3 hits)
      */
     public static Brick createBreakableBrick(float x, float y, float width, float height, int level) {
         return new Brick(x, y, width, height, BrickType.BREAKABLE, level, PowerUpType.NONE);
@@ -97,7 +96,6 @@ public class Brick extends GameObject {
                     return;
             }
         }
-
         switch (type) {
             case UNBREAKABLE:
                 texture = Assets.getAsset("textures/arkanoid/bricks/unbreakable_brick.png", Texture.class);
@@ -173,9 +171,8 @@ public class Brick extends GameObject {
         if (disappearing) {
             disappearTimer += deltaTime;
             float progress = disappearTimer / totalDisappearTime;
-
             if (progress < 1f) {
-                float frequency = 30f + progress * 20f; // 30Hz -> 50Hz
+                float frequency = 30f + progress * 20f;
                 float shakeOffset = (float) Math.sin(disappearTimer * frequency) * shakeIntensity * (1f - progress);
                 bounds.x = originalX + shakeOffset;
                 alpha = Math.max(0f, 1f - progress);

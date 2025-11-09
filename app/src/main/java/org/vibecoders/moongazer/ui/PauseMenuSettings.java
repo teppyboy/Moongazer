@@ -25,12 +25,8 @@ import java.util.Map;
 
 import static org.vibecoders.moongazer.Constants.*;
 
-/**
- * Settings overlay for pause menu - matches MainMenu/SettingsScene style
- */
 public class PauseMenuSettings {
     private static final Logger log = LoggerFactory.getLogger(PauseMenuSettings.class);
-
     private boolean isOpen = false;
     private Stage settingsStage;
     private Table root;
@@ -41,7 +37,6 @@ public class PauseMenuSettings {
     private UISlider sfxSlider;
     private UITextButton backButton;
     private HashMap<Integer, Long> currentKeyDown = new HashMap<>();
-
     private Runnable onClose;
 
     public PauseMenuSettings() {
@@ -51,12 +46,10 @@ public class PauseMenuSettings {
     private void initUI() {
         titleFont = Assets.getFont("ui", 40);
         labelFont = Assets.getFont("ui", 24);
-
         settingsStage = new Stage();
         root = new Table();
         root.setFillParent(true);
         settingsStage.addActor(root);
-
         Table mainPanel = new Table();
         mainPanel.setSize(800, 600);
         mainPanel.setPosition((WINDOW_WIDTH - 800) / 2f, (WINDOW_HEIGHT - 600) / 2f);
@@ -65,18 +58,14 @@ public class PauseMenuSettings {
         Label title = new Label("SETTINGS", labelStyle);
         mainPanel.add(title).colspan(2).padTop(60).padBottom(40);
         mainPanel.row();
-
         TextureRegionDrawable bg = new TextureRegionDrawable(Assets.getWhiteTexture());
         var tintedBg = bg.tint(new Color(0.2f, 0.2f, 0.2f, 0.3f));
-
         String[] volumes = { "Master Volume", "Music Volume", "SFX Volume" };
         UISlider[] sliders = new UISlider[3];
-
         for (int i = 0; i < volumes.length; i++) {
             Table row = new Table();
             row.setBackground(tintedBg);
             row.add(new Label(volumes[i], labelStyle)).expandX().left().padLeft(40).pad(15);
-
             if (i == 0) {
                 masterVolSlider = new UISlider();
                 masterVolSlider.setValue(Settings.getMasterVolume());
@@ -104,11 +93,9 @@ public class PauseMenuSettings {
                 sliders[i] = sfxSlider;
                 row.add(sfxSlider.slider).width(300).right().padRight(40);
             }
-
             mainPanel.add(row).width(700).height(60).padBottom(5);
             mainPanel.row();
         }
-
         backButton = new UITextButton("Back", labelFont);
         backButton.setSize(300, 70);
         backButton.onClick(() -> {
@@ -116,12 +103,9 @@ public class PauseMenuSettings {
             Audio.playSfxReturn();
             close();
         });
-
         mainPanel.add(backButton.getActor()).width(300).height(70).padTop(40);
         mainPanel.row();
-
         root.addActor(mainPanel);
-
         initKeyboardHandling();
     }
 
@@ -140,8 +124,6 @@ public class PauseMenuSettings {
                 return true;
             }
         });
-
-        // Set keyboard focus to root so it receives input events
         settingsStage.setKeyboardFocus(root);
     }
 
@@ -155,14 +137,9 @@ public class PauseMenuSettings {
     public void open() {
         if (!isOpen) {
             isOpen = true;
-
-            // Clear any previous key states
             currentKeyDown.clear();
-
-            // Set input processor and keyboard focus
             Gdx.input.setInputProcessor(settingsStage);
             settingsStage.setKeyboardFocus(root);
-
             log.info("Settings overlay opened");
         }
     }
@@ -170,26 +147,17 @@ public class PauseMenuSettings {
     public void close() {
         if (isOpen) {
             isOpen = false;
-
-            // Clear key states
             currentKeyDown.clear();
-
-            // Reset stage alpha for next open
             if (settingsStage != null && settingsStage.getRoot() != null) {
                 settingsStage.getRoot().getColor().a = 1f;
             }
-
-            // Clear keyboard focus before switching input processor
             if (settingsStage != null) {
                 settingsStage.setKeyboardFocus(null);
                 settingsStage.unfocusAll();
             }
-
-            // Call onClose callback to restore input processor to pause menu
             if (onClose != null) {
                 onClose.run();
             }
-
             log.info("Settings overlay closed");
         }
     }
@@ -200,12 +168,8 @@ public class PauseMenuSettings {
 
     public void render(SpriteBatch batch, float parentAlpha) {
         if (!isOpen) return;
-
         float alpha = MathUtils.clamp(parentAlpha, 0f, 1f);
-        if (alpha <= 0f) {
-            return;
-        }
-
+        if (alpha <= 0f) return;
         for (Map.Entry<Integer, Long> entry : currentKeyDown.entrySet()) {
             Integer keyCode = entry.getKey();
             Long timeStamp = entry.getValue();
@@ -214,19 +178,15 @@ public class PauseMenuSettings {
                 currentKeyDown.put(keyCode, TimeUtils.millis());
             }
         }
-
         batch.setColor(0, 0, 0, 0.5f * alpha);
         batch.draw(Assets.getWhiteTexture(), 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         batch.setColor(Color.WHITE);
-
         batch.end();
-
         if (settingsStage.getRoot() != null) {
             settingsStage.getRoot().getColor().a = alpha;
         }
         settingsStage.act(Gdx.graphics.getDeltaTime());
         settingsStage.draw();
-
         batch.begin();
     }
 
