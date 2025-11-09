@@ -1,7 +1,6 @@
 package org.vibecoders.moongazer.arkanoid;
 
 import org.vibecoders.moongazer.managers.Assets;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Texture;
@@ -15,7 +14,6 @@ public class Paddle extends MovableObject {
     private float targetX;
     private float smoothingFactor = 0.25f;
     private boolean isSticky = false;
-
     private float originalY;
     private float currentYOffset = 0f;
     private float targetYOffset = 0f;
@@ -35,7 +33,6 @@ public class Paddle extends MovableObject {
 
     public void update(float delta, float minX, float maxX) {
         boolean keyboardUsed = false;
-
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) {
             bounds.x -= speed * delta;
             targetX = bounds.x;
@@ -46,16 +43,13 @@ public class Paddle extends MovableObject {
             targetX = bounds.x;
             keyboardUsed = true;
         }
-
         if (!keyboardUsed && Gdx.input.isTouched()) {
             float mouseX = Gdx.input.getX();
             targetX = mouseX - bounds.width / 2f;
             bounds.x = MathUtils.lerp(bounds.x, targetX, 1f - smoothingFactor);
         }
-
         bounds.x = MathUtils.clamp(bounds.x, minX, maxX - bounds.width);
         targetX = MathUtils.clamp(targetX, minX, maxX - bounds.width);
-
         updateBounceEffect(delta);
     }
 
