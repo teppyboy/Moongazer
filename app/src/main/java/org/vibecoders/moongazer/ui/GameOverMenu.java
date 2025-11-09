@@ -55,9 +55,8 @@ public class GameOverMenu {
     private FadeState fadeState = FadeState.HIDDEN;
     private GlyphLayout glyphLayout;
 
-    // Score tracking
     private int totalScore = 0;
-    private int bestScore = 0; // TODO: Load from save file
+    private int bestScore = 0;
 
     // Callbacks
     private Runnable onPlayAgain;
@@ -79,26 +78,22 @@ public class GameOverMenu {
     }
 
     private void initUI() {
-        // Create dark overlay
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pixmap.setColor(0, 0, 0, 0.85f);
         pixmap.fill();
         darkOverlay = new Texture(pixmap);
         pixmap.dispose();
 
-        // Load fonts
         titleFont = Assets.getFont("ui", 48);
         scoreFont = Assets.getFont("ui", 32);
         buttonFont = Assets.getFont("ui", 24);
         glyphLayout = new GlyphLayout();
 
-        // Create stage and table
         menuStage = new Stage();
         menuTable = new Table();
         menuTable.setFillParent(true);
         menuStage.addActor(menuTable);
 
-        // Create buttons
         ButtonConfig[] configs = createButtonConfigs();
         buttons = new UITextButton[configs.length];
 
@@ -266,12 +261,9 @@ public class GameOverMenu {
         }
 
         float delta = Gdx.graphics.getDeltaTime();
-
-        // Update fade
         updateFade(delta);
 
-        // Handle key repeat
-        for (Map.Entry<Integer, Long> entry : currentKeyDown.entrySet()) {
+        for (Map.Entry<Integer, Long> entry : new HashMap<>(currentKeyDown).entrySet()) {
             Integer keyCode = entry.getKey();
             Long timeStamp = entry.getValue();
             if (TimeUtils.millis() - timeStamp > 100) {
@@ -280,7 +272,6 @@ public class GameOverMenu {
             }
         }
 
-        // Draw game snapshot
         if (gameSnapshot != null) {
             batch.draw(gameSnapshot, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0, 1, 1);
         }
@@ -289,12 +280,10 @@ public class GameOverMenu {
             return;
         }
 
-        // Draw dark overlay
         batch.setColor(1f, 1f, 1f, fadeAlpha);
         batch.draw(darkOverlay, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         batch.setColor(Color.WHITE);
 
-        // Draw "GAME OVER" title
         String gameOverText = "GAME OVER";
         glyphLayout.setText(titleFont, gameOverText);
         float titleX = (WINDOW_WIDTH - glyphLayout.width) / 2f;
