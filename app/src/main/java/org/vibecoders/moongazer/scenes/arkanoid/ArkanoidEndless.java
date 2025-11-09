@@ -175,29 +175,33 @@ public class ArkanoidEndless extends Arkanoid {
                 if (brick.getType() != Brick.BrickType.BREAKABLE) continue;
 
                 // Check all 4 directions (top, bottom, left, right)
-                boolean topBlocked = (row == 0) || (row > 0 && bricks.get((row - 1) * cols + col).getType() == Brick.BrickType.UNBREAKABLE);
-                boolean bottomBlocked = (row == rows - 1) || (row < rows - 1 && bricks.get((row + 1) * cols + col).getType() == Brick.BrickType.UNBREAKABLE);
-                boolean leftBlocked = (col == 0) || (col > 0 && bricks.get(row * cols + (col - 1)).getType() == Brick.BrickType.UNBREAKABLE);
-                boolean rightBlocked = (col == cols - 1) || (col < cols - 1 && bricks.get(row * cols + (col + 1)).getType() == Brick.BrickType.UNBREAKABLE);
+                boolean topBlocked = (row == 0) || (bricks.get((row - 1) * cols + col).getType() == Brick.BrickType.UNBREAKABLE);
+                boolean bottomBlocked = (row == rows - 1) || (bricks.get((row + 1) * cols + col).getType() == Brick.BrickType.UNBREAKABLE);
+                boolean leftBlocked = (col == 0) || (bricks.get(row * cols + (col - 1)).getType() == Brick.BrickType.UNBREAKABLE);
+                boolean rightBlocked = (col == cols - 1) || (bricks.get(row * cols + (col + 1)).getType() == Brick.BrickType.UNBREAKABLE);
 
                 // If completely surrounded, open one path
                 if (topBlocked && bottomBlocked && leftBlocked && rightBlocked) {
-                    // Try to open top first, then others
                     if (row > 0) {
-                        Brick topBrick = bricks.get((row - 1) * cols + col);
-                        convertToBreakable(topBrick);
+                        int topIndex = (row - 1) * cols + col;
+                        convertToBreakable(bricks.get(topIndex), topIndex);
                         fixed = true;
                         log.warn("Fixed trapped brick at ({}, {}) by opening TOP", row, col);
                     } else if (col > 0) {
-                        Brick leftBrick = bricks.get(row * cols + (col - 1));
-                        convertToBreakable(leftBrick);
+                        int leftIndex = row * cols + (col - 1);
+                        convertToBreakable(bricks.get(leftIndex), leftIndex);
                         fixed = true;
                         log.warn("Fixed trapped brick at ({}, {}) by opening LEFT", row, col);
                     } else if (col < cols - 1) {
-                        Brick rightBrick = bricks.get(row * cols + (col + 1));
-                        convertToBreakable(rightBrick);
+                        int rightIndex = row * cols + (col + 1);
+                        convertToBreakable(bricks.get(rightIndex), rightIndex);
                         fixed = true;
                         log.warn("Fixed trapped brick at ({}, {}) by opening RIGHT", row, col);
+                    } else if (row < rows - 1) {
+                        int bottomIndex = (row + 1) * cols + col;
+                        convertToBreakable(bricks.get(bottomIndex), bottomIndex);
+                        fixed = true;
+                        log.warn("Fixed trapped brick at ({}, {}) by opening BOTTOM", row, col);
                     }
                 }
             }
@@ -210,18 +214,14 @@ public class ArkanoidEndless extends Arkanoid {
     /**
      * Converts an unbreakable brick to a normal breakable brick
      */
-    private void convertToBreakable(Brick brick) {
+    private void convertToBreakable(Brick brick, int brickIndex) {
         if (brick.getType() == Brick.BrickType.UNBREAKABLE) {
-            // Replace the brick with a new breakable one at the same position
-            int brickIndex = bricks.indexOf(brick);
-            if (brickIndex >= 0) {
-                float x = brick.getBounds().x;
-                float y = brick.getBounds().y;
-                float width = brick.getBounds().width;
-                float height = brick.getBounds().height;
-                Brick newBrick = new Brick(x, y, width, height, Brick.BrickType.BREAKABLE);
-                bricks.set(brickIndex, newBrick);
-            }
+            float x = brick.getBounds().x;
+            float y = brick.getBounds().y;
+            float width = brick.getBounds().width;
+            float height = brick.getBounds().height;
+            Brick newBrick = new Brick(x, y, width, height, Brick.BrickType.BREAKABLE);
+            bricks.set(brickIndex, newBrick);
         }
     }
 
@@ -239,22 +239,11 @@ public class ArkanoidEndless extends Arkanoid {
     protected void onGameOver() {
         log.info("Game Over! Final Score: {} (Wave: {})", score, currentWave);
 
-        // Stop heart blinking immediately
         heartBlinking = false;
         heartBlinkTimer = 0f;
 
-        // Stop endless music and start game over music
         org.vibecoders.moongazer.managers.Audio.startGameOverMusic();
-
-        // Show game over menu with final score
         gameOverMenu.show(score);
-
-        // Reset game state for next play
-        score = 0;
-        lives = 3;
-        bricksDestroyed = 0;
-        currentWave = 1;
-        unbreakableChance = 0.1f;
     }
 
     @Override

@@ -188,10 +188,7 @@ public class Audio {
      * Starts playing the endless mode music playlist
      */
     public static void startEndlessMusic() {
-        log.info("=== Starting Endless Music ===");
-
         if (endlessMusicPlaylist == null) {
-            log.info("Playlist is null, initializing...");
             initEndlessMusic();
         }
 
@@ -200,16 +197,11 @@ public class Audio {
             return;
         }
 
-        // Stop menu music
-        log.info("Stopping menu music...");
         menuMusicStop();
-
         currentEndlessTrackIndex = 0;
         endlessMusicActive = true;
-
-        log.info("Playing first track from playlist of {} tracks", endlessMusicPlaylist.size());
         playCurrentEndlessTrack();
-        log.info("Endless mode music started successfully!");
+        log.info("Endless mode music started");
     }
 
     /**
@@ -217,37 +209,27 @@ public class Audio {
      */
     private static void playCurrentEndlessTrack() {
         if (endlessMusicPlaylist == null || endlessMusicPlaylist.isEmpty() || !endlessMusicActive) {
-            log.warn("Cannot play track - playlist null/empty or not active");
             return;
         }
 
-        log.info("Playing endless track {} of {}", currentEndlessTrackIndex + 1, endlessMusicPlaylist.size());
-
         Music currentTrack = endlessMusicPlaylist.get(currentEndlessTrackIndex);
-        float volume = Settings.getMusicVolume() * Settings.getMasterVolume();
-        currentTrack.setVolume(volume);
+        currentTrack.setVolume(Settings.getMusicVolume() * Settings.getMasterVolume());
         currentTrack.setLooping(false);
-
-        log.info("Track volume set to: {}", volume);
-
-        // Set completion listener to play next track
         currentTrack.setOnCompletionListener(music -> {
             if (endlessMusicActive) {
                 currentEndlessTrackIndex = (currentEndlessTrackIndex + 1) % endlessMusicPlaylist.size();
-                log.info("Track completed, switching to track {}", currentEndlessTrackIndex + 1);
                 playCurrentEndlessTrack();
             }
         });
-
         currentTrack.play();
-        log.info("✓ Now playing endless track {}", currentEndlessTrackIndex + 1);
     }
 
     /**
      * Updates the volume of endless music based on settings
      */
     public static void updateEndlessMusicVolume() {
-        if (endlessMusicPlaylist != null && endlessMusicActive) {
+        if (endlessMusicPlaylist != null && endlessMusicActive && 
+            currentEndlessTrackIndex >= 0 && currentEndlessTrackIndex < endlessMusicPlaylist.size()) {
             Music currentTrack = endlessMusicPlaylist.get(currentEndlessTrackIndex);
             if (currentTrack.isPlaying()) {
                 currentTrack.setVolume(Settings.getMusicVolume() * Settings.getMasterVolume());
@@ -265,7 +247,6 @@ public class Audio {
 
         endlessMusicActive = false;
 
-        // Stop all tracks
         for (Music music : endlessMusicPlaylist) {
             if (music.isPlaying()) {
                 music.stop();
@@ -357,35 +338,19 @@ public class Audio {
     }
 
     public static void dispose() {
-        // Dispose endless music
         stopEndlessMusic();
-
-        // Dispose game over music
         stopGameOverMusic();
 
-        if (menuMusic != null) {
-            menuMusic.dispose();
-            menuMusic = null;
-        }
-        if (selectSfx != null) {
-            selectSfx.dispose();
-            selectSfx = null;
-        }
-        if (returnSfx != null) {
-            returnSfx.dispose();
-            returnSfx = null;
-        }
-        if (confirmSfx != null) {
-            confirmSfx.dispose();
-            confirmSfx = null;
         for (Music music : musicTracks.values()) {
             if (music != null) music.dispose();
         }
         musicTracks.clear();
+        
         for (Sound sound : soundEffects.values()) {
             if (sound != null) sound.dispose();
         }
         soundEffects.clear();
+        
         initialized = false;
         log.info("Audio manager disposed");
     }

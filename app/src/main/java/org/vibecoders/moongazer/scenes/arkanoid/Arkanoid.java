@@ -14,6 +14,7 @@ import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.utils.TimeUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,8 +51,10 @@ public abstract class Arkanoid extends Scene {
     private float stuckDetectionTimer = 0f;
     private float minBallY = Float.MAX_VALUE;
     private float maxBallY = Float.MIN_VALUE;
-    private static final float STUCK_CHECK_DURATION = 5.0f; // Check over 5 seconds
-    private static final float STUCK_Y_RANGE_THRESHOLD = 100f; // If ball stays within 100px Y range for 5s, it's stuck
+    private static final float STUCK_CHECK_DURATION = 5.0f;
+    private static final float STUCK_Y_RANGE_THRESHOLD = 100f;
+    private static final float MIN_HORIZONTAL_VELOCITY_THRESHOLD = 50f;
+    private static final float MIN_HORIZONTAL_RATIO = 0.3f;
 
     private Texture pixelTexture;
     private Texture heartTexture;
@@ -164,6 +167,7 @@ public abstract class Arkanoid extends Scene {
     protected void setupGameOverMenuCallbacks() {
         gameOverMenu.setOnPlayAgain(() -> {
             log.info("Playing again from game over menu");
+            Audio.stopGameOverMusic();
             gameInputEnabled = true;
             restartGame();
             restoreInputProcessor();
@@ -171,6 +175,7 @@ public abstract class Arkanoid extends Scene {
 
         gameOverMenu.setOnMainMenu(() -> {
             log.info("Returning to main menu from game over");
+            Audio.stopGameOverMusic();
             returnToMainMenu();
         });
 
@@ -400,6 +405,19 @@ public abstract class Arkanoid extends Scene {
         }
     }
 
+    private void adjustBallVelocityIfTooVertical(Ball ball, boolean preserveHorizontalDirection) {
+        if (Math.abs(ball.getVelocity().x) < MIN_HORIZONTAL_VELOCITY_THRESHOLD) {
+            float currentVelX = ball.getVelocity().x;
+            float currentVelY = ball.getVelocity().y;
+            float speed = (float) Math.sqrt(currentVelX * currentVelX + currentVelY * currentVelY);
+            float directionX = preserveHorizontalDirection ? (currentVelX >= 0 ? 1 : -1) : (Math.random() > 0.5 ? 1 : -1);
+            float horizontalVel = speed * MIN_HORIZONTAL_RATIO * directionX;
+            float verticalVel = (float) Math.sqrt(speed * speed - horizontalVel * horizontalVel) * (currentVelY >= 0 ? 1 : -1);
+            ball.setVelocity(horizontalVel, verticalVel);
+            log.debug("Adjusted velocity to prevent vertical stuck: ({}, {})", horizontalVel, verticalVel);
+        }
+    }
+
     protected void handleCollisions() {
         for (int ballIndex = balls.size() - 1; ballIndex >= 0; ballIndex--) {
             Ball ball = balls.get(ballIndex);
@@ -478,16 +496,8 @@ public abstract class Arkanoid extends Scene {
                             ball.getBounds().x = brickBounds.x + brickBounds.width + ballRadius + separationDistance;
                         }
 
-                        // If hitting unbreakable brick and velocity is too vertical, add horizontal component
-                        if (isUnbreakableBrick && Math.abs(ball.getVelocity().x) < 50f) {
-                            float currentVelX = ball.getVelocity().x;
-                            float currentVelY = ball.getVelocity().y;
-                            float speed = (float) Math.sqrt(currentVelX * currentVelX + currentVelY * currentVelY);
-                            float minHorizontalRatio = 0.3f; // At least 30% horizontal velocity
-                            float horizontalVel = speed * minHorizontalRatio * (currentVelX >= 0 ? 1 : -1);
-                            float verticalVel = (float) Math.sqrt(speed * speed - horizontalVel * horizontalVel) * (currentVelY >= 0 ? 1 : -1);
-                            ball.setVelocity(horizontalVel, verticalVel);
-                            log.debug("Adjusted velocity to prevent vertical stuck: ({}, {})", horizontalVel, verticalVel);
+                        if (isUnbreakableBrick) {
+                            adjustBallVelocityIfTooVertical(ball, true);
                         }
                     } else {
                         ball.reverseY();
@@ -497,16 +507,8 @@ public abstract class Arkanoid extends Scene {
                             ball.getBounds().y = brickBounds.y - ballRadius - separationDistance;
                         }
 
-                        // If hitting unbreakable brick and velocity is too vertical, add horizontal component
-                        if (isUnbreakableBrick && Math.abs(ball.getVelocity().x) < 50f) {
-                            float currentVelX = ball.getVelocity().x;
-                            float currentVelY = ball.getVelocity().y;
-                            float speed = (float) Math.sqrt(currentVelX * currentVelX + currentVelY * currentVelY);
-                            float minHorizontalRatio = 0.3f; // At least 30% horizontal velocity
-                            float horizontalVel = speed * minHorizontalRatio * (Math.random() > 0.5 ? 1 : -1);
-                            float verticalVel = (float) Math.sqrt(speed * speed - horizontalVel * horizontalVel) * (currentVelY >= 0 ? 1 : -1);
-                            ball.setVelocity(horizontalVel, verticalVel);
-                            log.debug("Adjusted velocity to prevent vertical stuck: ({}, {})", horizontalVel, verticalVel);
+                        if (isUnbreakableBrick) {
+                            adjustBallVelocityIfTooVertical(ball, true);
                         }
                     }
                     brick.hit();
@@ -853,13 +855,10 @@ public abstract class Arkanoid extends Scene {
             // Check if time is low (less than 3 seconds)
             boolean isLowTime = remainingTime <= 3.0f;
 
-            // Blinking effect when low on time
             float alpha = 1.0f;
             Color textColor = Color.WHITE;
             if (isLowTime) {
-                // Blink twice per second
-                float blinkPhase = (remainingTime * 2) % 1.0f;
-                alpha = blinkPhase < 0.5f ? 0.3f : 1.0f;
+                alpha = (TimeUtils.millis() / 250) % 2 == 0 ? 0.3f : 1.0f;
                 textColor = Color.RED;
             }
 
@@ -912,6 +911,11 @@ public abstract class Arkanoid extends Scene {
         float ballRadius = 12f;
         Ball mainBall = new Ball(paddle.getCenterX(), paddle.getBounds().y + paddle.getBounds().height + ballRadius + 5, ballRadius);
         balls.add(mainBall);
+
+        // Reset stuck detection tracking
+        stuckDetectionTimer = 0f;
+        minBallY = Float.MAX_VALUE;
+        maxBallY = Float.MIN_VALUE;
 
         log.info("Ball lost! Lives remaining: {}", lives);
         if (lives <= 0) {
