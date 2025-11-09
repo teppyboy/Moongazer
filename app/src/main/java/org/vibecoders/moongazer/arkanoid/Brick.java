@@ -3,6 +3,7 @@ package org.vibecoders.moongazer.arkanoid;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import org.vibecoders.moongazer.managers.Assets;
+import org.vibecoders.moongazer.managers.Audio;
 
 public class Brick extends GameObject {
     public enum BrickType {
@@ -11,7 +12,7 @@ public class Brick extends GameObject {
     }
 
     public enum PowerUpType {
-        NONE, EXPAND_PADDLE, EXTRA_LIFE, FAST_BALL, SLOW_BALL, 
+        NONE, EXPAND_PADDLE, EXTRA_LIFE, FAST_BALL, SLOW_BALL,
         MULTI_BALL, SUPER_BALL, LASER, EXPLOSIVE
     }
 
@@ -21,6 +22,13 @@ public class Brick extends GameObject {
     private boolean destroyed;
     private int durability;
     private int maxDurability;
+
+    private boolean disappearing = false;
+    private float disappearTimer = 0f;
+    private float totalDisappearTime = 1f;
+    private float shakeIntensity = 4f;
+    private float alpha = 1f;
+    private float originalX;
 
     public Brick(float x, float y, float width, float height, BrickType type) {
         this(x, y, width, height, type, type == BrickType.UNBREAKABLE ? -1 : 1, PowerUpType.NONE);
@@ -41,6 +49,7 @@ public class Brick extends GameObject {
         this.destroyed = false;
         this.durability = durability;
         this.maxDurability = durability;
+        this.originalX = x;
         loadTexture();
     }
 
@@ -91,18 +100,31 @@ public class Brick extends GameObject {
     }
 
     public void hit() {
+        Audio.playSfxBrickHit();
         if (durability == -1) return;
         durability--;
         if (durability <= 0) {
+            startDisappearing();
             destroyed = true;
         } else {
             loadTexture();
         }
     }
 
+    private void startDisappearing() {
+        disappearing = true;
+        disappearTimer = 0f;
+        originalX = bounds.x;
+    }
+
     public void render(SpriteBatch batch) {
-        if (!destroyed && texture != null) {
+        if (texture != null && (disappearing || !destroyed)) {
+            float oldColor = batch.getPackedColor();
+            if (disappearing) {
+                batch.setColor(1f, 1f, 1f, alpha);
+            }
             batch.draw(texture, bounds.x, bounds.y, bounds.width, bounds.height);
+            batch.setPackedColor(oldColor);
         }
     }
 
@@ -133,5 +155,28 @@ public class Brick extends GameObject {
     }
 
     public void update(float deltaTime) {
+        if (disappearing) {
+            disappearTimer += deltaTime;
+            float progress = disappearTimer / totalDisappearTime;
+
+            if (progress < 1f) {
+                float frequency = 30f + progress * 20f; // 30Hz -> 50Hz
+                float shakeOffset = (float) Math.sin(disappearTimer * frequency) * shakeIntensity * (1f - progress);
+                bounds.x = originalX + shakeOffset;
+                alpha = Math.max(0f, 1f - progress);
+            } else {
+                bounds.x = originalX;
+                alpha = 0f;
+                disappearing = false;
+            }
+        }
+    }
+
+    public boolean isDisappearing() {
+        return disappearing;
+    }
+
+    public float getAlpha() {
+        return alpha;
     }
 }
