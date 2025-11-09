@@ -10,11 +10,11 @@ import org.vibecoders.moongazer.scenes.dialogue.Dialogue;
 import java.util.HashMap;
 import java.util.List;
 
-public class Stage1 extends Story {
-    public Stage1(Game game) {
+public class Stage5 extends Story {
+    public Stage5(Game game) {
         super(game);
         Audio.menuMusicStop();
-        Audio.stage1MusicPlay();
+        Audio.stage5MusicPlay();
         startIntro();
     }
     @Override
@@ -24,23 +24,27 @@ public class Stage1 extends Story {
                 new DialogueStep(
                         "",
                         null,
-                        "Smoke. Fire. And the earth did tremble.",
+                        "The vision of the ancient library returned.",
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "",
                         null,
-                        "Before me stood The False Sovereign,an entity woven from hatred and chaos itself.\n" +
-                                "The entire battlefield was a tempest of light and shadow.",
+                        "A cold wind swept in, but the warmth of her hand lingered on my chest.",
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
-                        "The False Sovereign",
+                        "",
                         null,
-                        "Thou canst not defeat me, mortal. Thy destiny is already ordained.",
+                        "Returning back to the village, I met the Elder passing by, a basket in his hand.",
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Rover",
                         null,
-                        "Then I shall write my own destiny.",
+                        "Elder, Iuno... have you seen her?",
+                        DialogueStep.Action.CONTINUE),
+                new DialogueStep(
+                        "",
+                        null,
+                        "I stood frozen. My heart stopped.",
                         DialogueStep.Action.EXIT)
         ));
         introDialogue = new Dialogue(game) {};
@@ -51,34 +55,49 @@ public class Stage1 extends Story {
         HashMap<String, List<DialogueStep>> branches = new HashMap<>();
         branches.put("default", List.of(
                 new DialogueStep(
-                        "",
+                        "Village Elder",
                         null,
-                        "The blade in my hand blazed forth." +
-                                "My body may be rent and broken, but my will roared, forged in the fires of adrenaline." +
-                                "I wagered all upon a single strike. Light clashed with shadow.",
+                        "Ah yes, Iuno left this basket of honey-apple tarts for you." +
+                                "Said she was off to pick some Sunflowers",
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "",
                         null,
-                        "The world itself seemed to shatter.",
+                        "And then...",
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "",
                         null,
-                        "And in the distance, Iuno." +
-                                "She was performing a ritual." +
-                                "Ancient runes flared to life, magic pouring from her." +
-                                "The winds howled, swirling around her delicate form.",
+                        "She was running towards me." +
+                                "Her hair flying in the wind." +
+                                "A bouquet of flowers in her hand.",
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Iuno",
                         null,
-                        "Victory shall be ours.",
+                        "Rover! There you are! I’ve been looking everywhere for you!",
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "",
                         null,
-                        "A deluge of light consumed all.",
+                        "I pulled her into an embrace, holding her tightly." +
+                                "That familiar, heart-aching scent. This warmth… it was real.",
+                        DialogueStep.Action.CONTINUE),
+                new DialogueStep(
+                        "Iuno",
+                        null,
+                        "You're squeezing me! What is wrong with you?" +
+                                "It’s as if... we haven't seen each other in a century.",
+                        DialogueStep.Action.CONTINUE),
+                new DialogueStep(
+                        "Rover",
+                        null,
+                        "For me... it truly has been.",
+                        DialogueStep.Action.CONTINUE),
+                new DialogueStep(
+                        "",
+                        null,
+                        "I took her hand. The sky was clear and blue. My world... was whole once more.",
                         DialogueStep.Action.EXIT)
         ));
         outroDialogue = new Dialogue(game) {};
@@ -88,8 +107,8 @@ public class Stage1 extends Story {
     protected void initGameplay() {
         gameplay = new Stage1Arkanoid(game, 3);
         gameplay.setOnReturnToMainMenu(() -> {
-            log.info("Stage 1 quit! Returning to main menu");
-            Audio.stage1MusicStop();
+            log.info("Stage 5 quit! Returning to main menu");
+            Audio.stage5MusicStop();
             Audio.menuMusicPlay();
             if (game.transition == null && game.mainMenuScene != null) {
                 game.transition = new Transition(game, this, game.mainMenuScene,
@@ -100,8 +119,8 @@ public class Stage1 extends Story {
 
     @Override
     protected void onStoryComplete() {
-        log.info("Stage 1 complete! Returning to story mode selection");
-        Audio.stage1MusicStop();
+        log.info("Stage 5 complete! Returning to story mode selection");
+        Audio.stage5MusicStop();
         Audio.menuMusicPlay();
         if (game.transition == null && game.storyModeScene != null) {
             game.transition = new Transition(game, this, game.storyModeScene,

@@ -16,6 +16,11 @@ public class Audio {
     private static Sound returnSfx = null;
     private static Sound confirmSfx = null;
     private static Sound quitGameSfx = null;
+    private static Music stage1Music = null;
+    private static Music stage2Music = null;
+    private static Music stage3Music = null;
+    private static Music stage4Music = null;
+    private static Music stage5Music = null;
 
     public static void init() {
         if (initialized) {
@@ -23,6 +28,11 @@ public class Audio {
         }
         initialized = true;
         menuMusic = Gdx.audio.newMusic(Assets.getAsset("audio/I Once Praised The Day.mp3", FileHandle.class));
+        stage1Music = Gdx.audio.newMusic(Assets.getAsset("audio/stage1.mp3", FileHandle.class));
+        stage2Music = Gdx.audio.newMusic(Assets.getAsset("audio/stage2.ogg", FileHandle.class));
+        stage3Music = Gdx.audio.newMusic(Assets.getAsset("audio/stage3.ogg", FileHandle.class));
+        stage4Music = Gdx.audio.newMusic(Assets.getAsset("audio/stage4.ogg", FileHandle.class));
+        stage5Music = Gdx.audio.newMusic(Assets.getAsset("audio/stage5.ogg", FileHandle.class));
         selectSfx = Gdx.audio.newSound(Assets.getAsset("audio/sfx/select.mp3", FileHandle.class));
         returnSfx = Gdx.audio.newSound(Assets.getAsset("audio/sfx/return.mp3", FileHandle.class));
         confirmSfx = Gdx.audio.newSound(Assets.getAsset("audio/sfx/confirm.mp3", FileHandle.class));
@@ -36,6 +46,21 @@ public class Audio {
 
     public static void musicSetVolume() {
         menuMusicSetVolume();
+        if (stage1Music != null && stage1Music.isPlaying()) {
+            stage1Music.setVolume(Settings.getMusicVolume() * Settings.getMasterVolume());
+        }
+        if (stage2Music != null && stage2Music.isPlaying()) {
+            stage2Music.setVolume(Settings.getMusicVolume() * Settings.getMasterVolume());
+        }
+        if (stage3Music != null && stage3Music.isPlaying()) {
+            stage3Music.setVolume(Settings.getMusicVolume() * Settings.getMasterVolume());
+        }
+        if (stage4Music != null && stage4Music.isPlaying()) {
+            stage4Music.setVolume(Settings.getMusicVolume() * Settings.getMasterVolume());
+        }
+        if (stage5Music != null && stage5Music.isPlaying()) {
+            stage5Music.setVolume(Settings.getMusicVolume() * Settings.getMasterVolume());
+        }
     }
 
     public static void menuMusicPlay() {
@@ -75,10 +100,100 @@ public class Audio {
         }
     }
 
+    public static void stage1MusicPlay() {
+        if (stage1Music != null && !stage1Music.isPlaying()) {
+            stage1Music.setLooping(true);
+            stage1Music.setVolume(Settings.getMusicVolume() * Settings.getMasterVolume());
+            stage1Music.play();
+        }
+    }
+
+    public static void stage1MusicStop() {
+        if (stage1Music != null && stage1Music.isPlaying()) {
+            stage1Music.stop();
+        }
+    }
+
+    public static void stage2MusicPlay() {
+        if (stage2Music != null && !stage2Music.isPlaying()) {
+            stage2Music.setLooping(true);
+            stage2Music.setVolume(Settings.getMusicVolume() * Settings.getMasterVolume());
+            stage2Music.play();
+        }
+    }
+
+    public static void stage2MusicStop() {
+        if (stage2Music != null && stage2Music.isPlaying()) {
+            stage2Music.stop();
+        }
+    }
+
+    public static void stage3MusicPlay() {
+        if (stage3Music != null && !stage3Music.isPlaying()) {
+            stage3Music.setLooping(true);
+            stage3Music.setVolume(Settings.getMusicVolume() * Settings.getMasterVolume());
+            stage3Music.play();
+        }
+    }
+
+    public static void stage3MusicStop() {
+        if (stage3Music != null && stage3Music.isPlaying()) {
+            stage3Music.stop();
+        }
+    }
+
+    public static void stage4MusicPlay() {
+        if (stage4Music != null && !stage4Music.isPlaying()) {
+            stage4Music.setLooping(true);
+            stage4Music.setVolume(Settings.getMusicVolume() * Settings.getMasterVolume());
+            stage4Music.play();
+        }
+    }
+
+    public static void stage4MusicStop() {
+        if (stage4Music != null && stage4Music.isPlaying()) {
+            stage4Music.stop();
+        }
+    }
+
+    public static void stage5MusicPlay() {
+        if (stage5Music != null && !stage5Music.isPlaying()) {
+            stage5Music.setLooping(true);
+            stage5Music.setVolume(Settings.getMusicVolume() * Settings.getMasterVolume());
+            stage5Music.play();
+        }
+    }
+
+    public static void stage5MusicStop() {
+        if (stage5Music != null && stage5Music.isPlaying()) {
+            stage5Music.stop();
+        }
+    }
+
     public static void dispose() {
         if (menuMusic != null) {
             menuMusic.dispose();
             menuMusic = null;
+        }
+        if (stage1Music != null) {
+            stage1Music.dispose();
+            stage1Music = null;
+        }
+        if (stage2Music != null) {
+            stage2Music.dispose();
+            stage2Music = null;
+        }
+        if (stage3Music != null) {
+            stage3Music.dispose();
+            stage3Music = null;
+        }
+        if (stage4Music != null) {
+            stage4Music.dispose();
+            stage4Music = null;
+        }
+        if (stage5Music != null) {
+            stage5Music.dispose();
+            stage5Music = null;
         }
         if (selectSfx != null) {
             selectSfx.dispose();

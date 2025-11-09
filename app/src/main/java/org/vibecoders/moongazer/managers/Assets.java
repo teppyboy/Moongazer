@@ -151,6 +151,11 @@ public class Assets {
         loadingThread = new Thread(() -> {
             loadAny("videos/main_menu_background.webm");
             loadAny("audio/I Once Praised the Day.mp3");
+            loadAny("audio/stage1.mp3");
+            loadAny("audio/stage2.ogg");
+            loadAny("audio/stage3.ogg");
+            loadAny("audio/stage4.ogg");
+            loadAny("audio/stage5.ogg");
             loadAny("audio/sfx/select.mp3");
             loadAny("audio/sfx/return.mp3");
             loadAny("audio/sfx/confirm.mp3");

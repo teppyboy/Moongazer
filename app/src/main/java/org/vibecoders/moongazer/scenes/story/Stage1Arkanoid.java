@@ -2,8 +2,6 @@ package org.vibecoders.moongazer.scenes.story;
 
 import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.arkanoid.Brick;
-import org.vibecoders.moongazer.enums.State;
-import org.vibecoders.moongazer.scenes.Transition;
 
 import static org.vibecoders.moongazer.Constants.*;
 
@@ -77,17 +75,5 @@ public class Stage1Arkanoid extends StoryArkanoid {
         createMoonPattern();
         initGameplay();
     }
-    @Override
-    protected void returnToMainMenu() {
-        log.info("Returning to main menu from Stage 1");
-        if (game.transition == null && game.mainMenuScene != null) {
-            game.transition = new Transition(
-                game,
-                this,
-                game.mainMenuScene,
-                State.MAIN_MENU,
-                500
-            );
-        }
-    }
 }
+
