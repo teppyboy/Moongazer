@@ -42,6 +42,21 @@ public class Brick extends GameObject {
         this(x, y, width, height, type, type == BrickType.UNBREAKABLE ? -1 : 1, powerUpType);
     }
 
+    /**
+     * Create a breakable brick with specific level (1, 2, or 3)
+     * Level 3 = hardest (3 hits), Level 1 = easiest (1 hit)
+     */
+    public static Brick createBreakableBrick(float x, float y, float width, float height, int level) {
+        return new Brick(x, y, width, height, BrickType.BREAKABLE, level, PowerUpType.NONE);
+    }
+
+    /**
+     * Create a breakable brick with specific level and power-up
+     */
+    public static Brick createBreakableBrick(float x, float y, float width, float height, int level, PowerUpType powerUpType) {
+        return new Brick(x, y, width, height, BrickType.BREAKABLE, level, powerUpType);
+    }
+
     public Brick(float x, float y, float width, float height, BrickType type, int durability, PowerUpType powerUpType) {
         super((int)x, (int)y, (int)width, (int)height);
         this.type = type;
