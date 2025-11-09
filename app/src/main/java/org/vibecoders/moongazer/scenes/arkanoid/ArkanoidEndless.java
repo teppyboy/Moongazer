@@ -238,14 +238,10 @@ public class ArkanoidEndless extends Arkanoid {
     @Override
     protected void onGameOver() {
         log.info("Game Over! Final Score: {} (Wave: {})", score, currentWave);
-
         heartBlinking = false;
         heartBlinkTimer = 0f;
-
-        // Save the score to the database
         org.vibecoders.moongazer.SaveGameManager.saveEndlessScore(score, currentWave);
         org.vibecoders.moongazer.SaveGameManager.updateHighScore(score, currentWave);
-
         org.vibecoders.moongazer.managers.Audio.startGameOverMusic();
         gameOverMenu.show(score);
     }

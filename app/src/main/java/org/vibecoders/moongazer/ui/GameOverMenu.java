@@ -213,21 +213,16 @@ public class GameOverMenu {
         }
     }
 
-    /**
-     * Show the game over menu with the given score
-     */
     public void show(int finalScore) {
         if (!isVisible) {
             this.totalScore = finalScore;
-            // Load best score from save file
             bestScore = org.vibecoders.moongazer.SaveGameManager.getHighScore();
             if (finalScore > bestScore) {
                 bestScore = finalScore;
                 log.info("New best score: {}", bestScore);
             }
-
             isVisible = true;
-            currentChoice = 0; // Default to "Play Again"
+            currentChoice = 0;
             buttons[currentChoice].hoverEnter();
             fadeAlpha = 0f;
             fadeState = FadeState.FADING_IN;

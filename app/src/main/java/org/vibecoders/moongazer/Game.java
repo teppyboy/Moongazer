@@ -51,33 +51,25 @@ public class Game extends ApplicationAdapter {
         Assets.loadIntroAndWait();
         log.info("Intro assets loaded successfully.");
         batch = new SpriteBatch();
-        // Stage for UI elements
         stage = new Stage(new ScreenViewport(), batch);
         Gdx.input.setInputProcessor(stage);
         root = new Table();
         root.setFillParent(true);
         stage.addActor(root);
-        // Scene initialization
         gameScenes = new ArrayList<>();
         currentScene = introScene = new Intro(this);
         gameScenes.add(introScene);
-        // By the end of the intro, other secenes will be created and assigned to these
-        // scenes
     }
 
     @Override
     public void render() {
-        // Handle transition if any
         if (transition != null) {
             batch.begin();
             transition.render(batch);
             batch.end();
-            // Handle stage drawing for UI elements
             stage.draw();
             return;
         }
-
-        // Only use state-based scene switching if not using custom scene
         switch (this.state) {
             case INTRO:
                 currentScene = introScene;
@@ -127,8 +119,6 @@ public class Game extends ApplicationAdapter {
         batch.begin();
         currentScene.render(batch);
         batch.end();
-
-        // Handle stage drawing for UI elements
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
     }
@@ -151,17 +141,12 @@ public class Game extends ApplicationAdapter {
 
     @Override
     public void dispose() {
-        // Save settings
         Settings.saveSettings();
-        // Dispose save game manager
         SaveGameManager.dispose();
-        // Dispose scenes
         introScene.dispose();
         mainMenuScene.dispose();
-        // Dispose resources
         Audio.dispose();
         Assets.dispose();
-        // Dispose batch and stage
         batch.dispose();
         stage.dispose();
         log.debug("Resources disposed");

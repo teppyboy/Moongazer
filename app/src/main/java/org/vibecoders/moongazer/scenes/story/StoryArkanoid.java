@@ -15,26 +15,19 @@ public class StoryArkanoid extends Arkanoid {
     private Runnable onReturnToMainMenuCallback;
     private int requiredBricks;
     protected int startingLives;
-    protected int stageId = 0; // Override in subclasses
+    protected int stageId = 0;
 
     public StoryArkanoid(Game game, int rows, int startingLives) {
         super(game);
         this.requiredBricks = rows;
         this.startingLives = startingLives;
-        // Set lives after parent init has completed
         this.lives = startingLives;
     }
 
-    /**
-     * Set the stage ID for this story arkanoid (used for saving/loading)
-     */
     public void setStageId(int stageId) {
         this.stageId = stageId;
     }
 
-    /**
-     * Game state data class for JSON serialization
-     */
     public static class GameState {
         public PaddleState paddle;
         public java.util.List<BallState> balls;
@@ -53,8 +46,8 @@ public class StoryArkanoid extends Arkanoid {
 
         public static class BrickState {
             public float x, y, width, height;
-            public String type; // BREAKABLE or UNBREAKABLE
-            public String powerUpType; // NONE, EXPAND_PADDLE, etc.
+            public String type;
+            public String powerUpType;
             public int durability;
             public boolean destroyed;
         }
@@ -63,39 +56,26 @@ public class StoryArkanoid extends Arkanoid {
     @Override
     protected void init() {
         super.init();
-        // Enable story mode in pause menu and set save callback
         pauseMenu.setStoryMode(true);
         pauseMenu.setOnSaveGame(() -> saveGame());
         createBrickGrid(requiredBricks, 30);
         log.info("Story Arkanoid initialized with {} rows and {} lives", requiredBricks, startingLives);
     }
 
-    /**
-     * Save the current game state to the database
-     */
     public void saveGame() {
         try {
-            // Serialize game state to JSON
             String gameStateJson = serializeGameState();
-
-            // Get current high score for this stage
             int highScore = SaveGameManager.getStoryHighScore(stageId);
             if (score > highScore) {
                 highScore = score;
             }
-
-            // Save to database
             SaveGameManager.saveStoryGame(stageId, score, highScore, lives, bricksDestroyed, gameStateJson);
-
             log.info("Game saved for stage {} - Score: {}, Lives: {}", stageId, score, lives);
         } catch (Exception e) {
             log.error("Failed to save game", e);
         }
     }
 
-    /**
-     * Load a saved game state from the database
-     */
     public boolean loadGame() {
         try {
             SaveGameManager.StoryGameSave save = SaveGameManager.loadStoryGame(stageId);
@@ -103,15 +83,10 @@ public class StoryArkanoid extends Arkanoid {
                 log.info("No save game found for stage {}", stageId);
                 return false;
             }
-
-            // Restore basic stats
             score = save.currentScore;
             lives = save.lives;
             bricksDestroyed = save.bricksDestroyed;
-
-            // Deserialize and restore game state
             deserializeGameState(save.gameStateJson);
-
             log.info("Game loaded for stage {} - Score: {}, Lives: {}", stageId, score, lives);
             return true;
         } catch (Exception e) {
@@ -120,20 +95,13 @@ public class StoryArkanoid extends Arkanoid {
         }
     }
 
-    /**
-     * Serialize the current game state to JSON
-     */
     private String serializeGameState() {
         GameState state = new GameState();
-
-        // Serialize paddle
         state.paddle = new GameState.PaddleState();
         state.paddle.x = paddle.getBounds().x;
         state.paddle.y = paddle.getBounds().y;
         state.paddle.width = paddle.getBounds().width;
         state.paddle.height = paddle.getBounds().height;
-
-        // Serialize balls
         state.balls = new java.util.ArrayList<>();
         for (Ball ball : balls) {
             GameState.BallState ballState = new GameState.BallState();
@@ -146,8 +114,6 @@ public class StoryArkanoid extends Arkanoid {
             ballState.stuckToPaddle = ball.isStuckToPaddle();
             state.balls.add(ballState);
         }
-
-        // Serialize bricks
         state.bricks = new java.util.ArrayList<>();
         for (Brick brick : bricks) {
             if (!brick.isDestroyed()) {
@@ -163,27 +129,18 @@ public class StoryArkanoid extends Arkanoid {
                 state.bricks.add(brickState);
             }
         }
-
-        // Convert to JSON
         Json json = new Json();
         json.setOutputType(JsonWriter.OutputType.json);
         return json.toJson(state);
     }
 
-    /**
-     * Deserialize game state from JSON and restore it
-     */
     private void deserializeGameState(String gameStateJson) {
         Json json = new Json();
         GameState state = json.fromJson(GameState.class, gameStateJson);
-
-        // Restore paddle
         paddle.getBounds().x = state.paddle.x;
         paddle.getBounds().y = state.paddle.y;
         paddle.getBounds().width = state.paddle.width;
         paddle.getBounds().height = state.paddle.height;
-
-        // Restore balls
         balls.clear();
         for (GameState.BallState ballState : state.balls) {
             Ball ball = new Ball(ballState.x, ballState.y, ballState.radius);
@@ -197,8 +154,6 @@ public class StoryArkanoid extends Arkanoid {
             }
             balls.add(ball);
         }
-
-        // Restore bricks
         bricks.clear();
         for (GameState.BrickState brickState : state.bricks) {
             Brick.BrickType type = Brick.BrickType.valueOf(brickState.type);
@@ -221,9 +176,7 @@ public class StoryArkanoid extends Arkanoid {
     @Override
     protected void onLevelComplete() {
         log.info("Story level complete!");
-        // Update high score when level is completed
         SaveGameManager.updateStoryHighScore(stageId, score);
-        // Delete the save game as the level is completed
         SaveGameManager.deleteStoryGameSave(stageId);
         if (onLevelCompleteCallback != null) {
             onLevelCompleteCallback.run();
@@ -232,7 +185,6 @@ public class StoryArkanoid extends Arkanoid {
     @Override
     protected void onGameOver() {
         log.info("Story game over!");
-        // Update high score on game over (in case they got further than before)
         SaveGameManager.updateStoryHighScore(stageId, score);
         if (onGameOverCallback != null) {
             onGameOverCallback.run();

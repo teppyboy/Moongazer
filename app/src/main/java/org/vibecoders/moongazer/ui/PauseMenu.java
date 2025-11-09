@@ -71,13 +71,9 @@ public class PauseMenu {
         initSettingsOverlay();
     }
 
-    /**
-     * Set whether this pause menu is for story mode (enables save game button)
-     */
     public void setStoryMode(boolean isStoryMode) {
         if (this.isStoryMode != isStoryMode) {
             this.isStoryMode = isStoryMode;
-            // Rebuild the menu with or without save button
             rebuildMenu();
         }
     }
@@ -105,13 +101,9 @@ public class PauseMenu {
         buttons = new UITextButton[configs.length];
         int centerX = WINDOW_WIDTH / 2 - BUTTON_WIDTH / 2;
         int startY = WINDOW_HEIGHT / 2 - BUTTON_HEIGHT / 2;
-
-        // In Story mode, shift all buttons up by 40 pixels to accommodate the extra button
         if (isStoryMode) {
             startY += 40;
         }
-
-        // Build buttons
         int currentY = startY;
         for (int i = 0; i < configs.length; i++) {
             buttons[i] = buildButton(configs[i], centerX, currentY);
@@ -136,8 +128,6 @@ public class PauseMenu {
                 onRestart.run();
             }
         }));
-
-        // Add Save Game button only in Story mode
         if (isStoryMode) {
             configs.add(new ButtonConfig("Save Game", () -> {
                 log.debug("Save Game clicked");
@@ -177,33 +167,24 @@ public class PauseMenu {
     }
 
     private void rebuildMenu() {
-        // Clear existing buttons
         if (buttons != null) {
             for (UITextButton button : buttons) {
                 button.getActor().remove();
             }
         }
         menuTable.clear();
-
-        // Recreate buttons
         ButtonConfig[] configs = createButtonConfigs();
         buttons = new UITextButton[configs.length];
         int centerX = WINDOW_WIDTH / 2 - BUTTON_WIDTH / 2;
         int startY = WINDOW_HEIGHT / 2 - BUTTON_HEIGHT / 2;
-
-        // In Story mode, shift all buttons up by 40 pixels to accommodate the extra button
         if (isStoryMode) {
             startY += 40;
         }
-
-        // Build buttons
         int currentY = startY;
         for (int i = 0; i < configs.length; i++) {
             buttons[i] = buildButton(configs[i], centerX, currentY);
             currentY -= BUTTON_SPACING;
         }
-
-        // Reinitialize keyboard handling for new buttons
         initKeyboardHandling();
     }
 
