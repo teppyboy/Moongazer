@@ -62,6 +62,12 @@ public abstract class Story extends Scene {
                 game.transition = new Transition(game, this, game.mainMenuScene, State.MAIN_MENU, 500);
             }
         });
+
+        // Try to load a saved game if one exists
+        if (org.vibecoders.moongazer.SaveGameManager.hasSaveGame(stageNumber)) {
+            log.info("Found saved game for stage {}, attempting to load...", stageNumber);
+            gameplay.loadGame();
+        }
     }
     
     protected void startIntro() {

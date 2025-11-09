@@ -219,10 +219,10 @@ public class GameOverMenu {
     public void show(int finalScore) {
         if (!isVisible) {
             this.totalScore = finalScore;
-            // TODO: Load best score from save file
+            // Load best score from save file
+            bestScore = org.vibecoders.moongazer.SaveGameManager.getHighScore();
             if (finalScore > bestScore) {
                 bestScore = finalScore;
-                // TODO: Save new best score
                 log.info("New best score: {}", bestScore);
             }
 

@@ -1,8 +1,11 @@
 package org.vibecoders.moongazer.scenes;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.enums.State;
@@ -27,6 +30,7 @@ public class StoryModeScene extends Scene {
     private StageInfoPanel infoPanel;
     private ChallengeGoalsPanel goalPanel;
     private StageRewardPanel rewardPanel;
+    private UICloseButton backButton;
     private MapPanel mapPanel;
     private int currentStageID;
     List<StageData> stages;
@@ -43,7 +47,16 @@ public class StoryModeScene extends Scene {
         infoPanel = new StageInfoPanel(root);
         goalPanel = new ChallengeGoalsPanel(root);
         rewardPanel = new StageRewardPanel(root);
-
+        root.addListener(new InputListener() {
+            @Override
+            public boolean keyDown(InputEvent event, int keycode) {
+                if (keycode == Input.Keys.ESCAPE) {
+                    backButton.click();
+                    return true;
+                }
+                return false;
+            }
+        });
         game.stage.addActor(root);
     }
 
@@ -59,7 +72,7 @@ public class StoryModeScene extends Scene {
     }
 
     private void createCloseButton() {
-        UICloseButton backButton = new UICloseButton();
+        backButton = new UICloseButton();
         backButton.setSize(40, 40);
         backButton.setPosition(WINDOW_WIDTH - 80, WINDOW_HEIGHT - 80);
         root.addActor(backButton.getActor());
@@ -82,23 +95,33 @@ public class StoryModeScene extends Scene {
             log.debug("Stage " + currentStageID + " clicked");
             if (game.transition == null) {
                 if (currentStageID == 1) {
-                    game.recreateScene(game.storyStageScene, () -> new org.vibecoders.moongazer.scenes.story.Stage1(game), scene -> game.storyStageScene = scene);
+                    game.recreateScene(game.storyStageScene,
+                            () -> new org.vibecoders.moongazer.scenes.story.Stage1(game),
+                            scene -> game.storyStageScene = scene);
                     game.transition = new Transition(game, this, game.storyStageScene, State.STORY_STAGE, 500);
                 }
                 if (currentStageID == 2) {
-                    game.recreateScene(game.storyStageScene, () -> new org.vibecoders.moongazer.scenes.story.Stage2(game), scene -> game.storyStageScene = scene);
+                    game.recreateScene(game.storyStageScene,
+                            () -> new org.vibecoders.moongazer.scenes.story.Stage2(game),
+                            scene -> game.storyStageScene = scene);
                     game.transition = new Transition(game, this, game.storyStageScene, State.STORY_STAGE, 500);
                 }
                 if (currentStageID == 3) {
-                    game.recreateScene(game.storyStageScene, () -> new org.vibecoders.moongazer.scenes.story.Stage3(game), scene -> game.storyStageScene = scene);
+                    game.recreateScene(game.storyStageScene,
+                            () -> new org.vibecoders.moongazer.scenes.story.Stage3(game),
+                            scene -> game.storyStageScene = scene);
                     game.transition = new Transition(game, this, game.storyStageScene, State.STORY_STAGE, 500);
                 }
                 if (currentStageID == 4) {
-                    game.recreateScene(game.storyStageScene, () -> new org.vibecoders.moongazer.scenes.story.Stage4(game), scene -> game.storyStageScene = scene);
+                    game.recreateScene(game.storyStageScene,
+                            () -> new org.vibecoders.moongazer.scenes.story.Stage4(game),
+                            scene -> game.storyStageScene = scene);
                     game.transition = new Transition(game, this, game.storyStageScene, State.STORY_STAGE, 500);
                 }
                 if (currentStageID == 5) {
-                    game.recreateScene(game.storyStageScene, () -> new org.vibecoders.moongazer.scenes.story.Stage5(game), scene -> game.storyStageScene = scene);
+                    game.recreateScene(game.storyStageScene,
+                            () -> new org.vibecoders.moongazer.scenes.story.Stage5(game),
+                            scene -> game.storyStageScene = scene);
                     game.transition = new Transition(game, this, game.storyStageScene, State.STORY_STAGE, 500);
                 } else {
                     log.warn("Stage {} not implemented yet", currentStageID);
@@ -110,25 +133,21 @@ public class StoryModeScene extends Scene {
     private List<StageData> createStageData() {
         List<StageData> stages = new ArrayList<>();
 
-        stages.add(new StageData(1, "Stage 1",
-                "Defend against initial wave of Tacet Discords Defend against initial wave of Tacet Discords Defend" +
-                        "Defend against initial wave of Tacet DiscordsDefend against initial wave of Tacet Discords against initial wave of Tacet Discords",
+        stages.add(new StageData(1, "Chapter I",
+                "Iuno",
                 "textures/stage/MapTest.png"));
-
-        stages.add(new StageData(2, "Stage 2",
-                "ProtectDefend against initial wave of Tacet DiscordsDefend against initial wave of Tacet DiscordsDefend against initial wave of Tacet " +
-                        "Discords energy nodes from explosive attacks", "textures/mode_selection/Bg3.png"));
-
-        stages.add(new StageData(3, "Stage 3",
-                "Protect eneDefend against initial wave of Tacet DiscordsDefend against initial wave of Tacet DiscordsDefend ag" +
-                        "ainst initial wave of Tacet Discordsrgy nodes from explosive attacks", "textures/mode_selection/Bg3.png"));
-
-        for (int i = 4; i <= 15; i++) {
-            stages.add(new StageData(i, "Stage " + i,
-                    "Protect eneDefend against initial wave of Tacet DiscordsDefend against initial wave of Tacet Discord" +
-                            "sDefend against initial wave of", "textures/stage/MapTest.png"));
-        }
-
+        stages.add(new StageData(2, "Chapter II",
+                "Phoebe",
+                "textures/mode_selection/Bg3.png"));
+        stages.add(new StageData(3, "Chapter III",
+                "Protect energy nodes from explosive attacks",
+                "textures/mode_selection/Bg3.png"));
+        stages.add(new StageData(4, "Chapter IV",
+                "Defeat the enemy flagship",
+                "textures/mode_selection/Bg3.png"));
+        stages.add(new StageData(5, "Chapter V",
+                "Final Showdown",
+                "textures/mode_selection/Bg3.png"));
         return stages;
     }
 

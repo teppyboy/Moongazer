@@ -1,9 +1,15 @@
 package org.vibecoders.moongazer.scenes;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+
 import org.vibecoders.moongazer.Game;
+import org.vibecoders.moongazer.Settings;
 import org.vibecoders.moongazer.enums.State;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.scenes.arkanoid.ArkanoidEndless;
@@ -60,7 +66,16 @@ public class SelectionScene extends Scene {
                         State.MAIN_MENU, 350);
             }
         });
-
+        root.addListener(new InputListener() {
+            @Override
+            public boolean keyDown(InputEvent event, int keycode) {
+                if (keycode == Input.Keys.ESCAPE) {
+                    backButton.click();
+                    return true;
+                }
+                return false;
+            }
+        });
         game.stage.addActor(root);
     }
 

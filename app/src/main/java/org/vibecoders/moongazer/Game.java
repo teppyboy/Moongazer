@@ -45,6 +45,8 @@ public class Game extends ApplicationAdapter {
     public void create() {
         log.info("Loading settings...");
         Settings.loadSettings();
+        log.info("Initializing save game manager...");
+        SaveGameManager.initialize();
         log.info("Loading intro assets...");
         Assets.loadIntroAndWait();
         log.info("Intro assets loaded successfully.");
@@ -151,6 +153,8 @@ public class Game extends ApplicationAdapter {
     public void dispose() {
         // Save settings
         Settings.saveSettings();
+        // Dispose save game manager
+        SaveGameManager.dispose();
         // Dispose scenes
         introScene.dispose();
         mainMenuScene.dispose();

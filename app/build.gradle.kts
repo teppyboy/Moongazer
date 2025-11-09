@@ -51,6 +51,9 @@ dependencies {
     // gdx-video
     implementation("com.badlogicgames.gdx-video:gdx-video:${gdxVideoVersion}")
     implementation("com.badlogicgames.gdx-video:gdx-video-lwjgl3:${gdxVideoVersion}")
+
+    // SQLite JDBC for save game functionality
+    implementation("org.xerial:sqlite-jdbc:3.47.1.0")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

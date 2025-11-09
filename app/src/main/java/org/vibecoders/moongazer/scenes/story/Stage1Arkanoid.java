@@ -8,6 +8,7 @@ import static org.vibecoders.moongazer.Constants.*;
 public class Stage1Arkanoid extends StoryArkanoid {
     public Stage1Arkanoid(Game game, int startingLives) {
         super(game, 0, startingLives);
+        setStageId(1);
     }
     @Override
     protected void createBrickGrid(int rows, int cols) {
