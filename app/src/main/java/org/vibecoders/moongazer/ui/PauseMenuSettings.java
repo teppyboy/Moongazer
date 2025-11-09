@@ -155,8 +155,14 @@ public class PauseMenuSettings {
     public void open() {
         if (!isOpen) {
             isOpen = true;
+
+            // Clear any previous key states
+            currentKeyDown.clear();
+
+            // Set input processor and keyboard focus
             Gdx.input.setInputProcessor(settingsStage);
             settingsStage.setKeyboardFocus(root);
+
             log.info("Settings overlay opened");
         }
     }
@@ -164,13 +170,26 @@ public class PauseMenuSettings {
     public void close() {
         if (isOpen) {
             isOpen = false;
+
+            // Clear key states
             currentKeyDown.clear();
-            if (onClose != null) {
-                onClose.run();
-            }
+
+            // Reset stage alpha for next open
             if (settingsStage != null && settingsStage.getRoot() != null) {
                 settingsStage.getRoot().getColor().a = 1f;
             }
+
+            // Clear keyboard focus before switching input processor
+            if (settingsStage != null) {
+                settingsStage.setKeyboardFocus(null);
+                settingsStage.unfocusAll();
+            }
+
+            // Call onClose callback to restore input processor to pause menu
+            if (onClose != null) {
+                onClose.run();
+            }
+
             log.info("Settings overlay closed");
         }
     }
