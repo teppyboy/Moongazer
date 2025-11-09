@@ -16,6 +16,11 @@ public class Audio {
     private static Sound returnSfx = null;
     private static Sound confirmSfx = null;
     private static Sound quitGameSfx = null;
+    private static Sound powerupReceive = null;
+    private static Sound paddleHit = null;
+    private static Sound brickHit = null;
+    private static Sound ballLoss = null;
+
 
     public static void init() {
         if (initialized) {
@@ -27,6 +32,10 @@ public class Audio {
         returnSfx = Gdx.audio.newSound(Assets.getAsset("audio/sfx/return.mp3", FileHandle.class));
         confirmSfx = Gdx.audio.newSound(Assets.getAsset("audio/sfx/confirm.mp3", FileHandle.class));
         quitGameSfx = Gdx.audio.newSound(Assets.getAsset("audio/sfx/quit.mp3", FileHandle.class));
+        powerupReceive = Gdx.audio.newSound(Assets.getAsset("audio/sfx/PowerUpReceived.mp3", FileHandle.class));
+        paddleHit = Gdx.audio.newSound(Assets.getAsset("audio/sfx/PaddleHit.mp3", FileHandle.class));
+        brickHit = Gdx.audio.newSound(Assets.getAsset("audio/sfx/BlockDamage.mp3", FileHandle.class));
+        ballLoss = Gdx.audio.newSound(Assets.getAsset("audio/sfx/BallLoss.mp3", FileHandle.class));
         log.info("Audio manager initialized");
     }
 
@@ -75,6 +84,30 @@ public class Audio {
         }
     }
 
+    public static void playSfxPowerupReceive() {
+        if (powerupReceive != null) {
+            powerupReceive.play(Settings.getSfxVolume() * Settings.getMasterVolume());
+        }
+    }
+
+    public static void playSfxPaddleHit() {
+        if (paddleHit != null) {
+            paddleHit.play(Settings.getSfxVolume() * Settings.getMasterVolume());
+        }
+    }
+
+    public static void playSfxBrickHit() {
+        if (brickHit != null) {
+            brickHit.play(Settings.getSfxVolume() * Settings.getMasterVolume());
+        }
+    }
+
+    public static void playSfxBallLoss() {
+        if (ballLoss != null) {
+            ballLoss.play(Settings.getSfxVolume() * Settings.getMasterVolume());
+        }
+    }
+
     public static void dispose() {
         if (menuMusic != null) {
             menuMusic.dispose();
@@ -95,6 +128,22 @@ public class Audio {
         if (quitGameSfx != null) {
             quitGameSfx.dispose();
             quitGameSfx = null;
+        }
+        if (powerupReceive != null) {
+            powerupReceive.dispose();
+            powerupReceive = null;
+        }
+        if (paddleHit != null) {
+            paddleHit.dispose();
+            paddleHit = null;
+        }
+        if (brickHit != null) {
+            brickHit.dispose();
+            brickHit = null;
+        }
+        if (ballLoss != null) {
+            ballLoss.dispose();
+            ballLoss = null;
         }
         initialized = false;
         log.info("Audio manager disposed");
