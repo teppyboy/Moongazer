@@ -2,9 +2,6 @@ package org.vibecoders.moongazer.scenes.story;
 
 import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.dialogue.DialogueStep;
-import org.vibecoders.moongazer.enums.State;
-import org.vibecoders.moongazer.managers.Audio;
-import org.vibecoders.moongazer.scenes.Transition;
 import org.vibecoders.moongazer.scenes.dialogue.Dialogue;
 
 import java.util.HashMap;
@@ -12,11 +9,9 @@ import java.util.List;
 
 public class Stage2 extends Story {
     public Stage2(Game game) {
-        super(game);
-        Audio.menuMusicStop();
-        Audio.stage2MusicPlay();
-        startIntro();
+        super(game, 2);
     }
+    
     @Override
     protected void initIntroDialogue() {
         HashMap<String, List<DialogueStep>> branches = new HashMap<>();
@@ -65,6 +60,7 @@ public class Stage2 extends Story {
         introDialogue = new Dialogue(game) {};
         introDialogue.setDialogueBranches(branches, "default");
     }
+    
     @Override
     protected void initOutroDialogue() {
         HashMap<String, List<DialogueStep>> branches = new HashMap<>();
@@ -115,29 +111,5 @@ public class Stage2 extends Story {
         ));
         outroDialogue = new Dialogue(game) {};
         outroDialogue.setDialogueBranches(branches, "default");
-    }
-    @Override
-    protected void initGameplay() {
-        gameplay = new Stage1Arkanoid(game, 3);
-        gameplay.setOnReturnToMainMenu(() -> {
-            log.info("Stage 2 quit! Returning to main menu");
-            Audio.stage2MusicStop();
-            Audio.menuMusicPlay();
-            if (game.transition == null && game.mainMenuScene != null) {
-                game.transition = new Transition(game, this, game.mainMenuScene,
-                        State.MAIN_MENU, 500);
-            }
-        });
-    }
-
-    @Override
-    protected void onStoryComplete() {
-        log.info("Stage 2 complete! Returning to story mode selection");
-        Audio.stage2MusicStop();
-        Audio.menuMusicPlay();
-        if (game.transition == null && game.storyModeScene != null) {
-            game.transition = new Transition(game, this, game.storyModeScene,
-                    State.STORY_MODE, 500);
-        }
     }
 }
