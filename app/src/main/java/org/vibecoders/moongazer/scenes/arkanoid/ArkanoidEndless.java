@@ -103,6 +103,35 @@ public class ArkanoidEndless extends Arkanoid {
         // Calculate breakable brick distribution by level
         int breakableTotal = totalBricks - unbreakableCount - powerUpTotal;
 
+        // Ensure at least one breakable brick
+        if (breakableTotal <= 0) {
+            System.out.println("Warning: Not enough space for breakable bricks. Reducing power-ups and unbreakable bricks.");
+            // First, try reducing power-ups
+            int excess = unbreakableCount + powerUpTotal - (totalBricks - 1);
+            int powerUpExcess = Math.min(powerUpTotal, excess);
+            powerUpTotal -= powerUpExcess;
+            // Reduce individual powerUpCounts proportionally
+            int toRemove = powerUpExcess;
+            for (int i = powerUpCounts.length - 1; i >= 0 && toRemove > 0; i--) {
+                int remove = Math.min(powerUpCounts[i], toRemove);
+                powerUpCounts[i] -= remove;
+                toRemove -= remove;
+            }
+            // If still not enough, reduce unbreakable bricks
+            excess = unbreakableCount + powerUpTotal - (totalBricks - 1);
+            if (excess > 0) {
+                unbreakableCount -= Math.min(unbreakableCount, excess);
+            }
+            breakableTotal = totalBricks - unbreakableCount - powerUpTotal;
+            if (breakableTotal <= 0) {
+                // As a last resort, set breakableTotal to 1 and adjust others
+                breakableTotal = 1;
+                powerUpTotal = 0;
+                unbreakableCount = totalBricks - 1;
+                for (int i = 0; i < powerUpCounts.length; i++) powerUpCounts[i] = 0;
+            }
+        }
+
         // Level distribution: 50% level 1, 30% level 2, 20% level 3
         int level1Count = (int) (breakableTotal * 0.50f);
         int level2Count = (int) (breakableTotal * 0.30f);
@@ -111,9 +140,11 @@ public class ArkanoidEndless extends Arkanoid {
         // Adjust for wave difficulty - more high level bricks as waves progress
         float difficultyFactor = Math.min(currentWave / 20f, 0.5f); // Max 50% shift
         int shiftFromLevel1 = (int) (level1Count * difficultyFactor);
-        level1Count -= shiftFromLevel1;
-        level2Count += shiftFromLevel1 / 2;
-        level3Count += shiftFromLevel1 / 2;
+        level1Count = Math.max(0, level1Count - shiftFromLevel1);
+        int shiftToLevel2 = shiftFromLevel1 / 2 + shiftFromLevel1 % 2;
+        int shiftToLevel3 = shiftFromLevel1 / 2;
+        level2Count += shiftToLevel2;
+        level3Count += shiftToLevel3;
 
         // Create brick data list
         List<BrickData> brickDataList = new ArrayList<>();
@@ -193,9 +224,9 @@ public class ArkanoidEndless extends Arkanoid {
      * Helper class to store brick data during generation
      */
     private static class BrickData {
-        Brick.BrickType type;
-        int level;
-        Brick.PowerUpType powerUpType;
+        final Brick.BrickType type;
+        final int level;
+        final Brick.PowerUpType powerUpType;
 
         BrickData(Brick.BrickType type, int level, Brick.PowerUpType powerUpType) {
             this.type = type;
