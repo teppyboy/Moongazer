@@ -54,9 +54,23 @@ public class PauseMenu {
         }
     }
 
+    private Runnable onResume;
+    private Runnable onRestart;
+    private Runnable onMainMenu;
+    private Runnable onQuit;
+    private Runnable onSaveGame;
+    private boolean isStoryMode = false;
+
     public PauseMenu() {
         initUI();
         initSettingsOverlay();
+    }
+
+    public void setStoryMode(boolean isStoryMode) {
+        if (this.isStoryMode != isStoryMode) {
+            this.isStoryMode = isStoryMode;
+            rebuildMenu();
+        }
     }
 
     private void initSettingsOverlay() {
@@ -82,55 +96,97 @@ public class PauseMenu {
         buttons = new UITextButton[configs.length];
         int centerX = WINDOW_WIDTH / 2 - BUTTON_WIDTH / 2;
         int startY = WINDOW_HEIGHT / 2 - BUTTON_HEIGHT / 2;
+        if (isStoryMode) {
+            startY += 40;
+        }
+        int currentY = startY;
         for (int i = 0; i < configs.length; i++) {
-            buttons[i] = buildButton(configs[i], i, centerX, startY);
+            buttons[i] = buildButton(configs[i], centerX, currentY);
+            currentY -= BUTTON_SPACING;
         }
         initKeyboardHandling();
     }
     private ButtonConfig[] createButtonConfigs() {
-        return new ButtonConfig[] {
-                new ButtonConfig("Resume", () -> {
-                    log.debug("Resume clicked");
-                    Audio.playSfxConfirm();
-                    resume();
-                }),
-                new ButtonConfig("Restart", () -> {
-                    log.debug("Restart clicked");
-                    Audio.playSfxConfirm();
-                    if (onRestart != null) {
-                        resume();
-                        onRestart.run();
-                    }
-                }),
-                new ButtonConfig("Settings", () -> {
-                    log.debug("Settings clicked from pause menu");
-                    Audio.playSfxSelect();
-                    settingsOverlay.open();
-                }),
-                new ButtonConfig("Main Menu", () -> {
-                    log.debug("Main menu clicked");
-                    Audio.playSfxConfirm();
-                    if (onMainMenu != null) {
-                        resume();
-                        onMainMenu.run();
-                    }
-                }),
-                new ButtonConfig("Quit Game", () -> {
-                    log.debug("Quit clicked");
-                    Audio.playSfxQuitGame();
-                    if (onQuit != null) {
-                        onQuit.run();
-                    } else {
-                        Gdx.app.exit();
-                    }
-                })
-        };
+        java.util.List<ButtonConfig> configs = new java.util.ArrayList<>();
+
+        configs.add(new ButtonConfig("Resume", () -> {
+            log.debug("Resume clicked");
+            Audio.playSfxConfirm();
+            resume();
+        }));
+
+        configs.add(new ButtonConfig("Restart", () -> {
+            log.debug("Restart clicked");
+            Audio.playSfxConfirm();
+            if (onRestart != null) {
+                resume();
+                onRestart.run();
+            }
+        }));
+        if (isStoryMode) {
+            configs.add(new ButtonConfig("Save Game", () -> {
+                log.debug("Save Game clicked");
+                Audio.playSfxConfirm();
+                if (onSaveGame != null) {
+                    onSaveGame.run();
+                }
+            }));
+        }
+
+        configs.add(new ButtonConfig("Settings", () -> {
+            log.debug("Settings clicked from pause menu");
+            Audio.playSfxSelect();
+            settingsOverlay.open();
+        }));
+
+        configs.add(new ButtonConfig("Main Menu", () -> {
+            log.debug("Main menu clicked");
+            Audio.playSfxConfirm();
+            if (onMainMenu != null) {
+                resume();
+                onMainMenu.run();
+            }
+        }));
+
+        configs.add(new ButtonConfig("Quit Game", () -> {
+            log.debug("Quit clicked");
+            Audio.playSfxQuitGame();
+            if (onQuit != null) {
+                onQuit.run();
+            } else {
+                Gdx.app.exit();
+            }
+        }));
+
+        return configs.toArray(new ButtonConfig[0]);
     }
 
-    private UITextButton buildButton(ButtonConfig config, int index, int centerX, int startY) {
+    private void rebuildMenu() {
+        if (buttons != null) {
+            for (UITextButton button : buttons) {
+                button.getActor().remove();
+            }
+        }
+        menuTable.clear();
+        ButtonConfig[] configs = createButtonConfigs();
+        buttons = new UITextButton[configs.length];
+        int centerX = WINDOW_WIDTH / 2 - BUTTON_WIDTH / 2;
+        int startY = WINDOW_HEIGHT / 2 - BUTTON_HEIGHT / 2;
+        if (isStoryMode) {
+            startY += 40;
+        }
+        int currentY = startY;
+        for (int i = 0; i < configs.length; i++) {
+            buttons[i] = buildButton(configs[i], centerX, currentY);
+            currentY -= BUTTON_SPACING;
+        }
+        initKeyboardHandling();
+    }
+
+    private UITextButton buildButton(ButtonConfig config, int centerX, int yPosition) {
         UITextButton button = new UITextButton(config.label, buttonFont);
         button.setSize(BUTTON_WIDTH, BUTTON_HEIGHT);
-        button.setPosition(centerX, startY - BUTTON_SPACING * index);
+        button.setPosition(centerX, yPosition);
         button.onClick(config.action);
         menuTable.addActor(button.getActor());
         return button;
@@ -334,6 +390,9 @@ public class PauseMenu {
     }
     public void setOnQuit(Runnable onQuit) {
         this.onQuit = onQuit;
+    }
+    public void setOnSaveGame(Runnable onSaveGame) {
+        this.onSaveGame = onSaveGame;
     }
     public void dispose() {
         if (blurOverlay != null) {
