@@ -363,7 +363,7 @@ public abstract class Arkanoid extends Scene {
                 float yRange = maxBallY - minBallY;
 
                 if (yRange < STUCK_Y_RANGE_THRESHOLD) {
-                    log.warn("Ball stuck detected! Y range over {}s: {:.1f}px (threshold: {}px)",
+                    log.warn("Ball stuck detected! Y range over {}s: {}px (threshold: {}px)",
                              STUCK_CHECK_DURATION, yRange, STUCK_Y_RANGE_THRESHOLD);
                     log.warn("Applying escape velocity...");
 
@@ -822,6 +822,62 @@ public abstract class Arkanoid extends Scene {
         layout.setText(fontUI30, powerupsText);
         float powerupsX = SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH + (SIDE_PANEL_WIDTH - layout.width) / 2f;
         fontUI30.draw(batch, powerupsText, powerupsX, WINDOW_HEIGHT - 50);
+
+        // Render active powerup effects
+        renderActivePowerups(batch, layout);
+    }
+
+    private void renderActivePowerups(SpriteBatch batch, com.badlogic.gdx.graphics.g2d.GlyphLayout layout) {
+        // Start rendering below the "Powerups" title (with some spacing)
+        float startY = WINDOW_HEIGHT - 100; // Below the title
+        float iconSize = 32;
+        float lineHeight = 45; // Space between each powerup line
+        float rightPanelX = SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH + 15;
+        float textOffsetX = iconSize + 8; // Text offset from icon
+
+        int index = 0;
+        for (ActivePowerUpEffect effect : activePowerUpEffects) {
+            float currentY = startY - (index * lineHeight);
+
+            // Get remaining time
+            float remainingTime = effect.getRemainingTime();
+            if (remainingTime < 0) continue; // Skip permanent effects
+
+            // Check if time is low (less than 3 seconds)
+            boolean isLowTime = remainingTime <= 3.0f;
+
+            // Blinking effect when low on time
+            float alpha = 1.0f;
+            Color textColor = Color.WHITE;
+            if (isLowTime) {
+                // Blink twice per second
+                float blinkPhase = (remainingTime * 2) % 1.0f;
+                alpha = blinkPhase < 0.5f ? 0.3f : 1.0f;
+                textColor = Color.RED;
+            }
+
+            // Draw icon
+            Texture powerupTexture = effect.getPowerUp().getTexture();
+            if (powerupTexture != null) {
+                batch.setColor(1f, 1f, 1f, alpha);
+                batch.draw(powerupTexture, rightPanelX, currentY - iconSize, iconSize, iconSize);
+                batch.setColor(Color.WHITE);
+            }
+
+            // Draw text (name + time) aligned with icon center
+            String effectText = effect.getEffectType() + ": " + String.format("%.1fs", remainingTime);
+            layout.setText(font, effectText);
+
+            // Center text vertically with icon
+            float textY = currentY - (iconSize / 2f) + (layout.height / 2f);
+
+            Color originalColor = font.getColor().cpy();
+            font.setColor(textColor.r, textColor.g, textColor.b, alpha);
+            font.draw(batch, effectText, rightPanelX + textOffsetX, textY);
+            font.setColor(originalColor);
+
+            index++;
+        }
     }
 
     protected boolean checkLevelComplete() {
@@ -840,6 +896,9 @@ public abstract class Arkanoid extends Scene {
         heartBlinking = true;
         heartBlinkTimer = 0f;
 
+        // Remove all active powerup effects
+        clearAllActivePowerups();
+
         // Reset to single ball
         balls.clear();
         float ballRadius = 12f;
@@ -850,6 +909,29 @@ public abstract class Arkanoid extends Scene {
         if (lives <= 0) {
             onGameOver();
         }
+    }
+
+    /**
+     * Clears all active powerup effects and removes their effects from the game
+     */
+    private void clearAllActivePowerups() {
+        if (activePowerUpEffects.isEmpty()) {
+            return;
+        }
+
+        log.info("Clearing {} active powerup effects due to life loss", activePowerUpEffects.size());
+
+        // Remove all effects
+        for (ActivePowerUpEffect effect : activePowerUpEffects) {
+            effect.removeEffect(this);
+            log.debug("Removed {} effect", effect.getEffectType());
+        }
+
+        // Clear the list
+        activePowerUpEffects.clear();
+
+        // Also clear falling powerups
+        activePowerUps.clear();
     }
 
     protected abstract void onLevelComplete();

@@ -16,7 +16,9 @@ public class SlowBall extends PowerUp {
 
     @Override
     public void removeEffect(Arkanoid arkanoid) {
-        arkanoid.getBall().setSpeedMultiplier(1.0f);
+        if (arkanoid.getBall() != null) {
+            arkanoid.getBall().setSpeedMultiplier(1.0f);
+        }
     }
 
     @Override

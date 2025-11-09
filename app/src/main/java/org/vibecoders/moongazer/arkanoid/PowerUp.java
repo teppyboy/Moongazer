@@ -39,4 +39,8 @@ public abstract class PowerUp extends MovableObject {
             batch.draw(texture, x, y, width, height);
         }
     }
+
+    public Texture getTexture() {
+        return texture;
+    }
 }

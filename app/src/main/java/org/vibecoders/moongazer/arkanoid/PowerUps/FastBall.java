@@ -16,7 +16,9 @@ public class FastBall extends PowerUp {
 
     @Override
     public void removeEffect(Arkanoid arkanoid) {
-        arkanoid.getBall().setSpeedMultiplier(1f);
+        if (arkanoid.getBall() != null) {
+            arkanoid.getBall().setSpeedMultiplier(1f);
+        }
     }
 
     @Override
