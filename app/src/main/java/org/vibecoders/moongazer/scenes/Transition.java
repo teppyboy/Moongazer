@@ -2,6 +2,7 @@ package org.vibecoders.moongazer.scenes;
 
 import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.enums.State;
+import org.vibecoders.moongazer.scenes.arkanoid.Arkanoid;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -51,6 +52,11 @@ public class Transition extends Scene {
             from.root.setVisible(false);
             to.root.setVisible(true);
             game.stage.setKeyboardFocus(to.root);
+            // Restore input processor to stage when transitioning to non-Arkanoid scenes
+            // This fixes the ESC bug when returning from Arkanoid scenes
+            if (!(to instanceof Arkanoid)) {
+                Gdx.input.setInputProcessor(game.stage);
+            }
             // Reset batch color to full opacity
             batch.setColor(1, 1, 1, 1);
             return;

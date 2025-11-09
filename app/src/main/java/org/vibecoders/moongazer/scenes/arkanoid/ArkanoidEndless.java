@@ -5,8 +5,13 @@ import org.vibecoders.moongazer.arkanoid.Brick;
 import org.vibecoders.moongazer.managers.Assets;
 import com.badlogic.gdx.graphics.Texture;
 
-public class ArkanoidEndless extends Arkanoid {
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
+import static org.vibecoders.moongazer.Constants.*;
+
+public class ArkanoidEndless extends Arkanoid {
     private int currentWave = 1;
     private float unbreakableChance = 0.1f;
 
@@ -38,6 +43,86 @@ public class ArkanoidEndless extends Arkanoid {
     }
 
     @Override
+    protected void createBrickGrid(int rows, int cols) {
+        bricks.clear();
+        float availableWidth = GAMEPLAY_AREA_WIDTH;
+        float brickTotalWidth = BRICK_WIDTH + BRICK_PADDING;
+        int maxCols = (int) (availableWidth / brickTotalWidth);
+        cols = Math.min(cols, maxCols);
+        int totalBricks = rows * cols;
+
+        int[] powerUpCounts = {
+            Math.min(2 + (currentWave / 10), 3),
+            Math.min(2 + (currentWave / 8), 4),
+            Math.min(3 + (currentWave / 6), 5),
+            Math.min(3 + (currentWave / 5), 6),
+            Math.min(2 + (currentWave / 7), 4),
+            Math.min(2 + (currentWave / 7), 4)
+        };
+        
+        int powerUpTotal = 0;
+        for (int count : powerUpCounts) powerUpTotal += count;
+        int unbreakableCount = (int) (totalBricks * unbreakableChance);
+        int minNormalCount = totalBricks / 2;
+        int normalCount = totalBricks - unbreakableCount - powerUpTotal;
+
+        if (normalCount < minNormalCount) {
+            normalCount = minNormalCount;
+            float scale = (float)(totalBricks - unbreakableCount - normalCount) / powerUpTotal;
+            for (int i = 0; i < powerUpCounts.length; i++) {
+                powerUpCounts[i] = Math.max(1, (int)(powerUpCounts[i] * scale));
+            }
+        }
+
+        List<Brick.PowerUpType> brickTypes = new ArrayList<>();
+        Brick.PowerUpType[] types = {
+            Brick.PowerUpType.SUPER_BALL,
+            Brick.PowerUpType.MULTI_BALL,
+            Brick.PowerUpType.EXTRA_LIFE,
+            Brick.PowerUpType.EXPAND_PADDLE,
+            Brick.PowerUpType.FAST_BALL,
+            Brick.PowerUpType.SLOW_BALL
+        };
+        
+        for (int i = 0; i < types.length; i++) {
+            for (int j = 0; j < powerUpCounts[i]; j++) {
+                brickTypes.add(types[i]);
+            }
+        }
+        for (int i = 0; i < unbreakableCount; i++) brickTypes.add(null);
+        while (brickTypes.size() < totalBricks) brickTypes.add(Brick.PowerUpType.NONE);
+        Collections.shuffle(brickTypes);
+
+        float gridWidth = cols * brickTotalWidth;
+        float startX = SIDE_PANEL_WIDTH + (GAMEPLAY_AREA_WIDTH - gridWidth) / 2f;
+        float startY = WINDOW_HEIGHT - 100f;
+
+        int brickIndex = 0;
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                float x = startX + col * brickTotalWidth;
+                float y = startY - row * (BRICK_HEIGHT + BRICK_PADDING);
+                Brick.PowerUpType powerUpType = brickTypes.get(brickIndex++);
+                Brick brick;
+                if (powerUpType == null) {
+                    brick = new Brick(x, y, BRICK_WIDTH, BRICK_HEIGHT, Brick.BrickType.UNBREAKABLE);
+                } else if (powerUpType == Brick.PowerUpType.NONE) {
+                    brick = new Brick(x, y, BRICK_WIDTH, BRICK_HEIGHT, Brick.BrickType.BREAKABLE);
+                } else {
+                    brick = new Brick(x, y, BRICK_WIDTH, BRICK_HEIGHT, Brick.BrickType.BREAKABLE, powerUpType);
+                }
+                bricks.add(brick);
+            }
+        }
+
+        log.info("Brick grid created: {} rows x {} cols = {} bricks", rows, cols, totalBricks);
+        log.info("Distribution - SuperBall: {}, MultiBall: {}, ExtraLife: {}, ExpandPaddle: {}, FastBall: {}, SlowBall: {}, Unbreakable: {}, Normal: {} ({}%)",
+                 powerUpCounts[0], powerUpCounts[1], powerUpCounts[2], powerUpCounts[3],
+                 powerUpCounts[4], powerUpCounts[5], unbreakableCount, normalCount,
+                 (int)((float)normalCount / totalBricks * 100));
+    }
+
+    @Override
     protected void onLevelComplete() {
         int previousWave = currentWave;
         currentWave++;
@@ -50,7 +135,6 @@ public class ArkanoidEndless extends Arkanoid {
     @Override
     protected void onGameOver() {
         log.info("Game Over! Final Score: {} (Wave: {})", score, currentWave);
-        // Reset game
         score = 0;
         lives = 3;
         bricksDestroyed = 0;
@@ -68,7 +152,6 @@ public class ArkanoidEndless extends Arkanoid {
 
     @Override
     protected void restartGame() {
-        // Reset game state
         score = 0;
         lives = 3;
         bricksDestroyed = 0;
@@ -81,10 +164,8 @@ public class ArkanoidEndless extends Arkanoid {
     @Override
     protected void returnToMainMenu() {
         log.info("Returning to main menu from endless mode");
-        // Unpause and restore input processor
         pauseMenu.resume();
         restoreInputProcessor();
-        // Navigate back to main menu
         if (game.transition == null) {
             game.transition = new org.vibecoders.moongazer.scenes.Transition(
                 game, this, game.mainMenuScene,

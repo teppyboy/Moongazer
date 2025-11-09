@@ -9,4 +9,5 @@ public interface PowerUpFactory {
     PowerUp createFastBall(float x, float y, float width, float height);
     PowerUp createSlowBall(float x, float y, float width, float height);
     PowerUp createBulletPaddle(float x, float y, float width, float height);
+    PowerUp createSuperBall(float x, float y, float width, float height);
 }

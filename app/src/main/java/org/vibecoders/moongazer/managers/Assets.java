@@ -147,6 +147,16 @@ public class Assets {
         assetManager.load("textures/arkanoid/paddle.png", Texture.class);
         assetManager.load("textures/arkanoid/bricks/unbreakable_brick.png", Texture.class);
         assetManager.load("textures/arkanoid/bricks/breakable_brick_lv1.png", Texture.class);
+        assetManager.load("textures/arkanoid/bricks/breakable_brick_lv2.png", Texture.class);
+        assetManager.load("textures/arkanoid/bricks/breakable_brick_lv3.png", Texture.class);
+        assetManager.load("textures/arkanoid/bricks/expandpaddlebrick.png", Texture.class);
+        assetManager.load("textures/arkanoid/bricks/extralifebrick.png", Texture.class);
+        assetManager.load("textures/arkanoid/bricks/fastballbrick.png", Texture.class);
+        assetManager.load("textures/arkanoid/bricks/slowballbrick.png", Texture.class);
+        assetManager.load("textures/arkanoid/bricks/multiballbrick.png", Texture.class);
+        assetManager.load("textures/arkanoid/bricks/superballbrick.png", Texture.class);
+        assetManager.load("textures/arkanoid/bricks/laserbrick.png", Texture.class);
+        assetManager.load("textures/arkanoid/bricks/explosivebrick.png", Texture.class);
         // "Load" unsupported file types as FileHandle
         loadingThread = new Thread(() -> {
             loadAny("videos/main_menu_background.webm");

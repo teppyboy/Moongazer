@@ -3,11 +3,10 @@ package org.vibecoders.moongazer.arkanoid.PowerUps;
 import org.vibecoders.moongazer.arkanoid.PowerUp;
 import org.vibecoders.moongazer.scenes.arkanoid.Arkanoid;
 
-public class ExpandPaddlePowerUp extends PowerUp {
-    
-    public ExpandPaddlePowerUp(float x, float y, float width, float height) {
+public class ExpandPaddle extends PowerUp {
+    public ExpandPaddle(float x, float y, float width, float height) {
         super(x, y, width, height);
-        loadTexture("textures/arkanoid/perk2.png");
+        loadTexture("textures/arkanoid/perk1.png");
     }
 
     @Override

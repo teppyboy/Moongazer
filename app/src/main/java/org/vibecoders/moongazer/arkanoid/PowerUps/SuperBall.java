@@ -3,31 +3,29 @@ package org.vibecoders.moongazer.arkanoid.PowerUps;
 import org.vibecoders.moongazer.arkanoid.PowerUp;
 import org.vibecoders.moongazer.scenes.arkanoid.Arkanoid;
 
-public class ExtraLifePowerUp extends PowerUp {
-    
-    public ExtraLifePowerUp(float x, float y, float width, float height) {
+public class SuperBall extends PowerUp {
+    public SuperBall(float x, float y, float width, float height) {
         super(x, y, width, height);
-        loadTexture("textures/ui/hearth.png");
+        loadTexture("textures/arkanoid/perk5.png");
     }
 
     @Override
     public void applyEffect(Arkanoid arkanoid) {
-        if (arkanoid.lives < 3) {
-            arkanoid.lives += 1;
-        }
+        arkanoid.getBall().setSuperBall(true);
     }
 
     @Override
     public void removeEffect(Arkanoid arkanoid) {
+        arkanoid.getBall().setSuperBall(false);
     }
 
     @Override
     public int getDuration() {
-        return -1;
+        return 15000;
     }
 
     @Override
     public String getName() {
-        return "Add live";
+        return "Super Ball";
     }
 }
