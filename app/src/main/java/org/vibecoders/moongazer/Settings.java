@@ -5,26 +5,21 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonWriter;
-
 import java.util.HashMap;
-
 import org.slf4j.Logger;
 
 public class Settings {
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(Settings.class);
     private static final String SETTINGS_FILE = "settings.json";
-
     private static float masterVolume = 1.0f;
     private static float musicVolume = 1.0f;
     private static float sfxVolume = 1.0f;
-    public static HashMap<String, Integer> keybinds = new HashMap<>() {
-        {
-            put("p1_left", Input.Keys.LEFT);
-            put("p1_right", Input.Keys.RIGHT);
-            put("p2_left", Input.Keys.A);
-            put("p2_right", Input.Keys.D);
-        }
-    };
+    public static HashMap<String, Integer> keybinds = new HashMap<>() {{
+        put("p1_left", Input.Keys.LEFT);
+        put("p1_right", Input.Keys.RIGHT);
+        put("p2_left", Input.Keys.A);
+        put("p2_right", Input.Keys.D);
+    }};
 
     public static class SettingsData {
         public float masterVolume;
@@ -33,37 +28,14 @@ public class Settings {
         public HashMap<String, Integer> keybinds;
     }
 
-    public static int getKeybind(String action) {
-        return keybinds.getOrDefault(action, Input.Keys.UNKNOWN);
-    }
-
-    public static float getMasterVolume() {
-        return masterVolume;
-    }
-
-    public static float getMusicVolume() {
-        return musicVolume;
-    }
-
-    public static float getSfxVolume() {
-        return sfxVolume;
-    }
-
-    public static void setKeybind(String action, int keycode) {
-        keybinds.put(action, keycode);
-    }
-
-    public static void setMasterVolume(float volume) {
-        masterVolume = Math.max(0, Math.min(1, volume));
-    }
-
-    public static void setMusicVolume(float volume) {
-        musicVolume = Math.max(0, Math.min(1, volume));
-    }
-
-    public static void setSfxVolume(float volume) {
-        sfxVolume = Math.max(0, Math.min(1, volume));
-    }
+    public static int getKeybind(String action) { return keybinds.getOrDefault(action, Input.Keys.UNKNOWN); }
+    public static float getMasterVolume() { return masterVolume; }
+    public static float getMusicVolume() { return musicVolume; }
+    public static float getSfxVolume() { return sfxVolume; }
+    public static void setKeybind(String action, int keycode) { keybinds.put(action, keycode); }
+    public static void setMasterVolume(float volume) { masterVolume = Math.max(0, Math.min(1, volume)); }
+    public static void setMusicVolume(float volume) { musicVolume = Math.max(0, Math.min(1, volume)); }
+    public static void setSfxVolume(float volume) { sfxVolume = Math.max(0, Math.min(1, volume)); }
 
     public static void saveSettings() {
         try {
@@ -72,14 +44,12 @@ public class Settings {
             data.musicVolume = musicVolume;
             data.sfxVolume = sfxVolume;
             data.keybinds = new HashMap<>(keybinds);
-
             Json json = new Json();
             json.setOutputType(JsonWriter.OutputType.json);
             json.setUsePrototypes(false);
             FileHandle file = Gdx.files.local(SETTINGS_FILE);
             String jsonString = json.prettyPrint(data);
             file.writeString(jsonString, false);
-
             log.info("Settings saved to {}", SETTINGS_FILE);
             log.debug("Master Volume = {}, Music Volume = {}, SFX Volume = {}", masterVolume, musicVolume, sfxVolume);
         } catch (Exception e) {
@@ -94,11 +64,9 @@ public class Settings {
                 log.info("Settings file not found, using defaults");
                 return;
             }
-
             Json json = new Json();
             String jsonString = file.readString();
             SettingsData data = json.fromJson(SettingsData.class, jsonString);
-
             if (data != null) {
                 masterVolume = data.masterVolume;
                 musicVolume = data.musicVolume;
@@ -107,7 +75,6 @@ public class Settings {
                     keybinds.clear();
                     keybinds.putAll(data.keybinds);
                 }
-
                 log.info("Settings loaded from {}", SETTINGS_FILE);
                 log.debug("Master Volume = {}, Music Volume = {}, SFX Volume = {}", masterVolume, musicVolume, sfxVolume);
             }
