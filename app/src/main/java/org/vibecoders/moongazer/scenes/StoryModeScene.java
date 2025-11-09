@@ -84,6 +84,22 @@ public class StoryModeScene extends Scene {
                 if (currentStageID == 1) {
                     game.recreateScene(game.storyStageScene, () -> new org.vibecoders.moongazer.scenes.story.Stage1(game), scene -> game.storyStageScene = scene);
                     game.transition = new Transition(game, this, game.storyStageScene, State.STORY_STAGE, 500);
+                }
+                if (currentStageID == 2) {
+                    game.recreateScene(game.storyStageScene, () -> new org.vibecoders.moongazer.scenes.story.Stage2(game), scene -> game.storyStageScene = scene);
+                    game.transition = new Transition(game, this, game.storyStageScene, State.STORY_STAGE, 500);
+                }
+                if (currentStageID == 3) {
+                    game.recreateScene(game.storyStageScene, () -> new org.vibecoders.moongazer.scenes.story.Stage3(game), scene -> game.storyStageScene = scene);
+                    game.transition = new Transition(game, this, game.storyStageScene, State.STORY_STAGE, 500);
+                }
+                if (currentStageID == 4) {
+                    game.recreateScene(game.storyStageScene, () -> new org.vibecoders.moongazer.scenes.story.Stage4(game), scene -> game.storyStageScene = scene);
+                    game.transition = new Transition(game, this, game.storyStageScene, State.STORY_STAGE, 500);
+                }
+                if (currentStageID == 5) {
+                    game.recreateScene(game.storyStageScene, () -> new org.vibecoders.moongazer.scenes.story.Stage5(game), scene -> game.storyStageScene = scene);
+                    game.transition = new Transition(game, this, game.storyStageScene, State.STORY_STAGE, 500);
                 } else {
                     log.warn("Stage {} not implemented yet", currentStageID);
                 }

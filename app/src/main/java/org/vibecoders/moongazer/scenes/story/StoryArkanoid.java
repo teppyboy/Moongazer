@@ -8,6 +8,7 @@ import org.vibecoders.moongazer.scenes.arkanoid.Arkanoid;
 public class StoryArkanoid extends Arkanoid {
     private Runnable onLevelCompleteCallback;
     private Runnable onGameOverCallback;
+    private Runnable onReturnToMainMenuCallback;
     private int requiredBricks;
     protected int startingLives;
 
@@ -30,6 +31,9 @@ public class StoryArkanoid extends Arkanoid {
     }
     public void setOnGameOver(Runnable callback) {
         this.onGameOverCallback = callback;
+    }
+    public void setOnReturnToMainMenu(Runnable callback) {
+        this.onReturnToMainMenuCallback = callback;
     }
     @Override
     protected void onLevelComplete() {
@@ -59,7 +63,13 @@ public class StoryArkanoid extends Arkanoid {
     @Override
     protected void returnToMainMenu() {
         log.info("Returning to main menu from story mode");
-        Gdx.app.exit();
+        if (onReturnToMainMenuCallback != null) {
+            log.info("Calling returnToMainMenu callback");
+            onReturnToMainMenuCallback.run();
+        } else {
+            log.warn("onReturnToMainMenuCallback is null!");
+            Gdx.app.exit();
+        }
     }
     @Override
     protected Brick.BrickType getBrickType(int row, int col) {
