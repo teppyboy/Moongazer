@@ -26,8 +26,7 @@ import java.util.List;
 
 public class LoadScene extends Scene {
     public enum Mode {
-        LOAD,  // Load existing saves
-        SAVE   // Create or overwrite saves
+        LOAD, SAVE
     }
 
     public static class SaveGameData {
@@ -121,11 +120,9 @@ public class LoadScene extends Scene {
         backButton.onClick(() -> {
             if (game.transition == null) {
                 if (currentMode == Mode.SAVE && game.storyStageScene != null) {
-                    // Return to the game when in save mode
                     game.transition = new Transition(game, this, game.storyStageScene,
                             State.STORY_STAGE, 350);
                 } else {
-                    // Return to main menu when in load mode
                     game.transition = new Transition(game, this, game.mainMenuScene,
                             State.MAIN_MENU, 350);
                 }
@@ -188,10 +185,8 @@ public class LoadScene extends Scene {
     private void createSaveModeSlots(Table saveList, Drawable bg, BitmapFont font,
                                     Label.LabelStyle slotLabelStyle, Label.LabelStyle smallLabelStyle,
                                     SimpleDateFormat dateFormat) {
-        // Add "New Save" option at the top
         Table newSaveSlot = new Table();
         newSaveSlot.setBackground(bg);
-
         Table infoTable = new Table();
         infoTable.left();
 
@@ -213,14 +208,11 @@ public class LoadScene extends Scene {
         saveList.add(newSaveSlot).width(750).height(100).padBottom(10);
         saveList.row();
 
-        // Get all existing save slots
         List<SaveGameManager.SaveSlot> slots = SaveGameManager.getAllSaveSlots();
 
-        // Display each existing save slot with overwrite option
         for (SaveGameManager.SaveSlot slot : slots) {
             Table saveSlot = new Table();
             saveSlot.setBackground(bg);
-
             Table slotInfoTable = new Table();
             slotInfoTable.left();
 
@@ -263,22 +255,18 @@ public class LoadScene extends Scene {
     private void createLoadModeSlots(Table saveList, Drawable bg, BitmapFont font,
                                     Label.LabelStyle slotLabelStyle, Label.LabelStyle smallLabelStyle,
                                     SimpleDateFormat dateFormat) {
-        // Get all save slots from the database
         List<SaveGameManager.SaveSlot> slots = SaveGameManager.getAllSaveSlots();
 
         if (slots.isEmpty()) {
-            // Display a message if no saves are found
             Label noSavesLabel = new Label("No saved games found", slotLabelStyle);
             noSavesLabel.setColor(Color.GRAY);
             saveList.add(noSavesLabel).center().pad(50);
             return;
         }
 
-        // Display each saved game
         for (SaveGameManager.SaveSlot slot : slots) {
             Table saveSlot = new Table();
             saveSlot.setBackground(bg);
-
             Table infoTable = new Table();
             infoTable.left();
 
@@ -344,7 +332,6 @@ public class LoadScene extends Scene {
 
         if (slotId != -1) {
             log.info("Successfully created new save slot {}", slotId);
-            // Stay on the save screen and refresh the UI to show the new save
             rebuildUI();
         } else {
             log.error("Failed to create new save slot");
@@ -376,7 +363,6 @@ public class LoadScene extends Scene {
 
         if (success) {
             log.info("Successfully overwrote save slot {}", slotId);
-            // Stay on the save screen and refresh the UI to show the updated save
             rebuildUI();
         } else {
             log.error("Failed to overwrite save slot {}", slotId);
@@ -388,7 +374,6 @@ public class LoadScene extends Scene {
             return;
         }
 
-        // Load the save slot
         SaveGameManager.SaveSlot slot = SaveGameManager.getSaveSlot(slotId);
         if (slot == null) {
             log.error("Save slot {} not found", slotId);
@@ -398,10 +383,8 @@ public class LoadScene extends Scene {
         int stageId = slot.currentStageId;
         log.info("Loading save slot {} for stage {}", slotId, stageId);
 
-        // Store the slot ID so the stage can load the full save
         game.loadingSaveSlotId = slotId;
 
-        // Create the appropriate stage and transition to it
         switch (stageId) {
             case 1:
                 game.recreateScene(game.storyStageScene,

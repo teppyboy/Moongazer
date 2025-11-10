@@ -35,20 +35,19 @@ import static org.vibecoders.moongazer.Constants.*;
 public abstract class Arkanoid extends Scene {
     protected static final Logger log = LoggerFactory.getLogger(Arkanoid.class);
     protected Paddle paddle;
-    protected List<Ball> balls; // Support multiple balls for MultiBall power-up
+    protected List<Ball> balls;
     protected List<Brick> bricks;
     protected BitmapFont font;
     protected BitmapFont fontUI30;
     protected int score = 0;
     public int lives = 3;
     protected int bricksDestroyed = 0;
-    protected int combo = 0; // Current combo count
-    protected int maxCombo = 0; // Highest combo achieved
+    protected int combo = 0;
+    protected int maxCombo = 0;
     protected Brick lastHitBrick = null;
     protected float collisionCooldown = 0f;
-    protected static final int MAX_BALLS = 3; // Maximum number of balls for MultiBall
+    protected static final int MAX_BALLS = 3;
 
-    // Ball stuck detection - tracks if ball is bouncing in small Y range
     private float stuckDetectionTimer = 0f;
     private float minBallY = Float.MAX_VALUE;
     private float maxBallY = Float.MIN_VALUE;
@@ -245,8 +244,6 @@ public abstract class Arkanoid extends Scene {
 
     @Override
     public void render(SpriteBatch batch) {
-        // Ensure input processor is correctly set (in case it was overwritten by transitions)
-        // Only restore if pause menu and game over menu are not active
         if (!pauseMenu.isPaused() && !gameOverMenu.isVisible() &&
             Gdx.input.getInputProcessor() != inputMultiplexer) {
             restoreInputProcessor();
@@ -259,7 +256,6 @@ public abstract class Arkanoid extends Scene {
             pauseCooldown -= delta;
         }
 
-        // Don't update gameplay if paused or game over
         if (!pauseMenu.isPaused() && !gameOverMenu.isVisible()) {
             handleInput(delta);
             updateGameplay(delta);
@@ -269,7 +265,6 @@ public abstract class Arkanoid extends Scene {
         renderGameplay(batch);
         renderUI(batch);
 
-        // Handle pause menu
         if (pauseMenu.isPaused()) {
             if (gameSnapshot == null) {
                 batch.end();
@@ -286,7 +281,6 @@ public abstract class Arkanoid extends Scene {
             }
             pauseMenu.render(batch, gameSnapshot);
         }
-        // Handle game over menu
         else if (gameOverMenu.isVisible()) {
             if (gameSnapshot == null) {
                 batch.end();
@@ -367,18 +361,15 @@ public abstract class Arkanoid extends Scene {
             mainBall.reset(paddle.getCenterX(), paddle.getBounds().y + paddle.getBounds().height + mainBall.getRadius() + 5);
         }
 
-        // Detect if main ball is stuck (bouncing in small Y range for extended period)
         if (!balls.isEmpty() && balls.get(0).isActive()) {
             Ball mainBall = balls.get(0);
             float currentBallY = mainBall.getBounds().y;
 
-            // Track min/max Y position over time
             stuckDetectionTimer += delta;
 
             if (currentBallY < minBallY) minBallY = currentBallY;
             if (currentBallY > maxBallY) maxBallY = currentBallY;
 
-            // Check every 5 seconds if ball is stuck in small Y range
             if (stuckDetectionTimer >= STUCK_CHECK_DURATION) {
                 float yRange = maxBallY - minBallY;
 
@@ -387,12 +378,10 @@ public abstract class Arkanoid extends Scene {
                              STUCK_CHECK_DURATION, yRange, STUCK_Y_RANGE_THRESHOLD);
                     log.warn("Applying escape velocity...");
 
-                    // Apply escape velocity with random angle
                     float currentVelX = mainBall.getVelocity().x;
                     float currentVelY = mainBall.getVelocity().y;
                     float speed = (float) Math.sqrt(currentVelX * currentVelX + currentVelY * currentVelY);
 
-                    // Apply a random escape angle (30-60 degrees from horizontal)
                     float escapeAngle = (float) Math.toRadians(30 + Math.random() * 30);
                     float directionX = currentVelX > 0 ? 1 : -1;
 
@@ -402,13 +391,11 @@ public abstract class Arkanoid extends Scene {
                     );
                 }
 
-                // Reset tracking
                 stuckDetectionTimer = 0f;
                 minBallY = Float.MAX_VALUE;
                 maxBallY = Float.MIN_VALUE;
             }
         } else {
-            // Reset stuck detection when ball is not active
             stuckDetectionTimer = 0f;
             minBallY = Float.MAX_VALUE;
             maxBallY = Float.MIN_VALUE;
@@ -476,13 +463,11 @@ public abstract class Arkanoid extends Scene {
                         lastHitBrick = brick;
                         collisionCooldown = COLLISION_COOLDOWN_TIME;
 
-                        // Increase combo on hit (not just on destroy)
                         combo++;
                         if (combo > maxCombo) {
                             maxCombo = combo;
                         }
 
-                        // Calculate and add score on hit (not just on destroy)
                         float multiplier = 1.0f + (combo * 0.03f);
                         int baseScore = 10;
                         int scoreGain = (int) (baseScore * multiplier);
@@ -512,7 +497,6 @@ public abstract class Arkanoid extends Scene {
 
                     boolean isUnbreakableBrick = brick.getType() == Brick.BrickType.UNBREAKABLE;
 
-                    // Reset combo when hitting unbreakable brick (osu! style)
                     if (isUnbreakableBrick && combo > 0) {
                         log.info("Combo broken by unbreakable brick! Lost combo: {}x", combo);
                         combo = 0;
@@ -545,14 +529,12 @@ public abstract class Arkanoid extends Scene {
                     lastHitBrick = brick;
                     collisionCooldown = COLLISION_COOLDOWN_TIME;
 
-                    // Increase combo on hit for breakable bricks (not just on destroy)
                     if (brick.getType() == Brick.BrickType.BREAKABLE) {
                         combo++;
                         if (combo > maxCombo) {
                             maxCombo = combo;
                         }
 
-                        // Calculate and add score on hit (not just on destroy)
                         float multiplier = 1.0f + (combo * 0.03f);
                         int baseScore = 10;
                         int scoreGain = (int) (baseScore * multiplier);
@@ -619,7 +601,6 @@ public abstract class Arkanoid extends Scene {
                     powerUp.y < paddleBounds.y + paddleBounds.height &&
                     powerUp.y + powerUp.height > paddleBounds.y) {
                 Audio.playSfxPowerupReceive();
-                // Check power-up stacking rules
                 boolean canStack = canPowerUpStack(powerUp.getName());
 
                 if (!canStack) {
@@ -768,7 +749,6 @@ public abstract class Arkanoid extends Scene {
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
 
-        // Render hitboxes for all balls
         for (Ball ball : balls) {
             Rectangle ballBounds = ball.getBounds();
             float ballRadius = ball.getRadius();
@@ -862,7 +842,6 @@ public abstract class Arkanoid extends Scene {
         float bestValueX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
         fontUI30.draw(batch, bestValue, bestValueX, WINDOW_HEIGHT - 150 - layout.height);
 
-        // Render Combo counter
         String comboLabel = "Combo";
         String comboValue = String.format("%dx", combo);
         layout.setText(fontUI30, comboLabel);
@@ -878,12 +857,11 @@ public abstract class Arkanoid extends Scene {
         float comboLabelX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
         fontUI30.draw(batch, comboLabel, comboLabelX, WINDOW_HEIGHT - 230);
 
-        // Color combo value based on size (osu! style)
         Color comboColor = Color.WHITE;
         if (combo >= 50) {
-            comboColor = new Color(1f, 0.84f, 0f, 1f); // Gold
+            comboColor = new Color(1f, 0.84f, 0f, 1f);
         } else if (combo >= 20) {
-            comboColor = new Color(0f, 1f, 0.5f, 1f); // Green
+            comboColor = new Color(0f, 1f, 0.5f, 1f);
         }
         Color originalComboColor = fontUI30.getColor().cpy();
         fontUI30.setColor(comboColor);
@@ -892,7 +870,6 @@ public abstract class Arkanoid extends Scene {
         fontUI30.draw(batch, comboValue, comboValueX, WINDOW_HEIGHT - 240 - layout.height);
         fontUI30.setColor(originalComboColor);
 
-        // Render Max Combo counter
         String maxComboLabel = "Max Combo";
         String maxComboValue = String.format("%dx", maxCombo);
         layout.setText(fontUI30, maxComboLabel);
@@ -908,9 +885,8 @@ public abstract class Arkanoid extends Scene {
         float maxComboLabelX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
         fontUI30.draw(batch, maxComboLabel, maxComboLabelX, WINDOW_HEIGHT - 320);
 
-        // Always show max combo in gold color
         Color originalMaxComboColor = fontUI30.getColor().cpy();
-        fontUI30.setColor(new Color(1f, 0.84f, 0f, 1f)); // Gold
+        fontUI30.setColor(new Color(1f, 0.84f, 0f, 1f));
         layout.setText(fontUI30, maxComboValue);
         float maxComboValueX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
         fontUI30.draw(batch, maxComboValue, maxComboValueX, WINDOW_HEIGHT - 330 - layout.height);
@@ -936,27 +912,23 @@ public abstract class Arkanoid extends Scene {
         float powerupsX = SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH + (SIDE_PANEL_WIDTH - layout.width) / 2f;
         fontUI30.draw(batch, powerupsText, powerupsX, WINDOW_HEIGHT - 50);
 
-        // Render active powerup effects
         renderActivePowerups(batch, layout);
     }
 
     private void renderActivePowerups(SpriteBatch batch, com.badlogic.gdx.graphics.g2d.GlyphLayout layout) {
-        // Start rendering below the "Powerups" title (with some spacing)
-        float startY = WINDOW_HEIGHT - 100; // Below the title
+        float startY = WINDOW_HEIGHT - 100;
         float iconSize = 32;
-        float lineHeight = 45; // Space between each powerup line
+        float lineHeight = 45;
         float rightPanelX = SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH + 15;
-        float textOffsetX = iconSize + 8; // Text offset from icon
+        float textOffsetX = iconSize + 8;
 
         int index = 0;
         for (ActivePowerUpEffect effect : activePowerUpEffects) {
             float currentY = startY - (index * lineHeight);
 
-            // Get remaining time
             float remainingTime = effect.getRemainingTime();
-            if (remainingTime < 0) continue; // Skip permanent effects
+            if (remainingTime < 0) continue;
 
-            // Check if time is low (less than 3 seconds)
             boolean isLowTime = remainingTime <= 3.0f;
 
             float alpha = 1.0f;
@@ -966,7 +938,6 @@ public abstract class Arkanoid extends Scene {
                 textColor = Color.RED;
             }
 
-            // Draw icon
             Texture powerupTexture = effect.getPowerUp().getTexture();
             if (powerupTexture != null) {
                 batch.setColor(1f, 1f, 1f, alpha);
@@ -974,11 +945,9 @@ public abstract class Arkanoid extends Scene {
                 batch.setColor(Color.WHITE);
             }
 
-            // Draw text (name + time) aligned with icon center
             String effectText = effect.getEffectType() + ": " + String.format("%.1fs", remainingTime);
             layout.setText(font, effectText);
 
-            // Center text vertically with icon
             float textY = currentY - (iconSize / 2f) + (layout.height / 2f);
 
             Color originalColor = font.getColor().cpy();
@@ -996,7 +965,6 @@ public abstract class Arkanoid extends Scene {
     }
 
     protected void onBrickDestroyed(Brick brick) {
-        // Score is already added when hitting the brick, just increment counter
         bricksDestroyed++;
         log.debug("Brick destroyed! Total bricks destroyed: {}", bricksDestroyed);
     }
@@ -1007,22 +975,18 @@ public abstract class Arkanoid extends Scene {
         heartBlinking = true;
         heartBlinkTimer = 0f;
 
-        // Reset combo when ball is lost
         if (combo > 0) {
             log.info("Ball lost! Combo reset from {}x to 0", combo);
             combo = 0;
         }
 
-        // Remove all active powerup effects
         clearAllActivePowerups();
 
-        // Reset to single ball
         balls.clear();
         float ballRadius = 12f;
         Ball mainBall = new Ball(paddle.getCenterX(), paddle.getBounds().y + paddle.getBounds().height + ballRadius + 5, ballRadius);
         balls.add(mainBall);
 
-        // Reset stuck detection tracking
         stuckDetectionTimer = 0f;
         minBallY = Float.MAX_VALUE;
         maxBallY = Float.MIN_VALUE;
@@ -1033,9 +997,6 @@ public abstract class Arkanoid extends Scene {
         }
     }
 
-    /**
-     * Clears all active powerup effects and removes their effects from the game
-     */
     private void clearAllActivePowerups() {
         if (activePowerUpEffects.isEmpty()) {
             return;
@@ -1043,16 +1004,12 @@ public abstract class Arkanoid extends Scene {
 
         log.info("Clearing {} active powerup effects due to life loss", activePowerUpEffects.size());
 
-        // Remove all effects
         for (ActivePowerUpEffect effect : activePowerUpEffects) {
             effect.removeEffect(this);
             log.debug("Removed {} effect", effect.getEffectType());
         }
 
-        // Clear the list
         activePowerUpEffects.clear();
-
-        // Also clear falling powerups
         activePowerUps.clear();
     }
 
@@ -1092,27 +1049,14 @@ public abstract class Arkanoid extends Scene {
         return lastHitBrick;
     }
 
-    /**
-     * Gets the main ball (first ball in the list).
-     * Used for compatibility with power-ups that affect a single ball.
-     */
     public Ball getBall() {
         return balls.isEmpty() ? null : balls.get(0);
     }
 
-    /**
-     * Gets all balls currently in play.
-     */
     public List<Ball> getBalls() {
         return balls;
     }
 
-    /**
-     * Spawns additional balls for MultiBall power-up.
-     * Maximum of MAX_BALLS total balls.
-     *
-     * @param count number of balls to spawn
-     */
     public void spawnBalls(int count) {
         if (balls.isEmpty()) return;
 
@@ -1122,17 +1066,14 @@ public abstract class Arkanoid extends Scene {
         int ballsToSpawn = Math.min(count, MAX_BALLS - balls.size());
 
         for (int i = 0; i < ballsToSpawn; i++) {
-            // Create new ball at main ball position
             Ball newBall = new Ball(mainBall.getBounds().x, mainBall.getBounds().y, mainBall.getRadius());
 
-            // Copy properties from main ball
             newBall.setSuperBall(mainBall.isSuperBall());
             newBall.setSpeedMultiplier(mainBall.getSpeedMultiplier());
             newBall.launch();
 
-            // Set velocity at different angles to spread the balls
             float baseSpeed = mainBall.getVelocity().len();
-            float angleOffset = (i + 1) * 30f; // Spread balls at 30 degree intervals
+            float angleOffset = (i + 1) * 30f;
             float angleInRadians = (float) Math.toRadians(90 + angleOffset - (ballsToSpawn * 15f));
             newBall.setVelocity(
                 baseSpeed * (float) Math.cos(angleInRadians),

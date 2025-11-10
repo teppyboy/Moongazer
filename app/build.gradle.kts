@@ -68,14 +68,6 @@ application {
     mainClass = "org.vibecoders.moongazer.Main"
 }
 
-// Task to run standalone gameplay test
-tasks.register<JavaExec>("runGameplayTest") {
-    group = "application"
-    description = "Run standalone gameplay test (independent from Main Menu)"
-    classpath = sourceSets["main"].runtimeClasspath
-    mainClass.set("org.vibecoders.moongazer.StandaloneGameplayTest")
-}
-
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
     options.release.set(25)
