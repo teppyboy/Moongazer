@@ -44,6 +44,8 @@ public class PauseMenu {
     private Runnable onRestart;
     private Runnable onMainMenu;
     private Runnable onQuit;
+    private Runnable onSaveGame;
+    private boolean isStoryMode = false;
 
     private static class ButtonConfig {
         final String label;
@@ -53,9 +55,6 @@ public class PauseMenu {
             this.action = action;
         }
     }
-
-    private Runnable onSaveGame;
-    private boolean isStoryMode = false;
 
     public PauseMenu() {
         initUI();

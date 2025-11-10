@@ -20,8 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.arkanoid.*;
-import org.vibecoders.moongazer.arkanoid.PowerUps.ActivePowerUpEffect;
-import org.vibecoders.moongazer.arkanoid.PowerUps.ClassicPowerUpFactory;
+import org.vibecoders.moongazer.arkanoid.powerups.*;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.managers.Audio;
 import org.vibecoders.moongazer.scenes.Scene;
@@ -43,6 +42,8 @@ public abstract class Arkanoid extends Scene {
     protected int score = 0;
     public int lives = 3;
     protected int bricksDestroyed = 0;
+    protected int combo = 0; // Current combo count
+    protected int maxCombo = 0; // Highest combo achieved
     protected Brick lastHitBrick = null;
     protected float collisionCooldown = 0f;
     protected static final int MAX_BALLS = 3; // Maximum number of balls for MultiBall
@@ -189,6 +190,8 @@ public abstract class Arkanoid extends Scene {
         score = 0;
         lives = 3;
         bricksDestroyed = 0;
+        combo = 0;
+        maxCombo = 0;
         heartBlinking = false;
         heartBlinkTimer = 0f;
         initGameplay();
@@ -466,6 +469,20 @@ public abstract class Arkanoid extends Scene {
                         lastHitBrick = brick;
                         collisionCooldown = COLLISION_COOLDOWN_TIME;
 
+                        // Increase combo on hit (not just on destroy)
+                        combo++;
+                        if (combo > maxCombo) {
+                            maxCombo = combo;
+                        }
+
+                        // Calculate and add score on hit (not just on destroy)
+                        float multiplier = 1.0f + (combo * 0.03f);
+                        int baseScore = 10;
+                        int scoreGain = (int) (baseScore * multiplier);
+                        score += scoreGain;
+                        log.debug("Breakable brick hit! Combo: {}x, Multiplier: {:.2f}x, Score gained: {}, Total: {}",
+                                  combo, multiplier, scoreGain, score);
+
                         if (brick.isDestroyed()) {
                             lastHitBrick = null;
                             onBrickDestroyed(brick);
@@ -487,6 +504,12 @@ public abstract class Arkanoid extends Scene {
                     float separationDistance = ballRadius + 1.0f;
 
                     boolean isUnbreakableBrick = brick.getType() == Brick.BrickType.UNBREAKABLE;
+
+                    // Reset combo when hitting unbreakable brick (osu! style)
+                    if (isUnbreakableBrick && combo > 0) {
+                        log.info("Combo broken by unbreakable brick! Lost combo: {}x", combo);
+                        combo = 0;
+                    }
 
                     if (minOverlapX < minOverlapY) {
                         ball.reverseX();
@@ -514,6 +537,23 @@ public abstract class Arkanoid extends Scene {
                     brick.hit();
                     lastHitBrick = brick;
                     collisionCooldown = COLLISION_COOLDOWN_TIME;
+
+                    // Increase combo on hit for breakable bricks (not just on destroy)
+                    if (brick.getType() == Brick.BrickType.BREAKABLE) {
+                        combo++;
+                        if (combo > maxCombo) {
+                            maxCombo = combo;
+                        }
+
+                        // Calculate and add score on hit (not just on destroy)
+                        float multiplier = 1.0f + (combo * 0.03f);
+                        int baseScore = 10;
+                        int scoreGain = (int) (baseScore * multiplier);
+                        score += scoreGain;
+                        log.debug("Breakable brick hit! Combo: {}x, Multiplier: {:.2f}x, Score gained: {}, Total: {}",
+                                  combo, multiplier, scoreGain, score);
+                    }
+
                     if (brick.getType() == Brick.BrickType.BREAKABLE && brick.isDestroyed()) {
                         lastHitBrick = null;
                         onBrickDestroyed(brick);
@@ -610,7 +650,7 @@ public abstract class Arkanoid extends Scene {
     }
 
     private void spawnRandomPowerUp(Brick brick) {
-        ClassicPowerUpFactory factory = new ClassicPowerUpFactory();
+        PowerUpFactory factory = new ClassicPowerUpFactory();
         PowerUp powerUp = null;
 
         float powerUpX = brick.getX() + brick.getWidth() / 2f - 16;
@@ -641,6 +681,8 @@ public abstract class Arkanoid extends Scene {
                 case LASER:
                 case EXPLOSIVE:
                     log.warn("Power-up type {} not yet implemented", brick.getPowerUpType());
+                    return;
+                case NONE:
                     return;
             }
         } else {
@@ -812,6 +854,61 @@ public abstract class Arkanoid extends Scene {
         layout.setText(fontUI30, bestValue);
         float bestValueX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
         fontUI30.draw(batch, bestValue, bestValueX, WINDOW_HEIGHT - 150 - layout.height);
+
+        // Render Combo counter
+        String comboLabel = "Combo";
+        String comboValue = String.format("%dx", combo);
+        layout.setText(fontUI30, comboLabel);
+        float comboLabelHeight = layout.height;
+        layout.setText(fontUI30, comboValue);
+        float comboValueHeight = layout.height;
+        float comboBoxHeight = comboLabelHeight + comboValueHeight + 30;
+        float comboBoxY = WINDOW_HEIGHT - 230 - comboBoxHeight + 10;
+
+        drawUIBox(batch, boxX, comboBoxY, boxWidth, comboBoxHeight);
+
+        layout.setText(fontUI30, comboLabel);
+        float comboLabelX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
+        fontUI30.draw(batch, comboLabel, comboLabelX, WINDOW_HEIGHT - 230);
+
+        // Color combo value based on size (osu! style)
+        Color comboColor = Color.WHITE;
+        if (combo >= 50) {
+            comboColor = new Color(1f, 0.84f, 0f, 1f); // Gold
+        } else if (combo >= 20) {
+            comboColor = new Color(0f, 1f, 0.5f, 1f); // Green
+        }
+        Color originalComboColor = fontUI30.getColor().cpy();
+        fontUI30.setColor(comboColor);
+        layout.setText(fontUI30, comboValue);
+        float comboValueX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
+        fontUI30.draw(batch, comboValue, comboValueX, WINDOW_HEIGHT - 240 - layout.height);
+        fontUI30.setColor(originalComboColor);
+
+        // Render Max Combo counter
+        String maxComboLabel = "Max Combo";
+        String maxComboValue = String.format("%dx", maxCombo);
+        layout.setText(fontUI30, maxComboLabel);
+        float maxComboLabelHeight = layout.height;
+        layout.setText(fontUI30, maxComboValue);
+        float maxComboValueHeight = layout.height;
+        float maxComboBoxHeight = maxComboLabelHeight + maxComboValueHeight + 30;
+        float maxComboBoxY = WINDOW_HEIGHT - 320 - maxComboBoxHeight + 10;
+
+        drawUIBox(batch, boxX, maxComboBoxY, boxWidth, maxComboBoxHeight);
+
+        layout.setText(fontUI30, maxComboLabel);
+        float maxComboLabelX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
+        fontUI30.draw(batch, maxComboLabel, maxComboLabelX, WINDOW_HEIGHT - 320);
+
+        // Always show max combo in gold color
+        Color originalMaxComboColor = fontUI30.getColor().cpy();
+        fontUI30.setColor(new Color(1f, 0.84f, 0f, 1f)); // Gold
+        layout.setText(fontUI30, maxComboValue);
+        float maxComboValueX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
+        fontUI30.draw(batch, maxComboValue, maxComboValueX, WINDOW_HEIGHT - 330 - layout.height);
+        fontUI30.setColor(originalMaxComboColor);
+
         String livesText = " x " + lives;
         layout.setText(fontUI30, livesText);
         float heartAndTextWidth = HEART_ICON_SIZE + 5f + layout.width;
@@ -892,9 +989,9 @@ public abstract class Arkanoid extends Scene {
     }
 
     protected void onBrickDestroyed(Brick brick) {
-        score += 10;
+        // Score is already added when hitting the brick, just increment counter
         bricksDestroyed++;
-        log.debug("Brick destroyed! Score: {}", score);
+        log.debug("Brick destroyed! Total bricks destroyed: {}", bricksDestroyed);
     }
 
     protected void onBallLost() {
@@ -902,6 +999,12 @@ public abstract class Arkanoid extends Scene {
         Audio.playSfxBallLoss();
         heartBlinking = true;
         heartBlinkTimer = 0f;
+
+        // Reset combo when ball is lost
+        if (combo > 0) {
+            log.info("Ball lost! Combo reset from {}x to 0", combo);
+            combo = 0;
+        }
 
         // Remove all active powerup effects
         clearAllActivePowerups();

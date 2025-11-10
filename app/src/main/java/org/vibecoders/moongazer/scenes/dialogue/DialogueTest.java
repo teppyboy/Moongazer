@@ -27,11 +27,13 @@ public class DialogueTest extends Dialogue {
                         new DialogueStep(
                                 "Iuno",
                                 IUNO_TEXTURE,
+                                null,
                                 "Hmph. Apologies, but I need my rest..."),
                         new DialogueStep(
                                 "Iuno",
                                 IUNO_TEXTURE,
                                 "Choose:",
+                                null,
                                 DialogueStep.Action.CHOICE,
                                 new DialogueStep.Choice[] {
                                         new DialogueStep.Choice("Good path", "good_end", 0),
