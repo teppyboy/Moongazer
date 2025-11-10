@@ -55,6 +55,32 @@ public class SaveGameManager {
         }
     }
 
+    public static class SaveSlot {
+        public int slotId;
+        public String slotName;
+        public int currentStageId;
+        public int currentScore;
+        public int lives;
+        public int bricksDestroyed;
+        public String gameStateJson;
+        public String progressJson;
+        public long timestamp;
+
+        public SaveSlot(int slotId, String slotName, int currentStageId, int currentScore,
+                       int lives, int bricksDestroyed, String gameStateJson,
+                       String progressJson, long timestamp) {
+            this.slotId = slotId;
+            this.slotName = slotName;
+            this.currentStageId = currentStageId;
+            this.currentScore = currentScore;
+            this.lives = lives;
+            this.bricksDestroyed = bricksDestroyed;
+            this.gameStateJson = gameStateJson;
+            this.progressJson = progressJson;
+            this.timestamp = timestamp;
+        }
+    }
+
     public static void initialize() {
         try {
             String dbPath = Gdx.files.local(DB_FILE).file().getAbsolutePath();
@@ -106,11 +132,26 @@ public class SaveGameManager {
             )
             """;
 
+        String createSaveSlotsTable = """
+            CREATE TABLE IF NOT EXISTS save_slots (
+                slot_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                slot_name TEXT NOT NULL,
+                current_stage_id INTEGER NOT NULL,
+                current_score INTEGER NOT NULL,
+                lives INTEGER NOT NULL,
+                bricks_destroyed INTEGER NOT NULL,
+                game_state_json TEXT NOT NULL,
+                progress_json TEXT,
+                timestamp INTEGER NOT NULL
+            )
+            """;
+
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(createHighScoreTable);
             stmt.execute(createScoresTable);
             stmt.execute(createStoryGameSavesTable);
             stmt.execute(createStoryHighScoresTable);
+            stmt.execute(createSaveSlotsTable);
             String initHighScore = """
                 INSERT OR IGNORE INTO high_score (id, score, wave, timestamp)
                 VALUES (1, 0, 0, 0)
@@ -340,6 +381,39 @@ public class SaveGameManager {
         return null;
     }
 
+    public static List<StoryGameSave> getAllStoryGameSaves() {
+        List<StoryGameSave> saves = new ArrayList<>();
+        if (connection == null) {
+            log.warn("Database not initialized, returning empty save list");
+            return saves;
+        }
+        String query = """
+            SELECT stage_id, current_score, high_score, lives, bricks_destroyed,
+                   game_state_json, timestamp
+            FROM story_game_saves
+            ORDER BY timestamp DESC
+            """;
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                StoryGameSave save = new StoryGameSave(
+                    rs.getInt("stage_id"),
+                    rs.getInt("current_score"),
+                    rs.getInt("high_score"),
+                    rs.getInt("lives"),
+                    rs.getInt("bricks_destroyed"),
+                    rs.getString("game_state_json"),
+                    rs.getLong("timestamp")
+                );
+                saves.add(save);
+            }
+            log.debug("Retrieved {} story game saves", saves.size());
+        } catch (SQLException e) {
+            log.error("Failed to get all story game saves", e);
+        }
+        return saves;
+    }
+
     public static boolean hasSaveGame(int stageId) {
         if (connection == null) {
             log.warn("Database not initialized");
@@ -412,6 +486,163 @@ public class SaveGameManager {
             } catch (SQLException e) {
                 log.error("Failed to update story high score", e);
             }
+        }
+        return false;
+    }
+
+    // Save Slot Management Methods
+    public static List<SaveSlot> getAllSaveSlots() {
+        List<SaveSlot> slots = new ArrayList<>();
+        if (connection == null) {
+            log.warn("Database not initialized, returning empty slot list");
+            return slots;
+        }
+        String query = """
+            SELECT slot_id, slot_name, current_stage_id, current_score, lives,
+                   bricks_destroyed, game_state_json, progress_json, timestamp
+            FROM save_slots
+            ORDER BY timestamp DESC
+            """;
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                SaveSlot slot = new SaveSlot(
+                    rs.getInt("slot_id"),
+                    rs.getString("slot_name"),
+                    rs.getInt("current_stage_id"),
+                    rs.getInt("current_score"),
+                    rs.getInt("lives"),
+                    rs.getInt("bricks_destroyed"),
+                    rs.getString("game_state_json"),
+                    rs.getString("progress_json"),
+                    rs.getLong("timestamp")
+                );
+                slots.add(slot);
+            }
+            log.debug("Retrieved {} save slots", slots.size());
+        } catch (SQLException e) {
+            log.error("Failed to get all save slots", e);
+        }
+        return slots;
+    }
+
+    public static SaveSlot getSaveSlot(int slotId) {
+        if (connection == null) {
+            log.warn("Database not initialized");
+            return null;
+        }
+        String query = """
+            SELECT slot_id, slot_name, current_stage_id, current_score, lives,
+                   bricks_destroyed, game_state_json, progress_json, timestamp
+            FROM save_slots
+            WHERE slot_id = ?
+            """;
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setInt(1, slotId);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return new SaveSlot(
+                    rs.getInt("slot_id"),
+                    rs.getString("slot_name"),
+                    rs.getInt("current_stage_id"),
+                    rs.getInt("current_score"),
+                    rs.getInt("lives"),
+                    rs.getInt("bricks_destroyed"),
+                    rs.getString("game_state_json"),
+                    rs.getString("progress_json"),
+                    rs.getLong("timestamp")
+                );
+            }
+        } catch (SQLException e) {
+            log.error("Failed to get save slot", e);
+        }
+        return null;
+    }
+
+    public static int createSaveSlot(String slotName, int stageId, int currentScore,
+                                      int lives, int bricksDestroyed, String gameStateJson,
+                                      String progressJson) {
+        if (connection == null) {
+            log.warn("Database not initialized, cannot create save slot");
+            return -1;
+        }
+        String insert = """
+            INSERT INTO save_slots (slot_name, current_stage_id, current_score, lives,
+                                   bricks_destroyed, game_state_json, progress_json, timestamp)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """;
+        try (PreparedStatement pstmt = connection.prepareStatement(insert, Statement.RETURN_GENERATED_KEYS)) {
+            pstmt.setString(1, slotName);
+            pstmt.setInt(2, stageId);
+            pstmt.setInt(3, currentScore);
+            pstmt.setInt(4, lives);
+            pstmt.setInt(5, bricksDestroyed);
+            pstmt.setString(6, gameStateJson);
+            pstmt.setString(7, progressJson);
+            pstmt.setLong(8, System.currentTimeMillis());
+            pstmt.executeUpdate();
+
+            ResultSet rs = pstmt.getGeneratedKeys();
+            if (rs.next()) {
+                int slotId = rs.getInt(1);
+                log.info("Created save slot {} with ID {}", slotName, slotId);
+                return slotId;
+            }
+        } catch (SQLException e) {
+            log.error("Failed to create save slot", e);
+        }
+        return -1;
+    }
+
+    public static boolean updateSaveSlot(int slotId, String slotName, int stageId,
+                                        int currentScore, int lives, int bricksDestroyed,
+                                        String gameStateJson, String progressJson) {
+        if (connection == null) {
+            log.warn("Database not initialized, cannot update save slot");
+            return false;
+        }
+        String update = """
+            UPDATE save_slots
+            SET slot_name = ?, current_stage_id = ?, current_score = ?, lives = ?,
+                bricks_destroyed = ?, game_state_json = ?, progress_json = ?, timestamp = ?
+            WHERE slot_id = ?
+            """;
+        try (PreparedStatement pstmt = connection.prepareStatement(update)) {
+            pstmt.setString(1, slotName);
+            pstmt.setInt(2, stageId);
+            pstmt.setInt(3, currentScore);
+            pstmt.setInt(4, lives);
+            pstmt.setInt(5, bricksDestroyed);
+            pstmt.setString(6, gameStateJson);
+            pstmt.setString(7, progressJson);
+            pstmt.setLong(8, System.currentTimeMillis());
+            pstmt.setInt(9, slotId);
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                log.info("Updated save slot {}", slotId);
+                return true;
+            }
+        } catch (SQLException e) {
+            log.error("Failed to update save slot", e);
+        }
+        return false;
+    }
+
+    public static boolean deleteSaveSlot(int slotId) {
+        if (connection == null) {
+            log.warn("Database not initialized, cannot delete save slot");
+            return false;
+        }
+        String delete = "DELETE FROM save_slots WHERE slot_id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(delete)) {
+            pstmt.setInt(1, slotId);
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                log.info("Deleted save slot {}", slotId);
+                return true;
+            }
+        } catch (SQLException e) {
+            log.error("Failed to delete save slot", e);
         }
         return false;
     }

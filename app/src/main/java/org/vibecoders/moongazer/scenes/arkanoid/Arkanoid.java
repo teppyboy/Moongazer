@@ -245,6 +245,13 @@ public abstract class Arkanoid extends Scene {
 
     @Override
     public void render(SpriteBatch batch) {
+        // Ensure input processor is correctly set (in case it was overwritten by transitions)
+        // Only restore if pause menu and game over menu are not active
+        if (!pauseMenu.isPaused() && !gameOverMenu.isVisible() &&
+            Gdx.input.getInputProcessor() != inputMultiplexer) {
+            restoreInputProcessor();
+        }
+
         float delta = Gdx.graphics.getDeltaTime();
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);

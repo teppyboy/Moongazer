@@ -85,6 +85,12 @@ public class MainMenu extends Scene {
         loadButton.onClick(() -> {
             log.debug("Load clicked");
             if (game.transition == null) {
+                // Reset LoadScene to LOAD mode
+                if (game.loadScene instanceof org.vibecoders.moongazer.scenes.LoadScene) {
+                    ((org.vibecoders.moongazer.scenes.LoadScene) game.loadScene).setMode(
+                        org.vibecoders.moongazer.scenes.LoadScene.Mode.LOAD
+                    );
+                }
                 game.transition = new Transition(game, this, game.loadScene, State.LOAD_GAME, 350);
             }
         });

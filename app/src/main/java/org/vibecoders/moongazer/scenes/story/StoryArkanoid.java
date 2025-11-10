@@ -57,27 +57,60 @@ public class StoryArkanoid extends Arkanoid {
     protected void init() {
         super.init();
         pauseMenu.setStoryMode(true);
-        pauseMenu.setOnSaveGame(() -> saveGame());
+        pauseMenu.setOnSaveGame(() -> openSaveMenu());
         createBrickGrid(requiredBricks, 30);
         log.info("Story Arkanoid initialized with {} rows and {} lives", requiredBricks, startingLives);
     }
 
-    public void saveGame() {
+    private void openSaveMenu() {
         try {
             String gameStateJson = serializeGameState();
-            int highScore = SaveGameManager.getStoryHighScore(stageId);
-            if (score > highScore) {
-                highScore = score;
+            String progressJson = "{}"; // Can be expanded to include story progress
+
+            // Create save data
+            org.vibecoders.moongazer.scenes.LoadScene.SaveGameData saveData =
+                new org.vibecoders.moongazer.scenes.LoadScene.SaveGameData(
+                    stageId, score, lives, bricksDestroyed, gameStateJson, progressJson
+                );
+
+            // Set the LoadScene to save mode with the save data
+            if (game.loadScene instanceof org.vibecoders.moongazer.scenes.LoadScene) {
+                org.vibecoders.moongazer.scenes.LoadScene loadScene =
+                    (org.vibecoders.moongazer.scenes.LoadScene) game.loadScene;
+                loadScene.setSaveData(saveData);
+
+                // Close pause menu immediately without animation before transitioning
+                pauseMenu.forceClose();
+                if (game.transition == null) {
+                    game.transition = new org.vibecoders.moongazer.scenes.Transition(
+                        game, game.storyStageScene, game.loadScene,
+                        org.vibecoders.moongazer.enums.State.LOAD_GAME, 350
+                    );
+                }
             }
-            SaveGameManager.saveStoryGame(stageId, score, highScore, lives, bricksDestroyed, gameStateJson);
-            log.info("Game saved for stage {} - Score: {}, Lives: {}", stageId, score, lives);
         } catch (Exception e) {
-            log.error("Failed to save game", e);
+            log.error("Failed to open save menu", e);
         }
     }
 
     public boolean loadGame() {
         try {
+            // Check if we're loading from a save slot
+            if (game.loadingSaveSlotId != -1) {
+                SaveGameManager.SaveSlot slot = SaveGameManager.getSaveSlot(game.loadingSaveSlotId);
+                if (slot != null && slot.currentStageId == stageId) {
+                    score = slot.currentScore;
+                    lives = slot.lives;
+                    bricksDestroyed = slot.bricksDestroyed;
+                    deserializeGameState(slot.gameStateJson);
+                    log.info("Game loaded from save slot {} for stage {} - Score: {}, Lives: {}",
+                            game.loadingSaveSlotId, stageId, score, lives);
+                    game.loadingSaveSlotId = -1;
+                    return true;
+                }
+            }
+
+            // Fall back to old save system for backward compatibility
             SaveGameManager.StoryGameSave save = SaveGameManager.loadStoryGame(stageId);
             if (save == null) {
                 log.info("No save game found for stage {}", stageId);

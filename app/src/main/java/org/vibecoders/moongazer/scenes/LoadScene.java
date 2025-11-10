@@ -13,13 +13,42 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import org.vibecoders.moongazer.Game;
+import org.vibecoders.moongazer.SaveGameManager;
 import org.vibecoders.moongazer.enums.State;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.ui.UICloseButton;
 import org.vibecoders.moongazer.ui.UITextButton;
 import org.vibecoders.moongazer.ui.UIScrollbar;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
 public class LoadScene extends Scene {
+    public enum Mode {
+        LOAD,  // Load existing saves
+        SAVE   // Create or overwrite saves
+    }
+
+    public static class SaveGameData {
+        public int stageId;
+        public int currentScore;
+        public int lives;
+        public int bricksDestroyed;
+        public String gameStateJson;
+        public String progressJson;
+
+        public SaveGameData(int stageId, int currentScore, int lives, int bricksDestroyed,
+                           String gameStateJson, String progressJson) {
+            this.stageId = stageId;
+            this.currentScore = currentScore;
+            this.lives = lives;
+            this.bricksDestroyed = bricksDestroyed;
+            this.gameStateJson = gameStateJson;
+            this.progressJson = progressJson;
+        }
+    }
+
     private UIScrollbar customScrollbar;
     private ScrollPane scrollPane;
     private static final float KEYBOARD_SCROLL_SPEED = 500f;
@@ -27,10 +56,32 @@ public class LoadScene extends Scene {
     private boolean isKeyScrollingUp = false;
     private boolean isKeyScrollingDown = false;
     private float keyScrollAccumulator = 0f;
+    private Mode currentMode = Mode.LOAD;
+    private SaveGameData pendingSaveData;
+    private Table saveList;
 
     public LoadScene(Game game) {
         super(game);
+        buildUI();
+    }
 
+    public void setMode(Mode mode) {
+        this.currentMode = mode;
+        rebuildUI();
+    }
+
+    public void setSaveData(SaveGameData data) {
+        this.pendingSaveData = data;
+        this.currentMode = Mode.SAVE;
+        rebuildUI();
+    }
+
+    private void rebuildUI() {
+        root.clear();
+        buildUI();
+    }
+
+    private void buildUI() {
         root.setFillParent(true);
         BitmapFont font = Assets.getFont("ui", 24);
         BitmapFont smallFont = Assets.getFont("ui", 18);
@@ -42,16 +93,15 @@ public class LoadScene extends Scene {
         mainPanel.setPosition((Gdx.graphics.getWidth() - 900) / 2f,
                 (Gdx.graphics.getHeight() - 700) / 2f);
 
-        Label title = new Label("Load Game", labelStyle);
+        String titleText = currentMode == Mode.SAVE ? "Save Game" : "Load Game";
+        Label title = new Label(titleText, labelStyle);
         mainPanel.add(title).colspan(3).padTop(60).padBottom(30);
         mainPanel.row();
 
         TextureRegionDrawable bg = new TextureRegionDrawable(Assets.getWhiteTexture());
         Drawable tintedBg = bg.tint(new Color(0.2f, 0.2f, 0.2f, 0.3f));
-        // bg.setMinWidth(0);
-        // bg.setMinHeight(0);
 
-        Table saveList = new Table();
+        saveList = new Table();
         saveList.top();
         createSaveSlots(saveList, tintedBg, font, smallLabelStyle);
 
@@ -70,8 +120,15 @@ public class LoadScene extends Scene {
         backButton.setPosition(Gdx.graphics.getWidth() - 80, Gdx.graphics.getHeight() - 80);
         backButton.onClick(() -> {
             if (game.transition == null) {
-                game.transition = new Transition(game, this, game.mainMenuScene,
-                        State.MAIN_MENU, 350);
+                if (currentMode == Mode.SAVE && game.storyStageScene != null) {
+                    // Return to the game when in save mode
+                    game.transition = new Transition(game, this, game.storyStageScene,
+                            State.STORY_STAGE, 350);
+                } else {
+                    // Return to main menu when in load mode
+                    game.transition = new Transition(game, this, game.mainMenuScene,
+                            State.MAIN_MENU, 350);
+                }
             }
         });
 
@@ -119,36 +176,267 @@ public class LoadScene extends Scene {
 
     private void createSaveSlots(Table saveList, Drawable bg, BitmapFont font, Label.LabelStyle smallLabelStyle) {
         Label.LabelStyle slotLabelStyle = new Label.LabelStyle(font, Color.WHITE);
-        StringBuilder sb = new StringBuilder();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-        for (int i = 1; i <= 100; i++) {
+        if (currentMode == Mode.SAVE) {
+            createSaveModeSlots(saveList, bg, font, slotLabelStyle, smallLabelStyle, dateFormat);
+        } else {
+            createLoadModeSlots(saveList, bg, font, slotLabelStyle, smallLabelStyle, dateFormat);
+        }
+    }
+
+    private void createSaveModeSlots(Table saveList, Drawable bg, BitmapFont font,
+                                    Label.LabelStyle slotLabelStyle, Label.LabelStyle smallLabelStyle,
+                                    SimpleDateFormat dateFormat) {
+        // Add "New Save" option at the top
+        Table newSaveSlot = new Table();
+        newSaveSlot.setBackground(bg);
+
+        Table infoTable = new Table();
+        infoTable.left();
+
+        Label newSaveLabel = new Label("Create New Save", slotLabelStyle);
+        newSaveLabel.setColor(Color.GREEN);
+        infoTable.add(newSaveLabel).left().padLeft(20);
+
+        UITextButton saveButton = new UITextButton("Save", font);
+        saveButton.setSize(150, 50);
+        saveButton.onClick(() -> {
+            if (pendingSaveData != null) {
+                createNewSave();
+            }
+        });
+
+        newSaveSlot.add(infoTable).expandX().left().pad(15);
+        newSaveSlot.add(saveButton.button).width(150).height(50).right().padRight(20);
+
+        saveList.add(newSaveSlot).width(750).height(100).padBottom(10);
+        saveList.row();
+
+        // Get all existing save slots
+        List<SaveGameManager.SaveSlot> slots = SaveGameManager.getAllSaveSlots();
+
+        // Display each existing save slot with overwrite option
+        for (SaveGameManager.SaveSlot slot : slots) {
+            Table saveSlot = new Table();
+            saveSlot.setBackground(bg);
+
+            Table slotInfoTable = new Table();
+            slotInfoTable.left();
+
+            Label slotNameLabel = new Label(slot.slotName, slotLabelStyle);
+            String dateStr = dateFormat.format(new Date(slot.timestamp));
+            String infoText = String.format("Stage %d | Score: %d | Lives: %d",
+                slot.currentStageId, slot.currentScore, slot.lives);
+            Label infoLabel = new Label(infoText, smallLabelStyle);
+            Label dateLabel = new Label(dateStr, smallLabelStyle);
+
+            slotInfoTable.add(slotNameLabel).left().padLeft(20);
+            slotInfoTable.row();
+            slotInfoTable.add(infoLabel).left().padLeft(20).padTop(5);
+            slotInfoTable.row();
+            slotInfoTable.add(dateLabel).left().padLeft(20).padTop(2);
+
+            UITextButton overwriteButton = new UITextButton("Overwrite", font);
+            overwriteButton.setSize(150, 50);
+            int slotId = slot.slotId;
+            overwriteButton.onClick(() -> {
+                if (pendingSaveData != null) {
+                    overwriteSave(slotId);
+                }
+            });
+
+            saveSlot.add(slotInfoTable).expandX().left().pad(15);
+            saveSlot.add(overwriteButton.button).width(150).height(50).right().padRight(20);
+
+            saveList.add(saveSlot).width(750).height(120).padBottom(10);
+            saveList.row();
+        }
+
+        if (slots.isEmpty() && pendingSaveData == null) {
+            Label noSavesLabel = new Label("No saved games found", slotLabelStyle);
+            noSavesLabel.setColor(Color.GRAY);
+            saveList.add(noSavesLabel).center().pad(50);
+        }
+    }
+
+    private void createLoadModeSlots(Table saveList, Drawable bg, BitmapFont font,
+                                    Label.LabelStyle slotLabelStyle, Label.LabelStyle smallLabelStyle,
+                                    SimpleDateFormat dateFormat) {
+        // Get all save slots from the database
+        List<SaveGameManager.SaveSlot> slots = SaveGameManager.getAllSaveSlots();
+
+        if (slots.isEmpty()) {
+            // Display a message if no saves are found
+            Label noSavesLabel = new Label("No saved games found", slotLabelStyle);
+            noSavesLabel.setColor(Color.GRAY);
+            saveList.add(noSavesLabel).center().pad(50);
+            return;
+        }
+
+        // Display each saved game
+        for (SaveGameManager.SaveSlot slot : slots) {
             Table saveSlot = new Table();
             saveSlot.setBackground(bg);
 
             Table infoTable = new Table();
             infoTable.left();
 
-            sb.setLength(0);
-            sb.append("Save Slot ").append(i);
-            Label slotLabel = new Label(sb.toString(), slotLabelStyle);
-            Label dateLabel = new Label("Empty Slot", smallLabelStyle);
+            Label slotNameLabel = new Label(slot.slotName, slotLabelStyle);
+            String dateStr = dateFormat.format(new Date(slot.timestamp));
+            String infoText = String.format("Stage %d | Score: %d | Lives: %d",
+                slot.currentStageId, slot.currentScore, slot.lives);
+            Label infoLabel = new Label(infoText, smallLabelStyle);
+            Label dateLabel = new Label(dateStr, smallLabelStyle);
 
-            infoTable.add(slotLabel).left().padLeft(20);
+            infoTable.add(slotNameLabel).left().padLeft(20);
             infoTable.row();
-            infoTable.add(dateLabel).left().padLeft(20).padTop(5);
+            infoTable.add(infoLabel).left().padLeft(20).padTop(5);
+            infoTable.row();
+            infoTable.add(dateLabel).left().padLeft(20).padTop(2);
+
+            Table buttonTable = new Table();
 
             UITextButton loadButton = new UITextButton("Load", font);
-            loadButton.setSize(150, 50);
-            int slotNumber = i;
+            loadButton.setSize(130, 50);
+            int slotId = slot.slotId;
+            int stageId = slot.currentStageId;
             loadButton.onClick(() -> {
-                log.debug("Loading save slot " + slotNumber);
+                log.info("Loading save slot {} (Stage {})", slotId, stageId);
+                loadGameAndStart(slotId);
             });
 
-            saveSlot.add(infoTable).expandX().left().pad(15);
-            saveSlot.add(loadButton.button).width(150).height(50).right().padRight(20);
+            UITextButton deleteButton = new UITextButton("Delete", font);
+            deleteButton.setSize(130, 50);
+            deleteButton.onClick(() -> {
+                log.info("Deleting save slot {}", slotId);
+                SaveGameManager.deleteSaveSlot(slotId);
+                rebuildUI();
+            });
 
-            saveList.add(saveSlot).width(750).height(100).padBottom(10);
+            buttonTable.add(loadButton.button).width(130).height(50).padRight(5);
+            buttonTable.add(deleteButton.button).width(130).height(50).padLeft(5);
+
+            saveSlot.add(infoTable).expandX().left().pad(15);
+            saveSlot.add(buttonTable).right().padRight(20);
+
+            saveList.add(saveSlot).width(750).height(120).padBottom(10);
             saveList.row();
+        }
+    }
+
+    private void createNewSave() {
+        if (pendingSaveData == null) {
+            log.warn("No pending save data");
+            return;
+        }
+
+        String slotName = String.format("Save - Stage %d", pendingSaveData.stageId);
+        int slotId = SaveGameManager.createSaveSlot(
+            slotName,
+            pendingSaveData.stageId,
+            pendingSaveData.currentScore,
+            pendingSaveData.lives,
+            pendingSaveData.bricksDestroyed,
+            pendingSaveData.gameStateJson,
+            pendingSaveData.progressJson
+        );
+
+        if (slotId != -1) {
+            log.info("Successfully created new save slot {}", slotId);
+            // Stay on the save screen and refresh the UI to show the new save
+            rebuildUI();
+        } else {
+            log.error("Failed to create new save slot");
+        }
+    }
+
+    private void overwriteSave(int slotId) {
+        if (pendingSaveData == null) {
+            log.warn("No pending save data");
+            return;
+        }
+
+        SaveGameManager.SaveSlot existingSlot = SaveGameManager.getSaveSlot(slotId);
+        if (existingSlot == null) {
+            log.warn("Save slot {} not found", slotId);
+            return;
+        }
+
+        boolean success = SaveGameManager.updateSaveSlot(
+            slotId,
+            existingSlot.slotName,
+            pendingSaveData.stageId,
+            pendingSaveData.currentScore,
+            pendingSaveData.lives,
+            pendingSaveData.bricksDestroyed,
+            pendingSaveData.gameStateJson,
+            pendingSaveData.progressJson
+        );
+
+        if (success) {
+            log.info("Successfully overwrote save slot {}", slotId);
+            // Stay on the save screen and refresh the UI to show the updated save
+            rebuildUI();
+        } else {
+            log.error("Failed to overwrite save slot {}", slotId);
+        }
+    }
+
+    private void loadGameAndStart(int slotId) {
+        if (game.transition != null) {
+            return;
+        }
+
+        // Load the save slot
+        SaveGameManager.SaveSlot slot = SaveGameManager.getSaveSlot(slotId);
+        if (slot == null) {
+            log.error("Save slot {} not found", slotId);
+            return;
+        }
+
+        int stageId = slot.currentStageId;
+        log.info("Loading save slot {} for stage {}", slotId, stageId);
+
+        // Store the slot ID so the stage can load the full save
+        game.loadingSaveSlotId = slotId;
+
+        // Create the appropriate stage and transition to it
+        switch (stageId) {
+            case 1:
+                game.recreateScene(game.storyStageScene,
+                        () -> new org.vibecoders.moongazer.scenes.story.Stage1(game),
+                        scene -> game.storyStageScene = scene);
+                game.transition = new Transition(game, this, game.storyStageScene, State.STORY_STAGE, 500);
+                break;
+            case 2:
+                game.recreateScene(game.storyStageScene,
+                        () -> new org.vibecoders.moongazer.scenes.story.Stage2(game),
+                        scene -> game.storyStageScene = scene);
+                game.transition = new Transition(game, this, game.storyStageScene, State.STORY_STAGE, 500);
+                break;
+            case 3:
+                game.recreateScene(game.storyStageScene,
+                        () -> new org.vibecoders.moongazer.scenes.story.Stage3(game),
+                        scene -> game.storyStageScene = scene);
+                game.transition = new Transition(game, this, game.storyStageScene, State.STORY_STAGE, 500);
+                break;
+            case 4:
+                game.recreateScene(game.storyStageScene,
+                        () -> new org.vibecoders.moongazer.scenes.story.Stage4(game),
+                        scene -> game.storyStageScene = scene);
+                game.transition = new Transition(game, this, game.storyStageScene, State.STORY_STAGE, 500);
+                break;
+            case 5:
+                game.recreateScene(game.storyStageScene,
+                        () -> new org.vibecoders.moongazer.scenes.story.Stage5(game),
+                        scene -> game.storyStageScene = scene);
+                game.transition = new Transition(game, this, game.storyStageScene, State.STORY_STAGE, 500);
+                break;
+            default:
+                log.warn("Unknown stage ID: {}", stageId);
+                game.loadingSaveSlotId = -1;
+                break;
         }
     }
 

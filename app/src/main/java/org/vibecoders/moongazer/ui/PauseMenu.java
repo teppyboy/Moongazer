@@ -273,6 +273,25 @@ public class PauseMenu {
         }
     }
 
+    public void forceClose() {
+        if (isPaused) {
+            isPaused = false;
+            fadeState = FadeState.HIDDEN;
+            fadeAlpha = 0f;
+            currentChoice = -1;
+            currentKeyDown.clear();
+            pendingResume = false;
+            if (menuStage != null && menuStage.getRoot() != null) {
+                menuStage.getRoot().getColor().a = 1f;
+            }
+            // Trigger the onResume callback to restore input processor
+            if (onResume != null) {
+                onResume.run();
+            }
+            log.info("Pause menu force closed");
+        }
+    }
+
     private void processResume() {
         if (!isPaused || fadeState == FadeState.FADING_OUT) {
             return;
