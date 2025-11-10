@@ -4,6 +4,7 @@ public class DialogueStep {
     private final String speaker;
     private final String speakerAsset;
     private final String text;
+    private final String audioAsset;
     private final Action action;
     private final Choice[] choices;
 
@@ -39,19 +40,30 @@ public class DialogueStep {
 
     // Constructor for simple dialogue (continue action)
     public DialogueStep(String speaker, String speakerAsset, String text) {
-        this(speaker, speakerAsset, text, Action.CONTINUE, null);
+        this(speaker, speakerAsset, text, null, Action.CONTINUE, null);
     }
 
     // Constructor with action
     public DialogueStep(String speaker, String speakerAsset, String text, Action action) {
-        this(speaker, speakerAsset, text, action, null);
+        this(speaker, speakerAsset, text, null, action, null);
+    }
+
+    // Constructor with audio asset
+    public DialogueStep(String speaker, String speakerAsset, String text, String audioAsset) {
+        this(speaker, speakerAsset, text, audioAsset, Action.CONTINUE, null);
+    }
+
+    // Constructor with audio asset and action
+    public DialogueStep(String speaker, String speakerAsset, String text, String audioAsset, Action action) {
+        this(speaker, speakerAsset, text, audioAsset, action, null);
     }
 
     // Full constructor
-    public DialogueStep(String speaker, String speakerAsset, String text, Action action, Choice[] choices) {
+    public DialogueStep(String speaker, String speakerAsset, String text, String audioAsset, Action action, Choice[] choices) {
         this.speaker = speaker;
         this.speakerAsset = speakerAsset;
         this.text = text;
+        this.audioAsset = audioAsset;
         this.action = action;
         this.choices = choices;
     }
@@ -66,6 +78,10 @@ public class DialogueStep {
 
     public String getText() {
         return text;
+    }
+
+    public String getAudioAsset() {
+        return audioAsset;
     }
 
     public Action getAction() {
