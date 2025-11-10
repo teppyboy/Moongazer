@@ -29,6 +29,12 @@ public class Brick extends GameObject {
     private float alpha = 1f;
     private float originalX;
 
+    // New fields for hit animation
+    private boolean hitAnimating = false;
+    private float hitAnimTimer = 0f;
+    private float totalHitAnimTime = 0.6f;
+    private float hitShakeIntensity = 3f;
+
     public Brick(float x, float y, float width, float height, BrickType type) {
         this(x, y, width, height, type, type == BrickType.UNBREAKABLE ? -1 : 1, PowerUpType.NONE);
     }
@@ -116,10 +122,12 @@ public class Brick extends GameObject {
         Audio.playSfxBrickHit();
         if (durability == -1) return;
         durability--;
+
         if (durability <= 0) {
             startDisappearing();
             destroyed = true;
         } else {
+            startHitAnimation();
             loadTexture();
         }
     }
@@ -130,12 +138,21 @@ public class Brick extends GameObject {
         originalX = bounds.x;
     }
 
+    private void startHitAnimation() {
+        hitAnimating = true;
+        hitAnimTimer = 0f;
+        originalX = bounds.x;
+        alpha = 1f;
+    }
+
     public void render(SpriteBatch batch) {
-        if (texture != null && (disappearing || !destroyed)) {
+        if (texture != null && (disappearing || hitAnimating || !destroyed)) {
             float oldColor = batch.getPackedColor();
-            if (disappearing) {
+
+            if (disappearing || hitAnimating) {
                 batch.setColor(1f, 1f, 1f, alpha);
             }
+
             batch.draw(texture, bounds.x, bounds.y, bounds.width, bounds.height);
             batch.setPackedColor(oldColor);
         }
@@ -182,10 +199,34 @@ public class Brick extends GameObject {
                 disappearing = false;
             }
         }
+
+        if (hitAnimating) {
+            hitAnimTimer += deltaTime;
+            float progress = hitAnimTimer / totalHitAnimTime;
+            if (progress < 1f) {
+                float frequency = 40f;
+                float shakeOffset = (float) Math.sin(hitAnimTimer * frequency) * hitShakeIntensity * (1f - progress);
+                bounds.x = originalX + shakeOffset;
+
+                if (progress < 0.5f) {
+                    alpha = 1f - (progress * 2f * 0.5f);
+                } else {
+                    alpha = 0.5f + ((progress - 0.5f) * 2f * 0.5f);
+                }
+            } else {
+                bounds.x = originalX;
+                alpha = 1f;
+                hitAnimating = false;
+            }
+        }
     }
 
     public boolean isDisappearing() {
         return disappearing;
+    }
+
+    public boolean isHitAnimating() {
+        return hitAnimating;
     }
 
     public float getAlpha() {

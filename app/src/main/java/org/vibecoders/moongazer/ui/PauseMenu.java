@@ -54,10 +54,6 @@ public class PauseMenu {
         }
     }
 
-    private Runnable onResume;
-    private Runnable onRestart;
-    private Runnable onMainMenu;
-    private Runnable onQuit;
     private Runnable onSaveGame;
     private boolean isStoryMode = false;
 
