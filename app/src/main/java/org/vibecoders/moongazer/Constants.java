@@ -30,4 +30,10 @@ public class Constants {
      * Main menu configuration.
      */
     public static final float PARALLAX_STRENGTH = 20f;
+
+    /**
+     * Story mode configuration.
+     */
+    public static final float MAP_WIDTH = 550f;
+    public static final float MAP_HEIGHT = 400f;
 }
