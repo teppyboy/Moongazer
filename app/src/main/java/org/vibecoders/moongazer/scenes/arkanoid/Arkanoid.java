@@ -20,8 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.arkanoid.*;
-import org.vibecoders.moongazer.arkanoid.PowerUps.ActivePowerUpEffect;
-import org.vibecoders.moongazer.arkanoid.PowerUps.ClassicPowerUpFactory;
+import org.vibecoders.moongazer.arkanoid.powerups.*;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.managers.Audio;
 import org.vibecoders.moongazer.scenes.Scene;
@@ -610,7 +609,7 @@ public abstract class Arkanoid extends Scene {
     }
 
     private void spawnRandomPowerUp(Brick brick) {
-        ClassicPowerUpFactory factory = new ClassicPowerUpFactory();
+        PowerUpFactory factory = new ClassicPowerUpFactory();
         PowerUp powerUp = null;
 
         float powerUpX = brick.getX() + brick.getWidth() / 2f - 16;
@@ -641,6 +640,8 @@ public abstract class Arkanoid extends Scene {
                 case LASER:
                 case EXPLOSIVE:
                     log.warn("Power-up type {} not yet implemented", brick.getPowerUpType());
+                    return;
+                case NONE:
                     return;
             }
         } else {
