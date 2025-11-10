@@ -211,7 +211,7 @@ public class MainMenu extends Scene {
         for (Map.Entry<Integer, Long> entry : currentKeyDown.entrySet()) {
             Integer keyCode = entry.getKey();
             Long timeStamp = entry.getValue();
-            if (TimeUtils.millis() - timeStamp > 100) {
+            if (TimeUtils.millis() - timeStamp > 150) {
                 sKeyDown(null, keyCode);
                 currentKeyDown.put(keyCode, TimeUtils.millis());
             }
