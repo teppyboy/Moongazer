@@ -77,7 +77,7 @@ public abstract class Arkanoid extends Scene {
     private InputAdapter gameInputAdapter;
     protected boolean gameInputEnabled = true;
     private boolean escKeyDownInGame = false;
-    protected ArkanoidAI paddleAI;
+    protected PaddleAI paddleAI;
 
     public Arkanoid(Game game) {
         super(game);
