@@ -15,6 +15,7 @@ public class Bullet extends MovableObject {
         this.texture = Assets.getAsset("textures/arkanoid/laser_bullet.png", Texture.class);
     }
 
+    @Override
     public void update(float delta) {
         bounds.y += speedY * delta;
     }
