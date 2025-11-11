@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class Paddle extends MovableObject {
@@ -171,7 +170,6 @@ public class Paddle extends MovableObject {
         this.bounds.y = y;
     }
 
-    // Bullet methods
     public void setBulletEnabled(boolean enabled) {
         this.bulletEnabled = enabled;
         if (!enabled) {
@@ -187,17 +185,7 @@ public class Paddle extends MovableObject {
         return bullets;
     }
 
-    public void removeBullet(Bullet bullet) {
-        bullets.remove(bullet);
-    }
-
     public void cleanupBullets(float screenHeight) {
-        Iterator<Bullet> iterator = bullets.iterator();
-        while (iterator.hasNext()) {
-            Bullet bullet = iterator.next();
-            if (bullet.isOffScreen(screenHeight) || !bullet.isActive()) {
-                iterator.remove();
-            }
-        }
+        bullets.removeIf(bullet -> bullet.isOffScreen(screenHeight) || !bullet.isActive());
     }
 }

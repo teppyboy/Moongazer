@@ -618,7 +618,6 @@ public abstract class Arkanoid extends Scene {
             Bullet bullet = bullets.get(i);
             Rectangle bulletBounds = bullet.getBounds();
 
-            boolean bulletHit = false;
             for (Brick brick : bricks) {
                 if (!brick.isDestroyed() && Intersector.overlaps(bulletBounds, brick.getBounds())) {
                     brick.hit();
@@ -632,13 +631,8 @@ public abstract class Arkanoid extends Scene {
                     }
 
                     bullet.setActive(false);
-                    bulletHit = true;
                     break;
                 }
-            }
-
-            if (bulletHit) {
-                paddle.removeBullet(bullet);
             }
         }
     }
@@ -691,9 +685,9 @@ public abstract class Arkanoid extends Scene {
                 powerUp = factory.createSlowBall(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
             } else if (rand < 0.75){
                 powerUp = factory.createMultiBall(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
-            } else if (rand < 0.8){
+            } else if (rand < 0.80){
                 powerUp = factory.createSuperBall(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
-            } else {
+            } else if (rand < 0.85){
                 powerUp = factory.createBulletPaddle(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
             }
         }
@@ -707,7 +701,7 @@ public abstract class Arkanoid extends Scene {
         if (powerUpName.equals("Expand Paddle") ||
                 powerUpName.equals("Multi Ball") ||
                 powerUpName.equals("Extra Life") ||
-                powerUpName.equals("Bullet Paddle")) { // Add this
+                powerUpName.equals("Bullet Paddle")) {
             return true;
         }
 
