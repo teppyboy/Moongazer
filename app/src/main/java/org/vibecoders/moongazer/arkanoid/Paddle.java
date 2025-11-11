@@ -19,6 +19,8 @@ public class Paddle extends MovableObject {
     private float targetYOffset = 0f;
     private static final float MAX_Y_OFFSET = 8f;
     private static final float BOUNCE_SPEED = 12f;
+    private boolean aiMoveLeft = false;
+    private boolean aiMoveRight = false;
 
     public Paddle(float x, float y, float width, float height) {
         super(x, y, width, height);
@@ -33,12 +35,12 @@ public class Paddle extends MovableObject {
 
     public void update(float delta, float minX, float maxX) {
         boolean keyboardUsed = false;
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) {
+        if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A) || aiMoveLeft) {
             bounds.x -= speed * delta;
             targetX = bounds.x;
             keyboardUsed = true;
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D)) {
+        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D) || aiMoveRight) {
             bounds.x += speed * delta;
             targetX = bounds.x;
             keyboardUsed = true;
@@ -118,5 +120,13 @@ public class Paddle extends MovableObject {
         this.currentYOffset = 0f;
         this.targetYOffset = 0f;
         this.bounds.y = y;
+    }
+
+    public void moveLeft(boolean move) {
+        this.aiMoveLeft = move;
+    }
+
+    public void moveRight(boolean move) {
+        this.aiMoveRight = move;
     }
 }
