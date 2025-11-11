@@ -87,12 +87,13 @@ public class ArkanoidEndless extends Arkanoid {
 
         // Reduce power-up counts - more rare
         int[] powerUpCounts = {
-            Math.min(1 + (currentWave / 15), 2),  // Super Ball: 1-2
-            Math.min(1 + (currentWave / 12), 2),  // Multi Ball: 1-2
-            Math.min(1 + (currentWave / 10), 3),  // Extra Life: 1-3
-            Math.min(2 + (currentWave / 8), 3),   // Expand Paddle: 2-3
-            Math.min(1 + (currentWave / 10), 2),  // Fast Ball: 1-2
-            Math.min(1 + (currentWave / 10), 2)   // Slow Ball: 1-2
+                Math.min(1 + (currentWave / 15), 2),  // Super Ball: 1-2
+                Math.min(1 + (currentWave / 12), 2),  // Multi Ball: 1-2
+                Math.min(1 + (currentWave / 10), 3),  // Extra Life: 1-3
+                Math.min(2 + (currentWave / 8), 3),   // Expand Paddle: 2-3
+                Math.min(1 + (currentWave / 10), 2),  // Fast Ball: 1-2
+                Math.min(1 + (currentWave / 10), 2),  // Slow Ball: 1-2
+                Math.min(3 + (currentWave / 12), 2)   // Bullet Paddle: 3-2
         };
         
         int powerUpTotal = 0;
@@ -156,7 +157,8 @@ public class ArkanoidEndless extends Arkanoid {
             Brick.PowerUpType.EXTRA_LIFE,
             Brick.PowerUpType.EXPAND_PADDLE,
             Brick.PowerUpType.FAST_BALL,
-            Brick.PowerUpType.SLOW_BALL
+            Brick.PowerUpType.SLOW_BALL,
+            Brick.PowerUpType.BULLET,
         };
         
         for (int i = 0; i < types.length; i++) {
@@ -213,8 +215,8 @@ public class ArkanoidEndless extends Arkanoid {
         log.info("Brick grid created: {} rows x {} cols = {} bricks", rows, cols, totalBricks);
         log.info("Distribution - PowerUps: {}, Unbreakable: {}, Level1: {}, Level2: {}, Level3: {}",
                  powerUpTotal, unbreakableCount, level1Count, level2Count, level3Count);
-        log.info("PowerUp breakdown - SuperBall: {}, MultiBall: {}, ExtraLife: {}, ExpandPaddle: {}, FastBall: {}, SlowBall: {}",
-                 powerUpCounts[0], powerUpCounts[1], powerUpCounts[2], powerUpCounts[3], powerUpCounts[4], powerUpCounts[5]);
+        log.info("PowerUp breakdown - SuperBall: {}, MultiBall: {}, ExtraLife: {}, ExpandPaddle: {}, FastBall: {}, SlowBall: {}, BulletPaddle: {}",
+                 powerUpCounts[0], powerUpCounts[1], powerUpCounts[2], powerUpCounts[3], powerUpCounts[4], powerUpCounts[5], powerUpCounts[6]);
 
         // Ensure no trapped bricks
         ensureNoTrappedBricks(rows, cols);

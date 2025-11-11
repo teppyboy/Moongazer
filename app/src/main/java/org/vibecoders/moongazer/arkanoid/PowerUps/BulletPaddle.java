@@ -12,15 +12,17 @@ public class BulletPaddle extends PowerUp {
 
     @Override
     public void applyEffect(Arkanoid arkanoid) {
+        arkanoid.getPaddle().setBulletEnabled(true);
     }
 
     @Override
     public void removeEffect(Arkanoid arkanoid) {
+        arkanoid.getPaddle().setBulletEnabled(false);
     }
 
     @Override
     public int getDuration() {
-        return 5000;
+        return 12000;
     }
 
     @Override
