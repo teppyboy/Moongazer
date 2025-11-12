@@ -11,6 +11,8 @@ val gdxVideoVersion = "1.3.3"
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     application
+    // Shadow plugin for building fat JARs (compatible with Gradle 9.0+)
+    id("com.gradleup.shadow") version "8.3.5"
 }
 
 repositories {
@@ -23,11 +25,7 @@ dependencies {
     testImplementation(libs.junit.jupiter)
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    
-    // Mockito for mocking
-    testImplementation("org.mockito:mockito-core:5.14.2")
-    testImplementation("org.mockito:mockito-junit-jupiter:5.14.2")
-    
+
     // LibGDX headless backend for testing
     testImplementation("com.badlogicgames.gdx:gdx-backend-headless:$libgdxVersion")
     testImplementation("com.badlogicgames.gdx:gdx-platform:$libgdxVersion:natives-desktop")
@@ -84,4 +82,24 @@ tasks.withType<JavaCompile>().configureEach {
 tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+}
+
+tasks {
+    shadowJar {
+        archiveBaseName.set("moongazer")
+        archiveClassifier.set("all")
+        archiveVersion.set("1.0.0")
+        
+        manifest {
+            attributes["Main-Class"] = "org.vibecoders.moongazer.Main"
+        }
+        
+        // Merge service files to avoid conflicts
+        mergeServiceFiles()
+    }
+    
+    // Make build depend on shadowJar
+    build {
+        dependsOn(shadowJar)
+    }
 }
