@@ -69,13 +69,13 @@ public abstract class Arkanoid extends Scene {
     protected boolean showHitboxes = false;
     protected PauseMenu pauseMenu;
     protected GameOverMenu gameOverMenu;
-    private FrameBuffer gameFrameBuffer;
-    private Texture gameSnapshot;
+    protected FrameBuffer gameFrameBuffer;
+    protected Texture gameSnapshot;
     protected List<PowerUp> activePowerUps;
     protected List<ActivePowerUpEffect> activePowerUpEffects;
-    private float pauseCooldown = 0f;
+    protected float pauseCooldown = 0f;
     private static final float PAUSE_COOLDOWN_TIME = 0.2f;
-    private InputMultiplexer inputMultiplexer;
+    protected InputMultiplexer inputMultiplexer;
     private InputAdapter gameInputAdapter;
     protected boolean gameInputEnabled = true;
     private boolean escKeyDownInGame = false;
