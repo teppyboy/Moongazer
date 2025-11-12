@@ -55,8 +55,6 @@ public abstract class Arkanoid extends Scene {
     private float maxBallY = Float.MIN_VALUE;
     private static final float STUCK_CHECK_DURATION = 5.0f;
     private static final float STUCK_Y_RANGE_THRESHOLD = 100f;
-    private static final float MIN_HORIZONTAL_VELOCITY_THRESHOLD = 50f;
-    private static final float MIN_HORIZONTAL_RATIO = 0.3f;
 
     private Texture pixelTexture;
     private Texture heartTexture;

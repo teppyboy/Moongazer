@@ -96,6 +96,13 @@ public class MainMenu extends Scene {
         });
         leaderboardButton.onClick(() -> {
             log.debug("Leaderboard clicked");
+            if (game.transition == null) {
+                if (game.leaderboardScene == null) {
+                    game.leaderboardScene = new Leaderboard(game);
+                    game.gameScenes.add(game.leaderboardScene);
+                }
+                game.transition = new Transition(game, this, game.leaderboardScene, State.LEADERBOARD, 350);
+            }
         });
         settingsButton.onClick(() -> {
             log.debug("Settings clicked");
