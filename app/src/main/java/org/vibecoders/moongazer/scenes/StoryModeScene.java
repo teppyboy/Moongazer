@@ -2,6 +2,7 @@ package org.vibecoders.moongazer.scenes;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -16,8 +17,9 @@ import org.vibecoders.moongazer.ui.story.ChallengeGoalsPanel;
 import org.vibecoders.moongazer.ui.story.MapPanel;
 import org.vibecoders.moongazer.ui.story.StageData;
 import org.vibecoders.moongazer.ui.story.StageInfoPanel;
-import org.vibecoders.moongazer.ui.story.StageRewardPanel;
+import org.vibecoders.moongazer.ui.story.HighScorePanel;
 import org.vibecoders.moongazer.ui.story.StageSelectionPanel;
+import org.vibecoders.moongazer.SaveGameManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +31,7 @@ public class StoryModeScene extends Scene {
     private StageSelectionPanel stagePanel;
     private StageInfoPanel infoPanel;
     private ChallengeGoalsPanel goalPanel;
-    private StageRewardPanel rewardPanel;
+    private HighScorePanel highScorePanel;
     private UICloseButton backButton;
     private MapPanel mapPanel;
     private int currentStageID;
@@ -46,7 +48,7 @@ public class StoryModeScene extends Scene {
         stagePanel = new StageSelectionPanel(root, stages, this::onStageSelected);
         infoPanel = new StageInfoPanel(root);
         goalPanel = new ChallengeGoalsPanel(root);
-        rewardPanel = new StageRewardPanel(root);
+        highScorePanel = new HighScorePanel(root);
         root.addListener(new InputListener() {
             @Override
             public boolean keyDown(InputEvent event, int keycode) {
@@ -67,10 +69,11 @@ public class StoryModeScene extends Scene {
         currentStageID = stageData.getStageId();
         infoPanel.updateInfo(stageData.getInfo());
         mapPanel.updateMap(stageData.getMap(), "Map for stage " + stageData.getStageId());
+        highScorePanel.updateHighScore(stageData.getScore());
     }
 
     private void setupBackground() {
-        root.setBackground(new TextureRegionDrawable(Assets.getBlackTexture()));
+        root.setBackground(new TextureRegionDrawable(Assets.getAsset("textures/stage/background_story1.png", Texture.class)));
         root.setFillParent(true);
     }
 
@@ -138,7 +141,8 @@ public class StoryModeScene extends Scene {
 
         stages.add(new StageData(1, "Chapter I",
                 "Iuno",
-                "textures/stage/MapTest.png"));
+                "textures/stage/MapTest.png",
+                SaveGameManager.getHighScore()));
         stages.add(new StageData(2, "Chapter II",
                 "Phoebe",
                 "textures/mode_selection/Bg3.png"));

@@ -4,17 +4,22 @@ public class StageData {
     private int stageId;
     private String name;
     private String info;
-//    private String[] challenges;
-//    private String[] rewards;
+    private int bestScore;
     private String map;
 
     public StageData(int id, String name, String info, String map) {
         this.stageId = id;
         this.name = name;
         this.info = info;
-//        this.challenges = challenges;
-//        this.rewards = rewards;
         this.map = map;
+    }
+
+    public StageData(int id, String name, String info, String map, int bestScore) {
+        this.stageId = id;
+        this.name = name;
+        this.info = info;
+        this.map = map;
+        this.bestScore = bestScore;
     }
 
     public int getStageId() {
@@ -33,21 +38,9 @@ public class StageData {
         this.name = name;
     }
 
-//    public String[] getRewards() {
-//        return rewards;
-//    }
-//
-//    public void setRewards(String[] rewards) {
-//        this.rewards = rewards;
-//    }
-//
-//    public String[] getChallenges() {
-//        return challenges;
-//    }
-//
-//    public void setChallenges(String[] challenges) {
-//        this.challenges = challenges;
-//    }
+    public int getScore() {
+        return bestScore;
+    }
 
     public String getMap() {
         return map;
