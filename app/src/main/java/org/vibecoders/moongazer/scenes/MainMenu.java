@@ -97,10 +97,8 @@ public class MainMenu extends Scene {
         leaderboardButton.onClick(() -> {
             log.debug("Leaderboard clicked");
             if (game.transition == null) {
-                if (game.leaderboardScene == null) {
-                    game.leaderboardScene = new Leaderboard(game);
-                    game.gameScenes.add(game.leaderboardScene);
-                }
+                // Recreate leaderboard to refresh scores
+                game.recreateScene(game.leaderboardScene, () -> new Leaderboard(game), scene -> game.leaderboardScene = scene);
                 game.transition = new Transition(game, this, game.leaderboardScene, State.LEADERBOARD, 350);
             }
         });

@@ -33,6 +33,30 @@ public class ArkanoidEndless extends Arkanoid {
     }
 
     @Override
+    protected void setupPauseMenuCallbacks() {
+        // Call parent to set up basic callbacks
+        super.setupPauseMenuCallbacks();
+        
+        // Override main menu callback to save score
+        pauseMenu.setOnMainMenu(() -> {
+            log.info("Returning to main menu - saving score");
+            // Save score before exiting
+            SaveGameManager.saveEndlessScore(score, currentWave);
+            SaveGameManager.updateHighScore(score, currentWave);
+            returnToMainMenu();
+        });
+
+        // Override quit callback to save score
+        pauseMenu.setOnQuit(() -> {
+            log.info("Quitting game - saving score");
+            // Save score before quitting
+            SaveGameManager.saveEndlessScore(score, currentWave);
+            SaveGameManager.updateHighScore(score, currentWave);
+            com.badlogic.gdx.Gdx.app.exit();
+        });
+    }
+
+    @Override
     protected void setupGameOverMenuCallbacks() {
         gameOverMenu.setOnPlayAgain(() -> {
             log.info("Playing again - Starting from Wave 1");

@@ -151,8 +151,8 @@ public class Leaderboard extends Scene {
 
         headerRow.add(rankHeader).width(80).pad(10).padLeft(90);
         headerRow.add(scoreHeader).width(160).pad(10);
-        headerRow.add(waveHeader).width(120).pad(10);
-        headerRow.add(dateHeader).width(390).pad(10);
+        headerRow.add(waveHeader).width(120).pad(10).padLeft(-50);
+        headerRow.add(dateHeader).width(390).pad(10).padLeft(50);
 
         list.add(headerRow).width(750).padBottom(10);
         list.row();
