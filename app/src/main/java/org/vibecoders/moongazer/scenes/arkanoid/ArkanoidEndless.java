@@ -1,6 +1,7 @@
 package org.vibecoders.moongazer.scenes.arkanoid;
 
 import org.vibecoders.moongazer.Game;
+import org.vibecoders.moongazer.SaveGameManager;
 import org.vibecoders.moongazer.arkanoid.Brick;
 import org.vibecoders.moongazer.managers.Assets;
 import com.badlogic.gdx.graphics.Texture;
@@ -27,7 +28,7 @@ public class ArkanoidEndless extends Arkanoid {
         // Stop menu music and start endless music
         org.vibecoders.moongazer.managers.Audio.menuMusicStop();
         org.vibecoders.moongazer.managers.Audio.startEndlessMusic();
-
+        bestScore = SaveGameManager.getHighScore();
         startWave(currentWave);
     }
 

@@ -100,6 +100,8 @@ public class Brick extends GameObject {
                 case EXPLOSIVE:
                     texture = Assets.getAsset("textures/arkanoid/bricks/explosivebrick.png", Texture.class);
                     return;
+                case NONE:
+                    return;
             }
         }
         switch (type) {

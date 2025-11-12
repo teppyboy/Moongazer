@@ -23,6 +23,7 @@ import org.vibecoders.moongazer.arkanoid.*;
 import org.vibecoders.moongazer.arkanoid.powerups.*;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.managers.Audio;
+import org.vibecoders.moongazer.managers.CollisionHandler;
 import org.vibecoders.moongazer.scenes.Scene;
 import org.vibecoders.moongazer.ui.PauseMenu;
 import org.vibecoders.moongazer.ui.GameOverMenu;
@@ -40,6 +41,7 @@ public abstract class Arkanoid extends Scene {
     protected BitmapFont font;
     protected BitmapFont fontUI30;
     protected int score = 0;
+    protected int bestScore = 0;
     public int lives = 3;
     protected int bricksDestroyed = 0;
     protected int combo = 0;
@@ -414,183 +416,75 @@ public abstract class Arkanoid extends Scene {
         }
     }
 
-    private void adjustBallVelocityIfTooVertical(Ball ball, boolean preserveHorizontalDirection) {
-        if (Math.abs(ball.getVelocity().x) < MIN_HORIZONTAL_VELOCITY_THRESHOLD) {
-            float currentVelX = ball.getVelocity().x;
-            float currentVelY = ball.getVelocity().y;
-            float speed = (float) Math.sqrt(currentVelX * currentVelX + currentVelY * currentVelY);
-            float directionX = preserveHorizontalDirection ? (currentVelX >= 0 ? 1 : -1) : (Math.random() > 0.5 ? 1 : -1);
-            float horizontalVel = speed * MIN_HORIZONTAL_RATIO * directionX;
-            float verticalVel = (float) Math.sqrt(speed * speed - horizontalVel * horizontalVel) * (currentVelY >= 0 ? 1 : -1);
-            ball.setVelocity(horizontalVel, verticalVel);
-            log.debug("Adjusted velocity to prevent vertical stuck: ({}, {})", horizontalVel, verticalVel);
-        }
-    }
-
     protected void handleCollisions() {
+        CollisionHandler.ScoreContext scoreContext = new CollisionHandler.ScoreContext(score, bestScore, combo, maxCombo);
+
+        CollisionHandler.BrickCollisionContext brickContext = new CollisionHandler.BrickCollisionContext() {
+            @Override
+            public void setLastHitBrick(Brick brick) {
+                lastHitBrick = brick;
+            }
+
+            @Override
+            public void resetCollisionCooldown() {
+                collisionCooldown = COLLISION_COOLDOWN_TIME;
+            }
+
+            @Override
+            public void onBrickDestroyed(Brick brick) {
+                Arkanoid.this.onBrickDestroyed(brick);
+            }
+
+            @Override
+            public void spawnPowerUp(Brick brick) {
+                spawnRandomPowerUp(brick);
+            }
+
+            @Override
+            public CollisionHandler.ScoreContext getScoreContext() {
+                return scoreContext;
+            }
+        };
+
         for (int ballIndex = balls.size() - 1; ballIndex >= 0; ballIndex--) {
             Ball ball = balls.get(ballIndex);
+            if (!ball.isActive()) continue;
 
-            if (!ball.isActive())
-                continue;
+            // Handle wall collisions
+            if (CollisionHandler.handleWallCollisions(ball, ballIndex, balls,
+                SIDE_PANEL_WIDTH, GAMEPLAY_AREA_WIDTH, WINDOW_HEIGHT, this::onBallLost)) continue;
 
-            Rectangle ballBounds = ball.getBounds();
             float ballX = ball.getBounds().x;
             float ballY = ball.getBounds().y;
             float ballRadius = ball.getRadius();
 
-            if (ballX - ballRadius <= SIDE_PANEL_WIDTH) {
-                ball.getBounds().x = SIDE_PANEL_WIDTH + ballRadius + 1f;
-                ball.reverseX();
-            }
-            if (ballX + ballRadius >= SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH) {
-                ball.getBounds().x = SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH - ballRadius - 1f;
-                ball.reverseX();
-            }
-            if (ballY + ballRadius >= WINDOW_HEIGHT) {
-                ball.getBounds().y = WINDOW_HEIGHT - ballRadius - 1f;
-                ball.reverseY();
-            }
-            if (ballY - ballRadius <= 0) {
-                balls.remove(ballIndex);
-                log.info("Ball lost! Remaining balls: {}", balls.size());
-                if (balls.isEmpty()) {
-                    onBallLost();
-                }
-                continue;
-            }
-
+            // Handle brick collisions
             boolean brickHit = false;
             for (Brick brick : bricks) {
-                if (!brick.isDestroyed() && Intersector.overlaps(ballBounds, brick.getBounds())) {
-                    if (collisionCooldown > 0 && brick == lastHitBrick) {
+                if (!brick.isDestroyed() && Intersector.overlaps(ball.getBounds(), brick.getBounds())) {
+                    if (collisionCooldown > 0 && brick == lastHitBrick) continue;
+
+                    if (CollisionHandler.handleSuperBallBrickCollision(ball, brick, brickContext)) {
                         continue;
                     }
 
-                    boolean isSuperBallMode = ball.isSuperBall();
-                    boolean isBreakableBrick = brick.getType() == Brick.BrickType.BREAKABLE;
-
-                    if (isSuperBallMode && isBreakableBrick) {
-                        brick.hit();
-                        lastHitBrick = brick;
-                        collisionCooldown = COLLISION_COOLDOWN_TIME;
-
-                        combo++;
-                        if (combo > maxCombo) {
-                            maxCombo = combo;
-                        }
-
-                        float multiplier = 1.0f + (combo * 0.03f);
-                        int baseScore = 10;
-                        int scoreGain = (int) (baseScore * multiplier);
-                        score += scoreGain;
-                        log.debug("Breakable brick hit! Combo: {}x, Multiplier: {:.2f}x, Score gained: {}, Total: {}",
-                                  combo, multiplier, scoreGain, score);
-
-                        if (brick.isDestroyed()) {
-                            lastHitBrick = null;
-                            onBrickDestroyed(brick);
-
-                            if (brick.getPowerUpType() != Brick.PowerUpType.NONE) {
-                                spawnRandomPowerUp(brick);
-                            }
-                        }
-                        continue;
-                    }
-
-                    Rectangle brickBounds = brick.getBounds();
-                    float overlapLeft = (ballX + ballRadius) - brickBounds.x;
-                    float overlapRight = (brickBounds.x + brickBounds.width) - (ballX - ballRadius);
-                    float overlapTop = (brickBounds.y + brickBounds.height) - (ballY - ballRadius);
-                    float overlapBottom = (ballY + ballRadius) - brickBounds.y;
-                    float minOverlapX = Math.min(overlapLeft, overlapRight);
-                    float minOverlapY = Math.min(overlapTop, overlapBottom);
-                    float separationDistance = ballRadius + 1.0f;
-
-                    boolean isUnbreakableBrick = brick.getType() == Brick.BrickType.UNBREAKABLE;
-
-                    if (isUnbreakableBrick && combo > 0) {
-                        log.info("Combo broken by unbreakable brick! Lost combo: {}x", combo);
-                        combo = 0;
-                    }
-
-                    if (minOverlapX < minOverlapY) {
-                        ball.reverseX();
-                        if (overlapLeft < overlapRight) {
-                            ball.getBounds().x = brickBounds.x - ballRadius - separationDistance;
-                        } else {
-                            ball.getBounds().x = brickBounds.x + brickBounds.width + ballRadius + separationDistance;
-                        }
-
-                        if (isUnbreakableBrick) {
-                            adjustBallVelocityIfTooVertical(ball, true);
-                        }
-                    } else {
-                        ball.reverseY();
-                        if (overlapTop < overlapBottom) {
-                            ball.getBounds().y = brickBounds.y + brickBounds.height + ballRadius + separationDistance;
-                        } else {
-                            ball.getBounds().y = brickBounds.y - ballRadius - separationDistance;
-                        }
-
-                        if (isUnbreakableBrick) {
-                            adjustBallVelocityIfTooVertical(ball, true);
-                        }
-                    }
-                    brick.hit();
-                    lastHitBrick = brick;
-                    collisionCooldown = COLLISION_COOLDOWN_TIME;
-
-                    if (brick.getType() == Brick.BrickType.BREAKABLE) {
-                        combo++;
-                        if (combo > maxCombo) {
-                            maxCombo = combo;
-                        }
-
-                        float multiplier = 1.0f + (combo * 0.03f);
-                        int baseScore = 10;
-                        int scoreGain = (int) (baseScore * multiplier);
-                        score += scoreGain;
-                        log.debug("Breakable brick hit! Combo: {}x, Multiplier: {:.2f}x, Score gained: {}, Total: {}",
-                                  combo, multiplier, scoreGain, score);
-                    }
-
-                    if (brick.getType() == Brick.BrickType.BREAKABLE && brick.isDestroyed()) {
-                        lastHitBrick = null;
-                        onBrickDestroyed(brick);
-
-                        if (brick.getPowerUpType() != Brick.PowerUpType.NONE) {
-                            spawnRandomPowerUp(brick);
-                        }
-                    }
+                    CollisionHandler.handleRegularBrickCollision(ball, brick, ballX, ballY, ballRadius, brickContext);
                     brickHit = true;
                     break;
                 }
             }
 
+            // Handle paddle collision
             if (!brickHit && ball.isActive()) {
-                Rectangle paddleBounds = paddle.getBounds();
-                boolean ballIsAbovePaddle = ballY - ballRadius > paddleBounds.y;
-                if (Intersector.overlaps(ballBounds, paddleBounds) &&
-                        ball.getVelocity().y < 0 &&
-                        ballIsAbovePaddle) {
-                    paddle.onBallHit(ball.getVelocity().y);
-                    Audio.playSfxPaddleHit();
-                    ball.getBounds().y = paddleBounds.y + paddleBounds.height + ballRadius + 2f;
-                    float hitPos = (ballX - paddleBounds.x) / paddleBounds.width;
-                    hitPos = Math.max(0.1f, Math.min(0.9f, hitPos));
-                    float bounceAngle = -(hitPos - 0.5f) * 100f;
-                    float targetSpeed = 350f;
-                    float speedMultiplier = 1.0f + (bricksDestroyed * 0.002f);
-                    speedMultiplier = Math.min(speedMultiplier, 1.3f);
-                    float finalSpeed = targetSpeed * speedMultiplier;
-                    float angleInRadians = (float) Math.toRadians(90 + bounceAngle);
-                    ball.setVelocity(
-                            finalSpeed * (float) Math.cos(angleInRadians),
-                            finalSpeed * (float) Math.sin(angleInRadians));
-                }
+                CollisionHandler.handlePaddleCollision(ball, ballX, ballY, ballRadius, paddle, bricksDestroyed);
             }
         }
+
+        // Update local state from context
+        score = scoreContext.score;
+        bestScore = scoreContext.bestScore;
+        combo = scoreContext.combo;
+        maxCombo = scoreContext.maxCombo;
 
         handlePowerUpCollisions();
         handleBulletCollisions();
@@ -874,7 +768,7 @@ public abstract class Arkanoid extends Scene {
         fontUI30.draw(batch, scoreValue, scoreValueX, WINDOW_HEIGHT - 60 - layout.height);
 
         String bestLabel = "Best";
-        String bestValue = String.format("%d", score);
+        String bestValue = String.format("%d", bestScore);
         layout.setText(fontUI30, bestLabel);
         float bestLabelHeight = layout.height;
         layout.setText(fontUI30, bestValue);
@@ -940,6 +834,21 @@ public abstract class Arkanoid extends Scene {
         float maxComboValueX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
         fontUI30.draw(batch, maxComboValue, maxComboValueX, WINDOW_HEIGHT - 330 - layout.height);
         fontUI30.setColor(originalMaxComboColor);
+
+        // Display [AUTO MODE] text if AI is enabled with blinking effect
+        if (paddleAI.isEnabled()) {
+            String autoModeText = "[AI MODE]";
+            // Create blinking effect by oscillating alpha
+            float blinkAlpha = (TimeUtils.millis() / 500) % 2 == 0 ? 0.4f : 1.0f;
+            Color aiColor = new Color(0.7f, 0.7f, 0.7f, blinkAlpha); // Gray color with blinking alpha
+            Color originalFontColor = font.getColor().cpy();
+            font.setColor(aiColor);
+            layout.setText(font, autoModeText);
+            float autoModeX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
+            float autoModeY = WINDOW_HEIGHT - 330 - maxComboValueHeight - layout.height - 30;
+            font.draw(batch, autoModeText, autoModeX, autoModeY);
+            font.setColor(originalFontColor);
+        }
 
         String livesText = " x " + lives;
         layout.setText(fontUI30, livesText);
