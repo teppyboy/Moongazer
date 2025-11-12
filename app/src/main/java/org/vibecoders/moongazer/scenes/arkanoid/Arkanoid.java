@@ -23,6 +23,7 @@ import org.vibecoders.moongazer.arkanoid.*;
 import org.vibecoders.moongazer.arkanoid.powerups.*;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.managers.Audio;
+import org.vibecoders.moongazer.managers.CollisionHandler;
 import org.vibecoders.moongazer.scenes.Scene;
 import org.vibecoders.moongazer.ui.PauseMenu;
 import org.vibecoders.moongazer.ui.GameOverMenu;
@@ -40,6 +41,7 @@ public abstract class Arkanoid extends Scene {
     protected BitmapFont font;
     protected BitmapFont fontUI30;
     protected int score = 0;
+    public int bestScore = 0;
     public int lives = 3;
     protected int bricksDestroyed = 0;
     protected int combo = 0;
@@ -53,8 +55,6 @@ public abstract class Arkanoid extends Scene {
     private float maxBallY = Float.MIN_VALUE;
     private static final float STUCK_CHECK_DURATION = 5.0f;
     private static final float STUCK_Y_RANGE_THRESHOLD = 100f;
-    private static final float MIN_HORIZONTAL_VELOCITY_THRESHOLD = 50f;
-    private static final float MIN_HORIZONTAL_RATIO = 0.3f;
 
     private Texture pixelTexture;
     private Texture heartTexture;
@@ -63,20 +63,37 @@ public abstract class Arkanoid extends Scene {
     protected float heartBlinkTimer = 0f;
     private static final float HEART_BLINK_DURATION = 1.5f;
     private static final float HEART_BLINK_SPEED = 0.15f;
+    
+    // Combo milestone display (osu!-style)
+    private Texture iunoTexture;
+    private boolean showIunoImage = false;
+    private float iunoDisplayTimer = 0f;
+    private float iunoAlpha = 0f;
+    private float iunoSlideOffset = 0f; // Horizontal slide offset
+    private int lastComboMilestone = 0;
+    private boolean iunoFromLeft = true; // Alternate between left and right
+    private static final float IUNO_DISPLAY_DURATION = 2.5f;
+    private static final float IUNO_FADE_IN_TIME = 0.4f;
+    private static final float IUNO_FADE_OUT_TIME = 0.5f;
+    private static final float IUNO_SLIDE_DISTANCE = 300f; // Distance to slide in from
+    private static final int COMBO_MILESTONE_INTERVAL = 10;
+    private static final float IUNO_MAX_HEIGHT = 500f; // Maximum height to display
+    
     protected ShapeRenderer shapeRenderer;
     protected boolean showHitboxes = false;
     protected PauseMenu pauseMenu;
     protected GameOverMenu gameOverMenu;
-    private FrameBuffer gameFrameBuffer;
-    private Texture gameSnapshot;
+    protected FrameBuffer gameFrameBuffer;
+    protected Texture gameSnapshot;
     protected List<PowerUp> activePowerUps;
     protected List<ActivePowerUpEffect> activePowerUpEffects;
-    private float pauseCooldown = 0f;
+    protected float pauseCooldown = 0f;
     private static final float PAUSE_COOLDOWN_TIME = 0.2f;
-    private InputMultiplexer inputMultiplexer;
+    protected InputMultiplexer inputMultiplexer;
     private InputAdapter gameInputAdapter;
     protected boolean gameInputEnabled = true;
     private boolean escKeyDownInGame = false;
+    protected PaddleAI paddleAI;
 
     public Arkanoid(Game game) {
         super(game);
@@ -88,8 +105,10 @@ public abstract class Arkanoid extends Scene {
         fontUI30 = Assets.getFont("ui", 30);
         pixelTexture = Assets.getBlackTexture();
         heartTexture = Assets.getAsset("textures/arkanoid/heart.png", Texture.class);
+        iunoTexture = Assets.getAsset("textures/vn_scene/iuno.png", Texture.class);
         shapeRenderer = new ShapeRenderer();
         gameFrameBuffer = new FrameBuffer(Pixmap.Format.RGBA8888, WINDOW_WIDTH, WINDOW_HEIGHT, false);
+        paddleAI = new ArkanoidAI();
         setupInputHandling();
         pauseMenu = new PauseMenu();
         setupPauseMenuCallbacks();
@@ -256,6 +275,9 @@ public abstract class Arkanoid extends Scene {
             pauseCooldown -= delta;
         }
 
+        // Update iuno milestone display animation
+        updateIunoDisplay(delta);
+
         if (!pauseMenu.isPaused() && !gameOverMenu.isVisible()) {
             handleInput(delta);
             updateGameplay(delta);
@@ -264,6 +286,10 @@ public abstract class Arkanoid extends Scene {
 
         renderGameplay(batch);
         renderUI(batch);
+        renderIunoDisplay(batch);
+        
+        // Ensure batch color is reset to white after all rendering
+        batch.setColor(Color.WHITE);
 
         if (pauseMenu.isPaused()) {
             if (gameSnapshot == null) {
@@ -274,6 +300,7 @@ public abstract class Arkanoid extends Scene {
                 batch.begin();
                 renderGameplay(batch);
                 renderUI(batch);
+                renderIunoDisplay(batch);
                 batch.end();
                 gameFrameBuffer.end();
                 gameSnapshot = gameFrameBuffer.getColorBufferTexture();
@@ -290,6 +317,7 @@ public abstract class Arkanoid extends Scene {
                 batch.begin();
                 renderGameplay(batch);
                 renderUI(batch);
+                renderIunoDisplay(batch);
                 batch.end();
                 gameFrameBuffer.end();
                 gameSnapshot = gameFrameBuffer.getColorBufferTexture();
@@ -321,10 +349,20 @@ public abstract class Arkanoid extends Scene {
             showHitboxes = !showHitboxes;
             log.info("Hitbox rendering: {}", showHitboxes ? "ON" : "OFF");
         }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.F1)) {
+            paddleAI.setEnabled(!paddleAI.isEnabled());
+            log.info("AI mode: {}", paddleAI.isEnabled() ? "ENABLED" : "DISABLED");
+        }
     }
 
     protected void updateGameplay(float delta) {
+        // Update AI before paddle
+        if (paddleAI.isEnabled()) {
+            paddleAI.update(paddle, balls, activePowerUps);
+        }
+
         paddle.update(delta, SIDE_PANEL_WIDTH, SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH);
+        paddle.cleanupBullets(WINDOW_HEIGHT);
 
         for (Ball ball : balls) {
             ball.update(delta);
@@ -402,185 +440,91 @@ public abstract class Arkanoid extends Scene {
         }
     }
 
-    private void adjustBallVelocityIfTooVertical(Ball ball, boolean preserveHorizontalDirection) {
-        if (Math.abs(ball.getVelocity().x) < MIN_HORIZONTAL_VELOCITY_THRESHOLD) {
-            float currentVelX = ball.getVelocity().x;
-            float currentVelY = ball.getVelocity().y;
-            float speed = (float) Math.sqrt(currentVelX * currentVelX + currentVelY * currentVelY);
-            float directionX = preserveHorizontalDirection ? (currentVelX >= 0 ? 1 : -1) : (Math.random() > 0.5 ? 1 : -1);
-            float horizontalVel = speed * MIN_HORIZONTAL_RATIO * directionX;
-            float verticalVel = (float) Math.sqrt(speed * speed - horizontalVel * horizontalVel) * (currentVelY >= 0 ? 1 : -1);
-            ball.setVelocity(horizontalVel, verticalVel);
-            log.debug("Adjusted velocity to prevent vertical stuck: ({}, {})", horizontalVel, verticalVel);
-        }
-    }
-
     protected void handleCollisions() {
+        CollisionHandler.ScoreContext scoreContext = new CollisionHandler.ScoreContext(score, bestScore, combo, maxCombo);
+
+        CollisionHandler.BrickCollisionContext brickContext = new CollisionHandler.BrickCollisionContext() {
+            @Override
+            public void setLastHitBrick(Brick brick) {
+                lastHitBrick = brick;
+            }
+
+            @Override
+            public void resetCollisionCooldown() {
+                collisionCooldown = COLLISION_COOLDOWN_TIME;
+            }
+
+            @Override
+            public void onBrickDestroyed(Brick brick) {
+                Arkanoid.this.onBrickDestroyed(brick);
+            }
+
+            @Override
+            public void spawnPowerUp(Brick brick) {
+                spawnRandomPowerUp(brick);
+            }
+
+            @Override
+            public CollisionHandler.ScoreContext getScoreContext() {
+                return scoreContext;
+            }
+        };
+
         for (int ballIndex = balls.size() - 1; ballIndex >= 0; ballIndex--) {
             Ball ball = balls.get(ballIndex);
+            if (!ball.isActive()) continue;
 
-            if (!ball.isActive())
-                continue;
+            // Handle wall collisions
+            if (CollisionHandler.handleWallCollisions(ball, ballIndex, balls,
+                SIDE_PANEL_WIDTH, GAMEPLAY_AREA_WIDTH, WINDOW_HEIGHT, this::onBallLost)) continue;
 
-            Rectangle ballBounds = ball.getBounds();
             float ballX = ball.getBounds().x;
             float ballY = ball.getBounds().y;
             float ballRadius = ball.getRadius();
 
-            if (ballX - ballRadius <= SIDE_PANEL_WIDTH) {
-                ball.getBounds().x = SIDE_PANEL_WIDTH + ballRadius + 1f;
-                ball.reverseX();
-            }
-            if (ballX + ballRadius >= SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH) {
-                ball.getBounds().x = SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH - ballRadius - 1f;
-                ball.reverseX();
-            }
-            if (ballY + ballRadius >= WINDOW_HEIGHT) {
-                ball.getBounds().y = WINDOW_HEIGHT - ballRadius - 1f;
-                ball.reverseY();
-            }
-            if (ballY - ballRadius <= 0) {
-                balls.remove(ballIndex);
-                log.info("Ball lost! Remaining balls: {}", balls.size());
-                if (balls.isEmpty()) {
-                    onBallLost();
-                }
-                continue;
-            }
-
+            // Handle brick collisions
             boolean brickHit = false;
             for (Brick brick : bricks) {
-                if (!brick.isDestroyed() && Intersector.overlaps(ballBounds, brick.getBounds())) {
-                    if (collisionCooldown > 0 && brick == lastHitBrick) {
+                if (!brick.isDestroyed() && Intersector.overlaps(ball.getBounds(), brick.getBounds())) {
+                    if (collisionCooldown > 0 && brick == lastHitBrick) continue;
+
+                    if (CollisionHandler.handleSuperBallBrickCollision(ball, brick, brickContext)) {
                         continue;
                     }
 
-                    boolean isSuperBallMode = ball.isSuperBall();
-                    boolean isBreakableBrick = brick.getType() == Brick.BrickType.BREAKABLE;
-
-                    if (isSuperBallMode && isBreakableBrick) {
-                        brick.hit();
-                        lastHitBrick = brick;
-                        collisionCooldown = COLLISION_COOLDOWN_TIME;
-
-                        combo++;
-                        if (combo > maxCombo) {
-                            maxCombo = combo;
-                        }
-
-                        float multiplier = 1.0f + (combo * 0.03f);
-                        int baseScore = 10;
-                        int scoreGain = (int) (baseScore * multiplier);
-                        score += scoreGain;
-                        log.debug("Breakable brick hit! Combo: {}x, Multiplier: {:.2f}x, Score gained: {}, Total: {}",
-                                  combo, multiplier, scoreGain, score);
-
-                        if (brick.isDestroyed()) {
-                            lastHitBrick = null;
-                            onBrickDestroyed(brick);
-
-                            if (brick.getPowerUpType() != Brick.PowerUpType.NONE) {
-                                spawnRandomPowerUp(brick);
-                            }
-                        }
-                        continue;
-                    }
-
-                    Rectangle brickBounds = brick.getBounds();
-                    float overlapLeft = (ballX + ballRadius) - brickBounds.x;
-                    float overlapRight = (brickBounds.x + brickBounds.width) - (ballX - ballRadius);
-                    float overlapTop = (brickBounds.y + brickBounds.height) - (ballY - ballRadius);
-                    float overlapBottom = (ballY + ballRadius) - brickBounds.y;
-                    float minOverlapX = Math.min(overlapLeft, overlapRight);
-                    float minOverlapY = Math.min(overlapTop, overlapBottom);
-                    float separationDistance = ballRadius + 1.0f;
-
-                    boolean isUnbreakableBrick = brick.getType() == Brick.BrickType.UNBREAKABLE;
-
-                    if (isUnbreakableBrick && combo > 0) {
-                        log.info("Combo broken by unbreakable brick! Lost combo: {}x", combo);
-                        combo = 0;
-                    }
-
-                    if (minOverlapX < minOverlapY) {
-                        ball.reverseX();
-                        if (overlapLeft < overlapRight) {
-                            ball.getBounds().x = brickBounds.x - ballRadius - separationDistance;
-                        } else {
-                            ball.getBounds().x = brickBounds.x + brickBounds.width + ballRadius + separationDistance;
-                        }
-
-                        if (isUnbreakableBrick) {
-                            adjustBallVelocityIfTooVertical(ball, true);
-                        }
-                    } else {
-                        ball.reverseY();
-                        if (overlapTop < overlapBottom) {
-                            ball.getBounds().y = brickBounds.y + brickBounds.height + ballRadius + separationDistance;
-                        } else {
-                            ball.getBounds().y = brickBounds.y - ballRadius - separationDistance;
-                        }
-
-                        if (isUnbreakableBrick) {
-                            adjustBallVelocityIfTooVertical(ball, true);
-                        }
-                    }
-                    brick.hit();
-                    lastHitBrick = brick;
-                    collisionCooldown = COLLISION_COOLDOWN_TIME;
-
-                    if (brick.getType() == Brick.BrickType.BREAKABLE) {
-                        combo++;
-                        if (combo > maxCombo) {
-                            maxCombo = combo;
-                        }
-
-                        float multiplier = 1.0f + (combo * 0.03f);
-                        int baseScore = 10;
-                        int scoreGain = (int) (baseScore * multiplier);
-                        score += scoreGain;
-                        log.debug("Breakable brick hit! Combo: {}x, Multiplier: {:.2f}x, Score gained: {}, Total: {}",
-                                  combo, multiplier, scoreGain, score);
-                    }
-
-                    if (brick.getType() == Brick.BrickType.BREAKABLE && brick.isDestroyed()) {
-                        lastHitBrick = null;
-                        onBrickDestroyed(brick);
-
-                        if (brick.getPowerUpType() != Brick.PowerUpType.NONE) {
-                            spawnRandomPowerUp(brick);
-                        }
-                    }
+                    CollisionHandler.handleRegularBrickCollision(ball, brick, ballX, ballY, ballRadius, brickContext);
                     brickHit = true;
                     break;
                 }
             }
 
+            // Handle paddle collision
             if (!brickHit && ball.isActive()) {
-                Rectangle paddleBounds = paddle.getBounds();
-                boolean ballIsAbovePaddle = ballY - ballRadius > paddleBounds.y;
-                if (Intersector.overlaps(ballBounds, paddleBounds) &&
-                        ball.getVelocity().y < 0 &&
-                        ballIsAbovePaddle) {
-                    paddle.onBallHit(ball.getVelocity().y);
-                    Audio.playSfxPaddleHit();
-                    ball.getBounds().y = paddleBounds.y + paddleBounds.height + ballRadius + 2f;
-                    float hitPos = (ballX - paddleBounds.x) / paddleBounds.width;
-                    hitPos = Math.max(0.1f, Math.min(0.9f, hitPos));
-                    float bounceAngle = -(hitPos - 0.5f) * 100f;
-                    float targetSpeed = 350f;
-                    float speedMultiplier = 1.0f + (bricksDestroyed * 0.002f);
-                    speedMultiplier = Math.min(speedMultiplier, 1.3f);
-                    float finalSpeed = targetSpeed * speedMultiplier;
-                    float angleInRadians = (float) Math.toRadians(90 + bounceAngle);
-                    ball.setVelocity(
-                            finalSpeed * (float) Math.cos(angleInRadians),
-                            finalSpeed * (float) Math.sin(angleInRadians));
-                }
+                CollisionHandler.handlePaddleCollision(ball, ballX, ballY, ballRadius, paddle, bricksDestroyed);
+            }
+        }
+
+        // Update local state from context
+        score = scoreContext.score;
+        bestScore = scoreContext.bestScore;
+        
+        // Check for combo milestones before updating combo
+        int oldCombo = combo;
+        combo = scoreContext.combo;
+        maxCombo = scoreContext.maxCombo;
+        
+        // Trigger iuno display on combo milestones (10x, 20x, 30x, etc.)
+        if (combo > 0 && combo % COMBO_MILESTONE_INTERVAL == 0) {
+            int currentMilestone = combo / COMBO_MILESTONE_INTERVAL;
+            int oldMilestone = oldCombo / COMBO_MILESTONE_INTERVAL;
+            if (currentMilestone > oldMilestone && currentMilestone > lastComboMilestone) {
+                triggerIunoDisplay();
+                lastComboMilestone = currentMilestone;
             }
         }
 
         handlePowerUpCollisions();
+        handleBulletCollisions();
         if (checkLevelComplete()) {
             onLevelComplete();
         }
@@ -637,6 +581,99 @@ public abstract class Arkanoid extends Scene {
         }
     }
 
+    private void handleBulletCollisions() {
+        List<Bullet> bullets = paddle.getBullets();
+
+        for (int i = bullets.size() - 1; i >= 0; i--) {
+            Bullet bullet = bullets.get(i);
+            Rectangle bulletBounds = bullet.getBounds();
+
+            for (Brick brick : bricks) {
+                if (!brick.isDestroyed() && Intersector.overlaps(bulletBounds, brick.getBounds())) {
+                    brick.hit();
+
+                    if (brick.isDestroyed()) {
+                        onBrickDestroyed(brick);
+
+                        if (brick.getPowerUpType() != Brick.PowerUpType.NONE) {
+                            spawnRandomPowerUp(brick);
+                        }
+                    }
+
+                    bullet.setActive(false);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void triggerIunoDisplay() {
+        showIunoImage = true;
+        iunoDisplayTimer = 0f;
+        iunoAlpha = 0f;
+        iunoSlideOffset = IUNO_SLIDE_DISTANCE; // Start off-screen
+        iunoFromLeft = !iunoFromLeft; // Alternate direction
+        log.info("Combo milestone reached: {}x! Showing Iuno from {}", combo, iunoFromLeft ? "left" : "right");
+    }
+
+    private void updateIunoDisplay(float delta) {
+        if (!showIunoImage) return;
+
+        iunoDisplayTimer += delta;
+
+        // Fade in + Slide in
+        if (iunoDisplayTimer < IUNO_FADE_IN_TIME) {
+            float progress = iunoDisplayTimer / IUNO_FADE_IN_TIME;
+            iunoAlpha = progress;
+            iunoSlideOffset = IUNO_SLIDE_DISTANCE * (1f - progress); // Slide from distance to 0
+        }
+        // Hold
+        else if (iunoDisplayTimer < IUNO_DISPLAY_DURATION - IUNO_FADE_OUT_TIME) {
+            iunoAlpha = 1.0f;
+            iunoSlideOffset = 0f;
+        }
+        // Fade out + Slide out
+        else if (iunoDisplayTimer < IUNO_DISPLAY_DURATION) {
+            float fadeOutProgress = (iunoDisplayTimer - (IUNO_DISPLAY_DURATION - IUNO_FADE_OUT_TIME)) / IUNO_FADE_OUT_TIME;
+            iunoAlpha = 1.0f - fadeOutProgress;
+            iunoSlideOffset = IUNO_SLIDE_DISTANCE * fadeOutProgress; // Slide from 0 to distance
+        }
+        // Hide
+        else {
+            showIunoImage = false;
+            iunoAlpha = 0f;
+            iunoSlideOffset = 0f;
+        }
+    }
+
+    private void renderIunoDisplay(SpriteBatch batch) {
+        if (!showIunoImage || iunoAlpha <= 0f) return;
+
+        // Calculate aspect-ratio-preserving dimensions
+        float textureWidth = iunoTexture.getWidth();
+        float textureHeight = iunoTexture.getHeight();
+        float aspectRatio = textureWidth / textureHeight;
+        
+        // Scale to fit within max height while preserving aspect ratio
+        float displayHeight = Math.min(IUNO_MAX_HEIGHT, WINDOW_HEIGHT * 0.7f);
+        float displayWidth = displayHeight * aspectRatio;
+        
+        // Position at bottom of screen, sliding from left or right
+        float baseX = iunoFromLeft ? 
+            SIDE_PANEL_WIDTH + 50f : 
+            SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH - displayWidth - 50f;
+        
+        // Apply slide offset
+        float offsetX = iunoFromLeft ? -iunoSlideOffset : iunoSlideOffset;
+        float imageX = baseX + offsetX;
+        float imageY = 50f; // Bottom padding
+
+        Color oldColor = batch.getColor();
+        batch.setColor(1f, 1f, 1f, iunoAlpha);
+        batch.draw(iunoTexture, imageX, imageY, displayWidth, displayHeight);
+        batch.setColor(oldColor);
+    }
+
     private void spawnRandomPowerUp(Brick brick) {
         PowerUpFactory factory = new ClassicPowerUpFactory();
         PowerUp powerUp = null;
@@ -666,7 +703,9 @@ public abstract class Arkanoid extends Scene {
                 case SUPER_BALL:
                     powerUp = factory.createSuperBall(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
                     break;
-                case LASER:
+                case BULLET:
+                    powerUp = factory.createBulletPaddle(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
+                    break;
                 case EXPLOSIVE:
                     log.warn("Power-up type {} not yet implemented", brick.getPowerUpType());
                     return;
@@ -675,18 +714,20 @@ public abstract class Arkanoid extends Scene {
             }
         } else {
             double rand = Math.random();
-            if (rand < 0.20) {
+            if (rand < 0.15) {
                 powerUp = factory.createExpandPaddle(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
-            } else if (rand < 0.40){
+            } else if (rand < 0.30){
                 powerUp = factory.createExtraLife(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
-            } else if (rand < 0.60){
+            } else if (rand < 0.45){
                 powerUp = factory.createFastBall(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
-            } else if (rand < 0.80){
+            } else if (rand < 0.60){
                 powerUp = factory.createSlowBall(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
-            } else if (rand < 0.90){
+            } else if (rand < 0.75){
                 powerUp = factory.createMultiBall(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
-            } else {
+            } else if (rand < 0.80){
                 powerUp = factory.createSuperBall(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
+            } else if (rand < 0.85){
+                powerUp = factory.createBulletPaddle(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
             }
         }
 
@@ -697,8 +738,9 @@ public abstract class Arkanoid extends Scene {
 
     private boolean canPowerUpStack(String powerUpName) {
         if (powerUpName.equals("Expand Paddle") ||
-            powerUpName.equals("Multi Ball") ||
-            powerUpName.equals("Extra Life")) {
+                powerUpName.equals("Multi Ball") ||
+                powerUpName.equals("Extra Life") ||
+                powerUpName.equals("Bullet Paddle")) {
             return true;
         }
 
@@ -717,6 +759,7 @@ public abstract class Arkanoid extends Scene {
 
     protected void renderGameplay(SpriteBatch batch) {
         if (backgroundTexture != null) {
+            batch.setColor(Color.WHITE);
             batch.draw(backgroundTexture, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         }
         batch.setColor(0f, 0f, 0f, 0.3f);
@@ -758,6 +801,11 @@ public abstract class Arkanoid extends Scene {
             shapeRenderer.rect(ballBounds.x - ballRadius, ballBounds.y - ballRadius, ballRadius * 2, ballRadius * 2);
             shapeRenderer.setColor(1, 1, 0, 1);
             shapeRenderer.circle(ballBounds.x, ballBounds.y, 2, 8);
+        }
+
+        for (Bullet bullet : paddle.getBullets()) {
+            Rectangle bulletBounds = bullet.getBounds();
+            shapeRenderer.rect(bulletBounds.x, bulletBounds.y, bulletBounds.width, bulletBounds.height);
         }
 
         Rectangle paddleBounds = paddle.getBounds();
@@ -825,7 +873,7 @@ public abstract class Arkanoid extends Scene {
         fontUI30.draw(batch, scoreValue, scoreValueX, WINDOW_HEIGHT - 60 - layout.height);
 
         String bestLabel = "Best";
-        String bestValue = String.format("%d", score);
+        String bestValue = String.format("%d", bestScore);
         layout.setText(fontUI30, bestLabel);
         float bestLabelHeight = layout.height;
         layout.setText(fontUI30, bestValue);
@@ -891,6 +939,21 @@ public abstract class Arkanoid extends Scene {
         float maxComboValueX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
         fontUI30.draw(batch, maxComboValue, maxComboValueX, WINDOW_HEIGHT - 330 - layout.height);
         fontUI30.setColor(originalMaxComboColor);
+
+        // Display [AUTO MODE] text if AI is enabled with blinking effect
+        if (paddleAI.isEnabled()) {
+            String autoModeText = "[AI MODE]";
+            // Create blinking effect by oscillating alpha
+            float blinkAlpha = (TimeUtils.millis() / 500) % 2 == 0 ? 0.4f : 1.0f;
+            Color aiColor = new Color(0.7f, 0.7f, 0.7f, blinkAlpha); // Gray color with blinking alpha
+            Color originalFontColor = font.getColor().cpy();
+            font.setColor(aiColor);
+            layout.setText(font, autoModeText);
+            float autoModeX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
+            float autoModeY = WINDOW_HEIGHT - 330 - maxComboValueHeight - layout.height - 30;
+            font.draw(batch, autoModeText, autoModeX, autoModeY);
+            font.setColor(originalFontColor);
+        }
 
         String livesText = " x " + lives;
         layout.setText(fontUI30, livesText);
@@ -978,6 +1041,7 @@ public abstract class Arkanoid extends Scene {
         if (combo > 0) {
             log.info("Ball lost! Combo reset from {}x to 0", combo);
             combo = 0;
+            lastComboMilestone = 0; // Reset milestone tracker
         }
 
         clearAllActivePowerups();

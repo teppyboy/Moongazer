@@ -3,12 +3,9 @@ package org.vibecoders.moongazer.ui.story;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.ui.UIScrollbar;
 import org.vibecoders.moongazer.ui.UITextButton;
-
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.vibecoders.moongazer.Constants.WINDOW_HEIGHT;

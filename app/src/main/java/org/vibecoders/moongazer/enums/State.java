@@ -5,6 +5,7 @@ public enum State {
     MAIN_MENU,
     SETTINGS,
     LOAD_GAME,
+    LEADERBOARD,
     TEST_IN_GAME,
     DIALOGUE,
     GAMEPLAY_TEST,

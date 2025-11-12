@@ -23,6 +23,14 @@ dependencies {
     testImplementation(libs.junit.jupiter)
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    
+    // Mockito for mocking
+    testImplementation("org.mockito:mockito-core:5.14.2")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.14.2")
+    
+    // LibGDX headless backend for testing
+    testImplementation("com.badlogicgames.gdx:gdx-backend-headless:$libgdxVersion")
+    testImplementation("com.badlogicgames.gdx:gdx-platform:$libgdxVersion:natives-desktop")
 
     // This dependency is used by the application.
     implementation(libs.guava)

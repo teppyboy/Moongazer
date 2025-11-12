@@ -1,6 +1,8 @@
 package org.vibecoders.moongazer.scenes.story;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonWriter;
 import org.vibecoders.moongazer.Game;
@@ -8,11 +10,13 @@ import org.vibecoders.moongazer.SaveGameManager;
 import org.vibecoders.moongazer.arkanoid.Ball;
 import org.vibecoders.moongazer.arkanoid.Brick;
 import org.vibecoders.moongazer.scenes.arkanoid.Arkanoid;
+import org.vibecoders.moongazer.ui.GameWinMenu;
 
 public class StoryArkanoid extends Arkanoid {
     private Runnable onLevelCompleteCallback;
     private Runnable onGameOverCallback;
     private Runnable onReturnToMainMenuCallback;
+    protected GameWinMenu gameWinMenu;
     private int requiredBricks;
     protected int startingLives;
     protected int stageId = 0;
@@ -59,7 +63,35 @@ public class StoryArkanoid extends Arkanoid {
         pauseMenu.setStoryMode(true);
         pauseMenu.setOnSaveGame(() -> openSaveMenu());
         createBrickGrid(requiredBricks, 30);
+
+        // Initialize game win menu
+        gameWinMenu = new GameWinMenu();
+        setupGameWinMenuCallbacks();
+
         log.info("Story Arkanoid initialized with {} rows and {} lives", requiredBricks, startingLives);
+    }
+
+    /**
+     * Setup callbacks for the game win menu
+     */
+    private void setupGameWinMenuCallbacks() {
+        gameWinMenu.setOnContinue(() -> {
+            log.info("Continue clicked from win menu");
+            gameInputEnabled = true;
+            if (onLevelCompleteCallback != null) {
+                onLevelCompleteCallback.run();
+            }
+        });
+
+        gameWinMenu.setOnMainMenu(() -> {
+            log.info("Main Menu clicked from win menu");
+            returnToMainMenu();
+        });
+
+        gameWinMenu.setOnQuit(() -> {
+            log.info("Quit clicked from win menu");
+            Gdx.app.exit();
+        });
     }
 
     private void openSaveMenu() {
@@ -211,9 +243,12 @@ public class StoryArkanoid extends Arkanoid {
         log.info("Story level complete!");
         SaveGameManager.updateStoryHighScore(stageId, score);
         SaveGameManager.deleteStoryGameSave(stageId);
-        if (onLevelCompleteCallback != null) {
-            onLevelCompleteCallback.run();
-        }
+
+        // Disable game input while showing win menu
+        gameInputEnabled = false;
+
+        // Show win menu with stats (snapshot will be captured in render method)
+        gameWinMenu.show(score, maxCombo, lives);
     }
     @Override
     protected void onGameOver() {
@@ -252,7 +287,95 @@ public class StoryArkanoid extends Arkanoid {
         }
     }
     @Override
-    protected Brick.BrickType getBrickType(int row, int col) {
-        return (row % 3 == 0) ? Brick.BrickType.UNBREAKABLE : Brick.BrickType.BREAKABLE;
+    public void render(SpriteBatch batch) {
+        // Handle input and game updates
+        if (!pauseMenu.isPaused() && !gameOverMenu.isVisible() && !gameWinMenu.isVisible() &&
+            Gdx.input.getInputProcessor() != inputMultiplexer) {
+            restoreInputProcessor();
+        }
+
+        float delta = Gdx.graphics.getDeltaTime();
+        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        if (pauseCooldown > 0) {
+            pauseCooldown -= delta;
+        }
+
+        // Update game logic if not paused, game over, or won
+        if (!pauseMenu.isPaused() && !gameOverMenu.isVisible() && !gameWinMenu.isVisible()) {
+            handleInput(delta);
+            updateGameplay(delta);
+            handleCollisions();
+        }
+
+        // Render gameplay and UI
+        renderGameplay(batch);
+        renderUI(batch);
+
+        // Handle pause menu rendering
+        if (pauseMenu.isPaused()) {
+            if (gameSnapshot == null) {
+                batch.end();
+                gameFrameBuffer.begin();
+                Gdx.gl.glClearColor(0, 0, 0, 1);
+                Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+                batch.begin();
+                renderGameplay(batch);
+                renderUI(batch);
+                batch.end();
+                gameFrameBuffer.end();
+                gameSnapshot = gameFrameBuffer.getColorBufferTexture();
+                batch.begin();
+            }
+            pauseMenu.render(batch, gameSnapshot);
+        }
+        // Handle game over menu rendering
+        else if (gameOverMenu.isVisible()) {
+            if (gameSnapshot == null) {
+                batch.end();
+                gameFrameBuffer.begin();
+                Gdx.gl.glClearColor(0, 0, 0, 1);
+                Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+                batch.begin();
+                renderGameplay(batch);
+                renderUI(batch);
+                batch.end();
+                gameFrameBuffer.end();
+                gameSnapshot = gameFrameBuffer.getColorBufferTexture();
+                batch.begin();
+            }
+            gameOverMenu.render(batch, gameSnapshot);
+        }
+        // Handle game win menu rendering
+        else if (gameWinMenu.isVisible()) {
+            if (gameSnapshot == null) {
+                batch.end();
+                gameFrameBuffer.begin();
+                Gdx.gl.glClearColor(0, 0, 0, 1);
+                Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+                batch.begin();
+                renderGameplay(batch);
+                renderUI(batch);
+                batch.end();
+                gameFrameBuffer.end();
+                gameSnapshot = gameFrameBuffer.getColorBufferTexture();
+                batch.begin();
+            }
+            gameWinMenu.render(batch, gameSnapshot);
+        }
+        // Clear snapshot when no menu is visible
+        else {
+            if (gameSnapshot != null) {
+                gameSnapshot = null;
+            }
+        }
+    }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+        if (gameWinMenu != null) {
+            gameWinMenu.dispose();
+        }
     }
 }
