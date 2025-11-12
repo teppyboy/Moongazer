@@ -1,5 +1,6 @@
 package org.vibecoders.moongazer.arkanoid;
 
+import org.vibecoders.moongazer.Settings;
 import org.vibecoders.moongazer.managers.Assets;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -44,12 +45,12 @@ public class Paddle extends MovableObject {
 
     public void update(float delta, float minX, float maxX) {
         boolean keyboardUsed = false;
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A) || aiMoveLeft) {
+        if (Gdx.input.isKeyPressed(Settings.getKeybind("p1_left")) || aiMoveLeft) {
             bounds.x -= speed * delta;
             targetX = bounds.x;
             keyboardUsed = true;
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D) || aiMoveRight) {
+        if (Gdx.input.isKeyPressed(Settings.getKeybind("p1_right")) || aiMoveRight) {
             bounds.x += speed * delta;
             targetX = bounds.x;
             keyboardUsed = true;

@@ -8,6 +8,16 @@ import java.util.HashMap;
 import java.util.List;
 
 public class Stage3 extends Story {
+    private static final String IUNO = "textures/vn_scene/iuno.png";
+    private static final String ROVER = "textures/vn_scene/rover.png";
+    private static final String LILI = "textures/vn_scene/lili.png";
+    private static final String CREP = "textures/vn_scene/crep.png";
+    private static final String ROVERHM = "audio/storysfx/ROVERHM.mp3";
+    private static final String ROVERGO = "audio/storysfx/ROVERGO.mp3";
+    private static final String IUNOSAVE = "audio/storysfx/IUNOSAVE.mp3";
+    private static final String ROVERHIT = "audio/storysfx/ROVERHIT.mp3";
+    private static final String IUNOFIGHT2 = "audio/storysfx/IUNOFIGHT2.mp3";
+
     public Stage3(Game game) {
         super(game, 3);
     }
@@ -24,28 +34,30 @@ public class Stage3 extends Story {
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Lillibet",
-                        null,
+                        LILI,
                         "You seek one who has been erased from the very weave of reality.",
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Rover",
-                        null,
+                        ROVER,
                         "So you know.",
+                        ROVERHM,
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Lillibet",
-                        null,
+                        LILI,
                         "She used the forbidden rite, Foresight Fugue." +
                                 "Its toll is existence itself.",
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Rover",
-                        null,
+                        ROVER,
                         "I must bring her back.",
+                        ROVERGO,
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Lillibet",
-                        null,
+                        LILI,
                         "It is no simple task." +
                                 "She is adrift in the Realm of Chaos—the burial ground of all forgotten memories." +
                                 "Your memory is the only compass." +
@@ -127,13 +139,14 @@ public class Stage3 extends Story {
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "The False Sovereign",
-                        null,
+                        CREP,
                         "You wish to save him? His destiny has ended.",
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Iuno",
-                        null,
+                        IUNO,
                         "Not here. Not before me.",
+                        IUNOSAVE,
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "",
@@ -144,14 +157,15 @@ public class Stage3 extends Story {
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "The False Sovereign",
-                        null,
+                        CREP,
                         "Ha! 'Foresight Fugue'? You dare use that Forbidden Magic? You know the price!" +
                                 "The price is existence itself! Thy name! The memory of thee! All shall be erased!",
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Iuno",
-                        null,
+                        IUNO,
                         "Yes, together with thee.",
+                        IUNOFIGHT2,
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "",
@@ -167,8 +181,9 @@ public class Stage3 extends Story {
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Rover",
-                        null,
+                        ROVER,
                         "Iuno...",
+                        ROVERHIT,
                         DialogueStep.Action.EXIT)
         ));
         outroDialogue = new Dialogue(game) {};

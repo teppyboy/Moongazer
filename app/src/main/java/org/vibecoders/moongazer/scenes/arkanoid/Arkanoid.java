@@ -55,8 +55,6 @@ public abstract class Arkanoid extends Scene {
     private float maxBallY = Float.MIN_VALUE;
     private static final float STUCK_CHECK_DURATION = 5.0f;
     private static final float STUCK_Y_RANGE_THRESHOLD = 100f;
-    private static final float MIN_HORIZONTAL_VELOCITY_THRESHOLD = 50f;
-    private static final float MIN_HORIZONTAL_RATIO = 0.3f;
 
     private Texture pixelTexture;
     private Texture heartTexture;
@@ -65,17 +63,33 @@ public abstract class Arkanoid extends Scene {
     protected float heartBlinkTimer = 0f;
     private static final float HEART_BLINK_DURATION = 1.5f;
     private static final float HEART_BLINK_SPEED = 0.15f;
+    
+    // Combo milestone display (osu!-style)
+    private Texture iunoTexture;
+    private boolean showIunoImage = false;
+    private float iunoDisplayTimer = 0f;
+    private float iunoAlpha = 0f;
+    private float iunoSlideOffset = 0f; // Horizontal slide offset
+    private int lastComboMilestone = 0;
+    private boolean iunoFromLeft = true; // Alternate between left and right
+    private static final float IUNO_DISPLAY_DURATION = 2.5f;
+    private static final float IUNO_FADE_IN_TIME = 0.4f;
+    private static final float IUNO_FADE_OUT_TIME = 0.5f;
+    private static final float IUNO_SLIDE_DISTANCE = 300f; // Distance to slide in from
+    private static final int COMBO_MILESTONE_INTERVAL = 10;
+    private static final float IUNO_MAX_HEIGHT = 500f; // Maximum height to display
+    
     protected ShapeRenderer shapeRenderer;
     protected boolean showHitboxes = false;
     protected PauseMenu pauseMenu;
     protected GameOverMenu gameOverMenu;
-    private FrameBuffer gameFrameBuffer;
-    private Texture gameSnapshot;
+    protected FrameBuffer gameFrameBuffer;
+    protected Texture gameSnapshot;
     protected List<PowerUp> activePowerUps;
     protected List<ActivePowerUpEffect> activePowerUpEffects;
-    private float pauseCooldown = 0f;
+    protected float pauseCooldown = 0f;
     private static final float PAUSE_COOLDOWN_TIME = 0.2f;
-    private InputMultiplexer inputMultiplexer;
+    protected InputMultiplexer inputMultiplexer;
     private InputAdapter gameInputAdapter;
     protected boolean gameInputEnabled = true;
     private boolean escKeyDownInGame = false;
@@ -91,6 +105,7 @@ public abstract class Arkanoid extends Scene {
         fontUI30 = Assets.getFont("ui", 30);
         pixelTexture = Assets.getBlackTexture();
         heartTexture = Assets.getAsset("textures/arkanoid/heart.png", Texture.class);
+        iunoTexture = Assets.getAsset("textures/vn_scene/iuno.png", Texture.class);
         shapeRenderer = new ShapeRenderer();
         gameFrameBuffer = new FrameBuffer(Pixmap.Format.RGBA8888, WINDOW_WIDTH, WINDOW_HEIGHT, false);
         paddleAI = new ArkanoidAI();
@@ -260,6 +275,9 @@ public abstract class Arkanoid extends Scene {
             pauseCooldown -= delta;
         }
 
+        // Update iuno milestone display animation
+        updateIunoDisplay(delta);
+
         if (!pauseMenu.isPaused() && !gameOverMenu.isVisible()) {
             handleInput(delta);
             updateGameplay(delta);
@@ -268,6 +286,10 @@ public abstract class Arkanoid extends Scene {
 
         renderGameplay(batch);
         renderUI(batch);
+        renderIunoDisplay(batch);
+        
+        // Ensure batch color is reset to white after all rendering
+        batch.setColor(Color.WHITE);
 
         if (pauseMenu.isPaused()) {
             if (gameSnapshot == null) {
@@ -278,6 +300,7 @@ public abstract class Arkanoid extends Scene {
                 batch.begin();
                 renderGameplay(batch);
                 renderUI(batch);
+                renderIunoDisplay(batch);
                 batch.end();
                 gameFrameBuffer.end();
                 gameSnapshot = gameFrameBuffer.getColorBufferTexture();
@@ -294,6 +317,7 @@ public abstract class Arkanoid extends Scene {
                 batch.begin();
                 renderGameplay(batch);
                 renderUI(batch);
+                renderIunoDisplay(batch);
                 batch.end();
                 gameFrameBuffer.end();
                 gameSnapshot = gameFrameBuffer.getColorBufferTexture();
@@ -483,8 +507,21 @@ public abstract class Arkanoid extends Scene {
         // Update local state from context
         score = scoreContext.score;
         bestScore = scoreContext.bestScore;
+        
+        // Check for combo milestones before updating combo
+        int oldCombo = combo;
         combo = scoreContext.combo;
         maxCombo = scoreContext.maxCombo;
+        
+        // Trigger iuno display on combo milestones (10x, 20x, 30x, etc.)
+        if (combo > 0 && combo % COMBO_MILESTONE_INTERVAL == 0) {
+            int currentMilestone = combo / COMBO_MILESTONE_INTERVAL;
+            int oldMilestone = oldCombo / COMBO_MILESTONE_INTERVAL;
+            if (currentMilestone > oldMilestone && currentMilestone > lastComboMilestone) {
+                triggerIunoDisplay();
+                lastComboMilestone = currentMilestone;
+            }
+        }
 
         handlePowerUpCollisions();
         handleBulletCollisions();
@@ -568,6 +605,73 @@ public abstract class Arkanoid extends Scene {
                 }
             }
         }
+    }
+
+    private void triggerIunoDisplay() {
+        showIunoImage = true;
+        iunoDisplayTimer = 0f;
+        iunoAlpha = 0f;
+        iunoSlideOffset = IUNO_SLIDE_DISTANCE; // Start off-screen
+        iunoFromLeft = !iunoFromLeft; // Alternate direction
+        log.info("Combo milestone reached: {}x! Showing Iuno from {}", combo, iunoFromLeft ? "left" : "right");
+    }
+
+    private void updateIunoDisplay(float delta) {
+        if (!showIunoImage) return;
+
+        iunoDisplayTimer += delta;
+
+        // Fade in + Slide in
+        if (iunoDisplayTimer < IUNO_FADE_IN_TIME) {
+            float progress = iunoDisplayTimer / IUNO_FADE_IN_TIME;
+            iunoAlpha = progress;
+            iunoSlideOffset = IUNO_SLIDE_DISTANCE * (1f - progress); // Slide from distance to 0
+        }
+        // Hold
+        else if (iunoDisplayTimer < IUNO_DISPLAY_DURATION - IUNO_FADE_OUT_TIME) {
+            iunoAlpha = 1.0f;
+            iunoSlideOffset = 0f;
+        }
+        // Fade out + Slide out
+        else if (iunoDisplayTimer < IUNO_DISPLAY_DURATION) {
+            float fadeOutProgress = (iunoDisplayTimer - (IUNO_DISPLAY_DURATION - IUNO_FADE_OUT_TIME)) / IUNO_FADE_OUT_TIME;
+            iunoAlpha = 1.0f - fadeOutProgress;
+            iunoSlideOffset = IUNO_SLIDE_DISTANCE * fadeOutProgress; // Slide from 0 to distance
+        }
+        // Hide
+        else {
+            showIunoImage = false;
+            iunoAlpha = 0f;
+            iunoSlideOffset = 0f;
+        }
+    }
+
+    private void renderIunoDisplay(SpriteBatch batch) {
+        if (!showIunoImage || iunoAlpha <= 0f) return;
+
+        // Calculate aspect-ratio-preserving dimensions
+        float textureWidth = iunoTexture.getWidth();
+        float textureHeight = iunoTexture.getHeight();
+        float aspectRatio = textureWidth / textureHeight;
+        
+        // Scale to fit within max height while preserving aspect ratio
+        float displayHeight = Math.min(IUNO_MAX_HEIGHT, WINDOW_HEIGHT * 0.7f);
+        float displayWidth = displayHeight * aspectRatio;
+        
+        // Position at bottom of screen, sliding from left or right
+        float baseX = iunoFromLeft ? 
+            SIDE_PANEL_WIDTH + 50f : 
+            SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH - displayWidth - 50f;
+        
+        // Apply slide offset
+        float offsetX = iunoFromLeft ? -iunoSlideOffset : iunoSlideOffset;
+        float imageX = baseX + offsetX;
+        float imageY = 50f; // Bottom padding
+
+        Color oldColor = batch.getColor();
+        batch.setColor(1f, 1f, 1f, iunoAlpha);
+        batch.draw(iunoTexture, imageX, imageY, displayWidth, displayHeight);
+        batch.setColor(oldColor);
     }
 
     private void spawnRandomPowerUp(Brick brick) {
@@ -655,6 +759,7 @@ public abstract class Arkanoid extends Scene {
 
     protected void renderGameplay(SpriteBatch batch) {
         if (backgroundTexture != null) {
+            batch.setColor(Color.WHITE);
             batch.draw(backgroundTexture, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         }
         batch.setColor(0f, 0f, 0f, 0.3f);
@@ -936,6 +1041,7 @@ public abstract class Arkanoid extends Scene {
         if (combo > 0) {
             log.info("Ball lost! Combo reset from {}x to 0", combo);
             combo = 0;
+            lastComboMilestone = 0; // Reset milestone tracker
         }
 
         clearAllActivePowerups();

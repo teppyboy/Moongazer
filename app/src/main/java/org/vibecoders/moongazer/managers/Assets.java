@@ -141,7 +141,23 @@ public class Assets {
         assetManager.load("textures/ui/GameSelectionBackground.png", Texture.class);
         // VN scene textures
         assetManager.load("textures/vn_scene/iuno.png", Texture.class);
+        assetManager.load("textures/vn_scene/rover.png", Texture.class);
+        assetManager.load("textures/vn_scene/boss.png", Texture.class);
+        assetManager.load("textures/vn_scene/elder.png", Texture.class);
+        assetManager.load("textures/vn_scene/crep.png", Texture.class);
+        assetManager.load("textures/vn_scene/lili.png", Texture.class);
         assetManager.load("textures/vn_scene/separator.png", Texture.class);
+        // Mode selection and stageBg assets
+        assetManager.load("textures/mode_selection/stage1.png", Texture.class);
+        assetManager.load("textures/mode_selection/stage2.png", Texture.class);
+        assetManager.load("textures/mode_selection/stage3.png", Texture.class);
+        assetManager.load("textures/mode_selection/stage4.png", Texture.class);
+        assetManager.load("textures/mode_selection/stage5.png", Texture.class);
+        assetManager.load("textures/stage/Bg1.png", Texture.class);
+        assetManager.load("textures/stage/Bg2.png", Texture.class);
+        assetManager.load("textures/stage/Bg3.png", Texture.class);
+        assetManager.load("textures/stage/Bg4.png", Texture.class);
+        assetManager.load("textures/stage/Bg5.png", Texture.class);
         // Arkanoid gameplay assets
         assetManager.load("textures/arkanoid/normal_ball.png", Texture.class);
         assetManager.load("textures/arkanoid/paddle.png", Texture.class);
@@ -159,6 +175,7 @@ public class Assets {
         assetManager.load("textures/arkanoid/bricks/explosivebrick.png", Texture.class);
         // "Load" unsupported file types as FileHandle
         loadingThread = new Thread(() -> {
+            // Load endless mode music (both OGG and MP3 formats)
             loadAny("videos/main_menu_background.webm");
             loadAny("audio/I Once Praised the Day.mp3");
             loadAny("audio/stage1.mp3");
@@ -170,7 +187,27 @@ public class Assets {
             loadAny("audio/sfx/return.mp3");
             loadAny("audio/sfx/confirm.mp3");
             loadAny("audio/sfx/quit.mp3");
-            // Load endless mode music (both OGG and MP3 formats)
+            // load story voicelines and sfx
+            loadAny("audio/storysfx/BOSS.mp3");
+            loadAny("audio/storysfx/IUNODIE.mp3");
+            loadAny("audio/storysfx/IUNODONE.mp3");
+            loadAny("audio/storysfx/IUNODONE2.mp3");
+            loadAny("audio/storysfx/IUNODONE3.mp3");
+            loadAny("audio/storysfx/IUNOFIGHT.mp3");
+            loadAny("audio/storysfx/IUNOFIGHT2.mp3");
+            loadAny("audio/storysfx/IUNOHIT.mp3");
+            loadAny("audio/storysfx/IUNOINTRO.mp3");
+            loadAny("audio/storysfx/IUNOLIBERSFX.mp3");
+            loadAny("audio/storysfx/IUNOSAVE.mp3");
+            loadAny("audio/storysfx/ROVERASK.mp3");
+            loadAny("audio/storysfx/ROVERFIGHT.mp3");
+            loadAny("audio/storysfx/ROVERFIGHT2.mp3");
+            loadAny("audio/storysfx/ROVERGO.mp3");
+            loadAny("audio/storysfx/ROVERHIT.mp3");
+            loadAny("audio/storysfx/ROVERHM.mp3");
+            loadAny("audio/storysfx/ROVERIDLE1.mp3");
+            loadAny("audio/storysfx/ROVERLIBER.mp3");
+            loadAny("audio/storysfx/ROVERLIBERSFX.mp3");
             // Try OGG first (better support)
             loadAny("audio/endlessost/endlessost1.ogg");
             loadAny("audio/endlessost/endlessost2.ogg");

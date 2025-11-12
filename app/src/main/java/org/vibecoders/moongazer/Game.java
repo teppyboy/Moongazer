@@ -32,6 +32,7 @@ public class Game extends ApplicationAdapter {
     public Scene mainMenuScene;
     public Scene settingsScene;
     public Scene loadScene;
+    public Scene leaderboardScene;
     public Scene testInGameScene;
     public Scene currentDialogue;
     public Scene gameplayTestScene;
@@ -84,6 +85,9 @@ public class Game extends ApplicationAdapter {
                 break;
             case LOAD_GAME:
                 currentScene = loadScene;
+                break;
+            case LEADERBOARD:
+                currentScene = leaderboardScene;
                 break;
             case TEST_IN_GAME:
                 currentScene = testInGameScene;

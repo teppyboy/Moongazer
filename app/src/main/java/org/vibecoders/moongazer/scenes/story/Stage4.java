@@ -8,6 +8,15 @@ import java.util.HashMap;
 import java.util.List;
 
 public class Stage4 extends Story {
+    private static final String IUNO = "textures/vn_scene/iuno.png";
+    private static final String ROVER = "textures/vn_scene/rover.png";
+    private static final String BOSS = "textures/vn_scene/boss.png";
+    private static final String ROVERLIBER = "audio/storysfx/ROVERLIBER.mp3";
+    private static final String ROVERFIGHT2 = "audio/storysfx/ROVERFIGHT2.mp3";
+    private static final String IUNODONE2 = "audio/storysfx/IUNODONE2.mp3";
+    private static final String IUNODONE = "audio/storysfx/IUNODONE.mp3";
+    private static final String ROVERLIBERSFX = "audio/storysfx/ROVERLIBERSFX.mp3";
+
     public Stage4(Game game) {
         super(game, 4);
     }
@@ -41,19 +50,19 @@ public class Stage4 extends Story {
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Fate Arbiter",
-                        null,
+                        BOSS,
                         "Rover of the mortal realm." +
                                 "Thou dost commit the ultimate heresy." +
                                 "Dost thou seek to rewrite reality, to challenge the tapestry woven by the Ordinance of Destiny?",
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Rover",
-                        null,
+                        ROVER,
                         "I seek only to bring her home.",
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Fate Arbiter",
-                        null,
+                        BOSS,
                         "None are forgotten without cause." +
                                 "All existence demands balance." +
                                 "If thou pullest her from the Void, something else must take her place." +
@@ -61,8 +70,9 @@ public class Stage4 extends Story {
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Rover",
-                        null,
+                        ROVER,
                         "I will lose nothing more!",
+                        ROVERLIBER,
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "",
@@ -77,19 +87,22 @@ public class Stage4 extends Story {
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Fate Arbiter",
-                        null,
+                        BOSS,
                         "Thou shalt be erased from every branch of reality" +
                                 "No timeline shall ever again bear the entity known as Rover.",
+                        BOSS,
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Rover",
-                        null,
+                        ROVER,
                         "Then I shall carve my name with this memory!",
+                        ROVERFIGHT2,
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "",
                         null,
                         "I plunged the Anchor into the floor of the void.",
+                        ROVERLIBERSFX,
                         DialogueStep.Action.EXIT)
         ));
         introDialogue = new Dialogue(game) {};
@@ -121,23 +134,23 @@ public class Stage4 extends Story {
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Fate Arbiter",
-                        null,
+                        BOSS,
                         "Thou canst not win! Thou art but a mortal!",
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Rover",
-                        null,
+                        ROVER,
                         "Laws are written by those who fear loss. I... do not.",
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
-                        "Rover",
+                        "",
                         null,
                         "I lunged, piercing the darkness, plunging the blade forth to end the conflict.\n" +
                                 "The light of memory tore through all.",
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Fate Arbiter",
-                        null,
+                        BOSS,
                         "You… have rewritten fate. But remember… none… escape the price…",
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
@@ -148,18 +161,20 @@ public class Stage4 extends Story {
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Iuno",
-                        null,
+                        IUNO,
                         "I told you to look after yourself.",
+                        IUNODONE,
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Rover",
-                        null,
+                        ROVER,
                         "I was merely taking back what was mine",
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Iuno",
-                        null,
+                        IUNO,
                         "Then... let us return to where we belong.",
+                        IUNODONE2,
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "",

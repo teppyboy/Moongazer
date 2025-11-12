@@ -8,6 +8,14 @@ import java.util.HashMap;
 import java.util.List;
 
 public class Stage5 extends Story {
+    private static final String IUNO = "textures/vn_scene/iuno.png";
+    private static final String ROVER = "textures/vn_scene/rover.png";
+    private static final String ELDER = "textures/vn_scene/elder.png";
+    private static final String ROVERASK = "audio/storysfx/ROVERASK.mp3";
+    private static final String IUNOINTRO = "audio/storysfx/IUNOINTRO.mp3";
+    private static final String IUNODONE3 = "audio/storysfx/IUNODONE3.mp3";
+    private static final String ROVERHM = "audio/storysfx/ROVERHM.mp3";
+
     public Stage5(Game game) {
         super(game, 5);
     }
@@ -33,8 +41,9 @@ public class Stage5 extends Story {
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Rover",
-                        null,
+                        ROVER,
                         "Elder, Iuno... have you seen her?",
+                        ROVERASK,
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "",
@@ -52,7 +61,7 @@ public class Stage5 extends Story {
         branches.put("default", List.of(
                 new DialogueStep(
                         "Village Elder",
-                        null,
+                        ELDER,
                         "Ah yes, Iuno left this basket of honey-apple tarts for you." +
                                 "Said she was off to pick some Sunflowers",
                         DialogueStep.Action.CONTINUE),
@@ -70,8 +79,9 @@ public class Stage5 extends Story {
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Iuno",
-                        null,
-                        "Rover! There you are! I’ve been looking everywhere for you!",
+                        IUNO,
+                        "Rover! There you are! I've been looking everywhere for you!",
+                        IUNOINTRO,
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "",
@@ -81,14 +91,16 @@ public class Stage5 extends Story {
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Iuno",
-                        null,
+                        IUNO,
                         "You're squeezing me! What is wrong with you?" +
-                                "It’s as if... we haven't seen each other in a century.",
+                                "It's as if... we haven't seen each other in a century.",
+                        IUNODONE3,
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Rover",
-                        null,
+                        ROVER,
                         "For me... it truly has been.",
+                        ROVERHM,
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "",

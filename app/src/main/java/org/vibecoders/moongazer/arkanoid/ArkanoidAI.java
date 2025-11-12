@@ -7,9 +7,6 @@ import java.util.List;
 
 import static org.vibecoders.moongazer.Constants.*;
 
-/**
- * AI implementation that automatically controls the paddle to hit balls and collect powerups
- */
 public class ArkanoidAI implements PaddleAI {
     private static final Logger log = LoggerFactory.getLogger(ArkanoidAI.class);
     private static final double PREDICTION_TOLERANCE = 15.0;
@@ -18,8 +15,6 @@ public class ArkanoidAI implements PaddleAI {
     private static final double NORMAL_PRIORITY_BASE = 500.0;
     private static final double TIME_PENALTY_MULTIPLIER = 10.0;
     private static final double MAX_TIME_TO_REACH = 5.0;
-    private static final double BALL_FAR_DISTANCE = 200.0;
-    private static final double BALL_CLOSE_DISTANCE = 100.0;
     private static final double POWERUP_VERY_CLOSE_DISTANCE = 80.0;
     private static final double MIN_VELOCITY_THRESHOLD = 0.01;
 

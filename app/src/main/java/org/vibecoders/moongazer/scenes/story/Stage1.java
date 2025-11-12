@@ -8,6 +8,12 @@ import java.util.HashMap;
 import java.util.List;
 
 public class Stage1 extends Story {
+    private static final String IUNO = "textures/vn_scene/iuno.png";
+    private static final String ROVER = "textures/vn_scene/rover.png";
+    private static final String CREP = "textures/vn_scene/crep.png";
+    private static final String ROVERLIBER = "audio/storysfx/ROVERLIBER.mp3";
+    private static final String IUNOFIGHT = "audio/storysfx/IUNOFIGHT.mp3";
+    private static final String IUNOLIBERSFX = "audio/storysfx/IUNOLIBERSFX.mp3";
     public Stage1(Game game) {
         super(game, 1);
     }
@@ -29,13 +35,14 @@ public class Stage1 extends Story {
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "The False Sovereign",
-                        null,
+                        CREP,
                         "Thou canst not defeat me, mortal. Thy destiny is already ordained.",
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Rover",
-                        null,
+                        ROVER,
                         "Then I shall write my own destiny.",
+                        ROVERLIBER,
                         DialogueStep.Action.EXIT)
         ));
         introDialogue = new Dialogue(game) {};
@@ -68,13 +75,15 @@ public class Stage1 extends Story {
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Iuno",
-                        null,
+                        IUNO,
                         "Victory shall be ours.",
+                        IUNOFIGHT,
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "",
                         null,
                         "A deluge of light consumed all.",
+                        IUNOLIBERSFX,
                         DialogueStep.Action.EXIT)
         ));
         outroDialogue = new Dialogue(game) {};
