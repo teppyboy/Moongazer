@@ -40,6 +40,7 @@ public abstract class Arkanoid extends Scene {
     protected BitmapFont font;
     protected BitmapFont fontUI30;
     protected int score = 0;
+    protected int bestScore = 0;
     public int lives = 3;
     protected int bricksDestroyed = 0;
     protected int combo = 0;
@@ -484,7 +485,10 @@ public abstract class Arkanoid extends Scene {
                         int baseScore = 10;
                         int scoreGain = (int) (baseScore * multiplier);
                         score += scoreGain;
-                        log.debug("Breakable brick hit! Combo: {}x, Multiplier: {:.2f}x, Score gained: {}, Total: {}",
+                        if (score > bestScore) {
+                            bestScore = score;
+                        }
+                        log.debug("Breakable brick hit! Combo: {}x, Multiplier: {}x, Score gained: {}, Total: {}",
                                   combo, multiplier, scoreGain, score);
 
                         if (brick.isDestroyed()) {
@@ -551,7 +555,7 @@ public abstract class Arkanoid extends Scene {
                         int baseScore = 10;
                         int scoreGain = (int) (baseScore * multiplier);
                         score += scoreGain;
-                        log.debug("Breakable brick hit! Combo: {}x, Multiplier: {:.2f}x, Score gained: {}, Total: {}",
+                        log.debug("Breakable brick hit! Combo: {}x, Multiplier: {}x, Score gained: {}, Total: {}",
                                   combo, multiplier, scoreGain, score);
                     }
 
@@ -874,7 +878,7 @@ public abstract class Arkanoid extends Scene {
         fontUI30.draw(batch, scoreValue, scoreValueX, WINDOW_HEIGHT - 60 - layout.height);
 
         String bestLabel = "Best";
-        String bestValue = String.format("%d", score);
+        String bestValue = String.format("%d", bestScore);
         layout.setText(fontUI30, bestLabel);
         float bestLabelHeight = layout.height;
         layout.setText(fontUI30, bestValue);

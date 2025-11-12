@@ -24,6 +24,10 @@ public class ArkanoidEndless extends Arkanoid {
         super.init();
         setBackground(Assets.getAsset("textures/arkanoid/bg/endless.jpg", Texture.class));
 
+        // Load best score from database into parent's bestScore field
+        bestScore = org.vibecoders.moongazer.SaveGameManager.getHighScore();
+        log.info("Loaded best score from database: {} (current score: {})", bestScore, score);
+
         // Stop menu music and start endless music
         org.vibecoders.moongazer.managers.Audio.menuMusicStop();
         org.vibecoders.moongazer.managers.Audio.startEndlessMusic();
@@ -317,8 +321,12 @@ public class ArkanoidEndless extends Arkanoid {
         log.info("Game Over! Final Score: {} (Wave: {})", score, currentWave);
         heartBlinking = false;
         heartBlinkTimer = 0f;
+        // Save score and update high score in database
         org.vibecoders.moongazer.SaveGameManager.saveEndlessScore(score, currentWave);
-        org.vibecoders.moongazer.SaveGameManager.updateHighScore(score, currentWave);
+        boolean isNewHighScore = org.vibecoders.moongazer.SaveGameManager.updateHighScore(score, currentWave);
+        // Reload best score from database to ensure it's current
+        bestScore = org.vibecoders.moongazer.SaveGameManager.getHighScore();
+        log.info("Game over - Best score: {} (New high score: {})", bestScore, isNewHighScore);
         org.vibecoders.moongazer.managers.Audio.startGameOverMusic();
         gameOverMenu.show(score);
     }
@@ -338,6 +346,9 @@ public class ArkanoidEndless extends Arkanoid {
         unbreakableChance = 0.1f;
         heartBlinking = false;
         heartBlinkTimer = 0f;
+        // Reload best score from database to ensure it's current
+        bestScore = org.vibecoders.moongazer.SaveGameManager.getHighScore();
+        log.info("Restarting game - Best score: {}", bestScore);
         initGameplay();
         startWave(currentWave);
     }
