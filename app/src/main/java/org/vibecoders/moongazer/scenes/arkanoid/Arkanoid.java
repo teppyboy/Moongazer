@@ -41,7 +41,7 @@ public abstract class Arkanoid extends Scene {
     protected BitmapFont font;
     protected BitmapFont fontUI30;
     protected int score = 0;
-    protected int bestScore = 0;
+    public int bestScore = 0;
     public int lives = 3;
     protected int bricksDestroyed = 0;
     protected int combo = 0;
