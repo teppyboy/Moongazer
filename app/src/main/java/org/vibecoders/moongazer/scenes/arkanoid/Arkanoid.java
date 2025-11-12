@@ -576,8 +576,8 @@ public abstract class Arkanoid extends Scene {
 
         float powerUpX = brick.getX() + brick.getWidth() / 2f - 16;
         float powerUpY = brick.getY();
-        float powerUpWidth = 32;
-        float powerUpHeight = 32;
+        float powerUpWidth = 35;
+        float powerUpHeight = 35;
 
         if (brick.getPowerUpType() != Brick.PowerUpType.NONE) {
             switch (brick.getPowerUpType()) {
