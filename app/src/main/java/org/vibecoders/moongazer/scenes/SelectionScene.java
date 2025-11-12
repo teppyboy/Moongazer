@@ -1,15 +1,11 @@
 package org.vibecoders.moongazer.scenes;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-
 import org.vibecoders.moongazer.Game;
-import org.vibecoders.moongazer.Settings;
 import org.vibecoders.moongazer.enums.State;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.scenes.arkanoid.ArkanoidEndless;
@@ -81,19 +77,15 @@ public class SelectionScene extends Scene {
 
     @Override
     public void render(SpriteBatch batch) {
-        // Apply parallax effect to background
         int mouseX = com.badlogic.gdx.Gdx.input.getX();
         int mouseY = WINDOW_HEIGHT - com.badlogic.gdx.Gdx.input.getY();
         float offsetX = ((mouseX - WINDOW_WIDTH / 2f) / WINDOW_WIDTH) * PARALLAX_STRENGTH;
         float offsetY = ((mouseY - WINDOW_HEIGHT / 2f) / WINDOW_HEIGHT) * PARALLAX_STRENGTH;
-        
-        // Zoom background by 1.05x and center it
         float zoomScale = 1.05f;
         float bgWidth = WINDOW_WIDTH * zoomScale;
         float bgHeight = WINDOW_HEIGHT * zoomScale;
         float bgX = (WINDOW_WIDTH - bgWidth) / 2f + offsetX;
         float bgY = (WINDOW_HEIGHT - bgHeight) / 2f + offsetY;
-        
         batch.draw(backgroundTexture, bgX, bgY, bgWidth, bgHeight);
     }
 }

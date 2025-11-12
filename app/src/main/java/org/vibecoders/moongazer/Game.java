@@ -40,6 +40,8 @@ public class Game extends ApplicationAdapter {
     public Scene endlessModeScene;
     public Scene storyStageScene;
     public ArrayList<Scene> gameScenes;
+    // Save slot ID for loading saves
+    public int loadingSaveSlotId = -1;
 
     @Override
     public void create() {

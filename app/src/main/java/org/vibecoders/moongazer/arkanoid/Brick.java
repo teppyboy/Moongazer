@@ -139,9 +139,11 @@ public class Brick extends GameObject {
     }
 
     private void startHitAnimation() {
+        if (!hitAnimating) {
+            originalX = bounds.x;
+        }
         hitAnimating = true;
         hitAnimTimer = 0f;
-        originalX = bounds.x;
         alpha = 1f;
     }
 

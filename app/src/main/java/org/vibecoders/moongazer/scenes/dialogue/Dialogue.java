@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.vibecoders.moongazer.Game;
+import org.vibecoders.moongazer.Settings;
 import org.vibecoders.moongazer.dialogue.DialogueStep;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.managers.Audio;
@@ -15,6 +16,8 @@ import org.vibecoders.moongazer.ui.dialogue.DialogueBoxTransparent;
 import static org.vibecoders.moongazer.Constants.*;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -44,6 +47,7 @@ public abstract class Dialogue extends Scene {
     protected int currentStep = 0;
     protected Runnable onComplete;
     protected ExitCallback onExit;
+    protected Sound currentDialogueSound;
     // UI
     public Table container;
     protected DialogueBoxTransparent dialogue;
@@ -198,6 +202,24 @@ public abstract class Dialogue extends Scene {
         dialogue.toFront();
         dialogue.setDialogue(step.getSpeaker(), step.getText());
 
+        // Play dialogue audio if available
+        if (currentDialogueSound != null) {
+            currentDialogueSound.stop();
+            currentDialogueSound.dispose();
+            currentDialogueSound = null;
+        }
+
+        if (step.getAudioAsset() != null && !step.getAudioAsset().isEmpty()) {
+            try {
+                FileHandle audioFile = Assets.getAsset(step.getAudioAsset(), FileHandle.class);
+                currentDialogueSound = Gdx.audio.newSound(audioFile);
+                float volume = Settings.getSfxVolume() * Settings.getMasterVolume();
+                currentDialogueSound.play(volume);
+            } catch (Exception e) {
+                Gdx.app.error("Dialogue", "Failed to play dialogue audio: " + step.getAudioAsset(), e);
+            }
+        }
+
         // Handle actions
         switch (step.getAction()) {
             case EXIT:
@@ -315,6 +337,11 @@ public abstract class Dialogue extends Scene {
 
     public void dispose() {
         container.setVisible(false);
+        if (currentDialogueSound != null) {
+            currentDialogueSound.stop();
+            currentDialogueSound.dispose();
+            currentDialogueSound = null;
+        }
         if (overlayTexture != null) {
             overlayTexture.dispose();
             overlayTexture = null;

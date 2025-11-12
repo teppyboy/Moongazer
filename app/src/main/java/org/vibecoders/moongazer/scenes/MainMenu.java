@@ -85,6 +85,12 @@ public class MainMenu extends Scene {
         loadButton.onClick(() -> {
             log.debug("Load clicked");
             if (game.transition == null) {
+                // Reset LoadScene to LOAD mode
+                if (game.loadScene instanceof org.vibecoders.moongazer.scenes.LoadScene) {
+                    ((org.vibecoders.moongazer.scenes.LoadScene) game.loadScene).setMode(
+                        org.vibecoders.moongazer.scenes.LoadScene.Mode.LOAD
+                    );
+                }
                 game.transition = new Transition(game, this, game.loadScene, State.LOAD_GAME, 350);
             }
         });
@@ -205,7 +211,7 @@ public class MainMenu extends Scene {
         for (Map.Entry<Integer, Long> entry : currentKeyDown.entrySet()) {
             Integer keyCode = entry.getKey();
             Long timeStamp = entry.getValue();
-            if (TimeUtils.millis() - timeStamp > 100) {
+            if (TimeUtils.millis() - timeStamp > 150) {
                 sKeyDown(null, keyCode);
                 currentKeyDown.put(keyCode, TimeUtils.millis());
             }

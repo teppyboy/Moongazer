@@ -58,6 +58,9 @@ public class StoryModeScene extends Scene {
             }
         });
         game.stage.addActor(root);
+        if (!stages.isEmpty()) {
+            onStageSelected(stages.get(0));
+        }
     }
 
     private void onStageSelected(StageData stageData) {

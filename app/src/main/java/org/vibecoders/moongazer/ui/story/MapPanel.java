@@ -10,14 +10,14 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import org.vibecoders.moongazer.managers.Assets;
 
+import static org.vibecoders.moongazer.Constants.MAP_HEIGHT;
+import static org.vibecoders.moongazer.Constants.MAP_WIDTH;
 import static org.vibecoders.moongazer.Constants.WINDOW_HEIGHT;
 import static org.vibecoders.moongazer.Constants.WINDOW_WIDTH;
 
 public class MapPanel {
     private Table panel;
     private static final BitmapFont font = Assets.getFont("ui", 20);
-    private static final float MAP_WIDTH = 550;
-    private static final float MAP_HEIGHT = 400;
     private final float x = (WINDOW_WIDTH - MAP_WIDTH) / 2f - 40;
     private final float y = (WINDOW_HEIGHT - MAP_HEIGHT) / 2f + 30;
     private Label title;
@@ -38,6 +38,7 @@ public class MapPanel {
         Texture mapTexture = Assets.getAsset("textures/ui/shorepiano.png", Texture.class);
         TextureRegionDrawable mapDrawable = new TextureRegionDrawable(new TextureRegion(mapTexture));
         map = new Image(mapDrawable);
+        map.setScaling(com.badlogic.gdx.utils.Scaling.fit);
         map.setSize(MAP_WIDTH, MAP_HEIGHT);
         map.setPosition(x, y);
 
@@ -53,6 +54,7 @@ public class MapPanel {
         Texture mapTexture = Assets.getAsset(path, Texture.class);
         TextureRegionDrawable mapDrawable = new TextureRegionDrawable(new TextureRegion(mapTexture));
         map = new Image(mapDrawable);
+        map.setScaling(com.badlogic.gdx.utils.Scaling.fit);
         map.setSize(MAP_WIDTH, MAP_HEIGHT);
         map.setPosition(x, y);
         panel.addActor(map);

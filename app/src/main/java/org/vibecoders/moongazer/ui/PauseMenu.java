@@ -44,6 +44,8 @@ public class PauseMenu {
     private Runnable onRestart;
     private Runnable onMainMenu;
     private Runnable onQuit;
+    private Runnable onSaveGame;
+    private boolean isStoryMode = false;
 
     private static class ButtonConfig {
         final String label;
@@ -53,9 +55,6 @@ public class PauseMenu {
             this.action = action;
         }
     }
-
-    private Runnable onSaveGame;
-    private boolean isStoryMode = false;
 
     public PauseMenu() {
         initUI();
@@ -274,6 +273,25 @@ public class PauseMenu {
         }
     }
 
+    public void forceClose() {
+        if (isPaused) {
+            isPaused = false;
+            fadeState = FadeState.HIDDEN;
+            fadeAlpha = 0f;
+            currentChoice = -1;
+            currentKeyDown.clear();
+            pendingResume = false;
+            if (menuStage != null && menuStage.getRoot() != null) {
+                menuStage.getRoot().getColor().a = 1f;
+            }
+            // Trigger the onResume callback to restore input processor
+            if (onResume != null) {
+                onResume.run();
+            }
+            log.info("Pause menu force closed");
+        }
+    }
+
     private void processResume() {
         if (!isPaused || fadeState == FadeState.FADING_OUT) {
             return;
@@ -301,7 +319,7 @@ public class PauseMenu {
             for (Map.Entry<Integer, Long> entry : currentKeyDown.entrySet()) {
                 Integer keyCode = entry.getKey();
                 Long timeStamp = entry.getValue();
-                if (TimeUtils.millis() - timeStamp > 100) {
+                if (TimeUtils.millis() - timeStamp > 150) {
                     handleKeyDown(keyCode);
                     currentKeyDown.put(keyCode, TimeUtils.millis());
                 }
