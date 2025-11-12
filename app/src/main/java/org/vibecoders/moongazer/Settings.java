@@ -17,8 +17,6 @@ public class Settings {
     public static HashMap<String, Integer> keybinds = new HashMap<>() {{
         put("p1_left", Input.Keys.LEFT);
         put("p1_right", Input.Keys.RIGHT);
-        put("p2_left", Input.Keys.A);
-        put("p2_right", Input.Keys.D);
     }};
 
     public static class SettingsData {
