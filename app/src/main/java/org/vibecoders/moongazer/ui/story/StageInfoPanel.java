@@ -31,7 +31,7 @@ public class StageInfoPanel {
         contentTable.defaults().pad(2);
         contentTable.left().top();
 
-        Label title = new Label("Simulation Info", labelStyle);
+        Label title = new Label("Chapter Name", labelStyle);
         title.setFontScale(1.2f);
 
         String info = "";

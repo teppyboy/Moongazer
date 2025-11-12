@@ -8,6 +8,15 @@ import java.util.HashMap;
 import java.util.List;
 
 public class Stage2 extends Story {
+    private static final String IUNO = "textures/vn_scene/iuno.png";
+    private static final String ROVER = "textures/vn_scene/rover.png";
+    private static final String ELDER = "textures/vn_scene/elder.png";
+    private static final String ROVERIDLE1 = "audio/storysfx/ROVERIDLE1.mp3";
+    private static final String ROVERHM = "audio/storysfx/ROVERHM.mp3";
+    private static final String ROVERASK = "audio/storysfx/ROVERASK.mp3";
+    private static final String IUNOHIT = "audio/storysfx/IUNOHIT.mp3";
+    private static final String IUNODIE = "audio/storysfx/IUNODIE.mp3";
+
     public Stage2(Game game) {
         super(game, 2);
     }
@@ -28,27 +37,29 @@ public class Stage2 extends Story {
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Village Elder",
-                        null,
+                        ELDER,
                         "You have saved us all!",
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Rover",
-                        null,
+                        ROVER,
                         "Speak not so. Without Iuno, this victory would not have been possible.",
+                        ROVERIDLE1,
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Village Elder",
-                        null,
+                        ELDER,
                         "…Iuno? Who is Iuno?",
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Rover",
-                        null,
+                        ROVER,
                         "She... She who fought beside me!",
+                        ROVERHM,
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Village Elder",
-                        null,
+                        ELDER,
                         "...",
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
@@ -79,18 +90,21 @@ public class Stage2 extends Story {
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Rover",
-                        null,
+                        ROVER,
                         "Why have they forgotten you?",
+                        ROVERASK,
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Iuno",
-                        null,
+                        IUNO,
                         "His curse… it was meant for you.",
+                        IUNOHIT,
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Rover",
-                        null,
+                        ROVER,
                         "What did you do?",
+                        ROVERASK,
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "",
@@ -99,8 +113,9 @@ public class Stage2 extends Story {
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "Iuno",
-                        null,
+                        IUNO,
                         "Live well, Rover. For both of us.",
+                        IUNODIE,
                         DialogueStep.Action.CONTINUE),
                 new DialogueStep(
                         "",

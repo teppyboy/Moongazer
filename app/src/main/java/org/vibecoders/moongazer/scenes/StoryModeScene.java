@@ -66,7 +66,7 @@ public class StoryModeScene extends Scene {
     private void onStageSelected(StageData stageData) {
         currentStageID = stageData.getStageId();
         infoPanel.updateInfo(stageData.getInfo());
-        mapPanel.updateMap(stageData.getMap(), "Map for stage " + stageData.getStageId());
+        mapPanel.updateMap(stageData.getMap(), "Illustration for stage " + stageData.getStageId());
     }
 
     private void setupBackground() {
@@ -137,20 +137,20 @@ public class StoryModeScene extends Scene {
         List<StageData> stages = new ArrayList<>();
 
         stages.add(new StageData(1, "Chapter I",
-                "Iuno",
-                "textures/stage/MapTest.png"));
+                "Victory?",
+                "textures/mode_selection/stage1.png"));
         stages.add(new StageData(2, "Chapter II",
-                "Phoebe",
-                "textures/mode_selection/Bg3.png"));
+                "Echoes of Oblivion",
+                "textures/mode_selection/stage2.png"));
         stages.add(new StageData(3, "Chapter III",
-                "Protect energy nodes from explosive attacks",
-                "textures/mode_selection/Bg3.png"));
+                "The Realm of Chaos",
+                "textures/mode_selection/stage3.png"));
         stages.add(new StageData(4, "Chapter IV",
-                "Defeat the enemy flagship",
-                "textures/mode_selection/Bg3.png"));
+                "Fate Rewritten",
+                "textures/mode_selection/stage4.png"));
         stages.add(new StageData(5, "Chapter V",
-                "Final Showdown",
-                "textures/mode_selection/Bg3.png"));
+                "A New Beginning",
+                "textures/mode_selection/stage5.png"));
         return stages;
     }
 
