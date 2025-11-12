@@ -7,7 +7,6 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.enums.State;
 import org.vibecoders.moongazer.managers.Assets;
@@ -26,6 +25,7 @@ import java.util.List;
 
 import static org.vibecoders.moongazer.Constants.WINDOW_HEIGHT;
 import static org.vibecoders.moongazer.Constants.WINDOW_WIDTH;
+import static org.vibecoders.moongazer.Constants.PARALLAX_STRENGTH;
 
 public class StoryModeScene extends Scene {
     private StageSelectionPanel stagePanel;
@@ -36,6 +36,7 @@ public class StoryModeScene extends Scene {
     private MapPanel mapPanel;
     private int currentStageID;
     List<StageData> stages;
+    private Texture backgroundTexture;
 
     StoryModeScene(Game game) {
         super(game);
@@ -69,10 +70,15 @@ public class StoryModeScene extends Scene {
         currentStageID = stageData.getStageId();
         infoPanel.updateInfo(stageData.getInfo());
         mapPanel.updateMap(stageData.getMap(), "Illustration for stage " + stageData.getStageId());
+        
+        // Load and display high score for this stage
+        int highScore = SaveGameManager.getStoryHighScore(stageData.getStageId());
+        highScorePanel.updateHighScore(highScore);
     }
 
     private void setupBackground() {
-        root.setBackground(new TextureRegionDrawable(Assets.getAsset("textures/stage/background_story1.png", Texture.class)));
+        backgroundTexture = Assets.getAsset("textures/stage/background_story1.png", Texture.class);
+        // Don't set background on root - we'll draw it manually in render() for parallax effect
         root.setFillParent(true);
     }
 
@@ -93,7 +99,7 @@ public class StoryModeScene extends Scene {
         BitmapFont font = Assets.getFont("ui", 24);
         UITextButton playButton = new UITextButton("Go", font);
         playButton.setSize(270, 70);
-        playButton.setPosition(WINDOW_WIDTH - 260 - 50, 40);
+        playButton.setPosition(WINDOW_WIDTH - 270 - 5, 40);
         root.addActor(playButton.getActor());
 
         playButton.onClick(() -> {
@@ -158,6 +164,21 @@ public class StoryModeScene extends Scene {
 
     @Override
     public void render(SpriteBatch batch) {
+        // Apply parallax effect to background
+        int mouseX = Gdx.input.getX();
+        int mouseY = WINDOW_HEIGHT - Gdx.input.getY();
+        float offsetX = ((mouseX - WINDOW_WIDTH / 2f) / WINDOW_WIDTH) * PARALLAX_STRENGTH;
+        float offsetY = ((mouseY - WINDOW_HEIGHT / 2f) / WINDOW_HEIGHT) * PARALLAX_STRENGTH;
+        
+        // Zoom background by 1.05x and center it with parallax offset
+        float zoomScale = 1.05f;
+        float bgWidth = WINDOW_WIDTH * zoomScale;
+        float bgHeight = WINDOW_HEIGHT * zoomScale;
+        float bgX = (WINDOW_WIDTH - bgWidth) / 2f + offsetX;
+        float bgY = (WINDOW_HEIGHT - bgHeight) / 2f + offsetY;
+        
+        batch.draw(backgroundTexture, bgX, bgY, bgWidth, bgHeight);
+        
         float delta = Gdx.graphics.getDeltaTime();
         stagePanel.update(delta);
     }

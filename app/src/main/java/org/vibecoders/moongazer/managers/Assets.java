@@ -23,6 +23,7 @@ public class Assets {
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(Assets.class);
     private static final ArrayList<String> loadedFonts = new ArrayList<>();
     private static final HashMap<String, FileHandle> loadedFiles = new HashMap<>();
+    private static final HashMap<String, com.badlogic.gdx.audio.Sound> loadedSounds = new HashMap<>();
     private static boolean startLoadAll = false;
     private static boolean loadedAll = false;
     private static Thread loadingThread = null;
@@ -46,6 +47,15 @@ public class Assets {
         } catch (Exception e) {
             log.error("Failed to load asset: {}", fileName, e);
             throw new RuntimeException("Asset loading failed: " + fileName, e);
+        }
+    }
+
+    public static com.badlogic.gdx.audio.Sound getSound(String fileName) {
+        if (loadedSounds.containsKey(fileName)) {
+            return loadedSounds.get(fileName);
+        } else {
+            log.error("Sound not loaded: {}", fileName);
+            return null;
         }
     }
 
@@ -97,7 +107,6 @@ public class Assets {
         }
         loadedFiles.put(fileName, fh);
     }
-    
 
     public static void loadAll() {
         if (startLoadAll) {
@@ -216,6 +225,20 @@ public class Assets {
             loadAny("audio/endlessost/endlessost5.ogg");
             // Load game over OST
             loadAny("audio/gameoverost.ogg");
+
+            // Preload all audios to loadedSounds map
+            // Create a snapshot of keys to avoid ConcurrentModificationException
+            ArrayList<String> audioFiles = new ArrayList<>(loadedFiles.keySet());
+            for (String audioFile : audioFiles) {
+                if (audioFile.endsWith(".mp3") || audioFile.endsWith(".ogg")) {
+                    try {
+                        com.badlogic.gdx.audio.Sound sound = Gdx.audio.newSound(loadedFiles.get(audioFile));
+                        loadedSounds.put(audioFile, sound);
+                    } catch (Exception e) {
+                        log.error("Failed to load sound: {}", audioFile, e);
+                    }
+                }
+            }
         });
         loadingThread.start();
     }

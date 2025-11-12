@@ -5,7 +5,6 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
-import org.vibecoders.moongazer.SaveGameManager;
 import org.vibecoders.moongazer.managers.Assets;
 
 public class HighScorePanel {
@@ -28,7 +27,7 @@ public class HighScorePanel {
 
         panel.setFillParent(true);
         panel.bottom().right();
-        panel.padBottom(200).padRight(50);
+        panel.padBottom(200).padRight(5);
 
         Table contentTable = new Table();
         contentTable.defaults().pad(8);
@@ -44,7 +43,7 @@ public class HighScorePanel {
         scoreRow.setBackground(tintedBg);
 
         highScoreValueLabel = new Label("", scoreLabelStyle);
-        scoreRow.add(highScoreValueLabel).expandX().padRight(20);
+        scoreRow.add(highScoreValueLabel).expandX().padRight(5);
 
         contentTable.add(scoreRow).width(300).height(50).padBottom(5);
         contentTable.row();
@@ -54,7 +53,11 @@ public class HighScorePanel {
 
     public void updateHighScore(int bestScore) {
         if (highScoreValueLabel != null) {
-            highScoreValueLabel.setText(String.valueOf(bestScore));
+            if (bestScore > 0) {
+                highScoreValueLabel.setText(String.valueOf(bestScore));
+            } else {
+                highScoreValueLabel.setText("None");
+            }
         } else {
             highScoreValueLabel.setText("None");
         }

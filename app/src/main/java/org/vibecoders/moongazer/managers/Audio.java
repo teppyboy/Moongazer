@@ -131,22 +131,8 @@ public class Audio {
             }
         }
 
-        if (endlessMusicPlaylist.isEmpty()) {
-            log.error("!!! NO ENDLESS MUSIC TRACKS WERE LOADED !!!");
-            log.error("═══════════════════════════════════════════════════════════");
-            log.error("SOLUTION: Convert your MP3 files to OGG format");
-            log.error("═══════════════════════════════════════════════════════════");
-            log.error("Option 1 - Using Audacity (Free GUI tool):");
-            log.error("  1. Download from: https://www.audacityteam.org/");
-            log.error("  2. Open your MP3 file");
-            log.error("  3. File > Export > Export as OGG Vorbis");
-            log.error("  4. Save to: app/src/main/resources/audio/endlessost/");
-            log.error("");
-            log.error("Option 2 - Using FFmpeg (Command line):");
-            log.error("  ffmpeg -i endlessost1.mp3 -c:a libvorbis -q:a 5 endlessost1.ogg");
-            log.error("═══════════════════════════════════════════════════════════");
-        } else {
-            log.info("✓✓✓ Endless playlist loaded with {} tracks", endlessMusicPlaylist.size());
+        if (!endlessMusicPlaylist.isEmpty()) {
+            log.info("Endless playlist loaded with {} tracks", endlessMusicPlaylist.size());
         }
     }
 
@@ -197,7 +183,6 @@ public class Audio {
         endlessMusicActive = false;
         for (Music music : endlessMusicPlaylist) {
             if (music.isPlaying()) music.stop();
-            music.dispose();
         }
         endlessMusicPlaylist.clear();
         endlessMusicPlaylist = null;
@@ -265,7 +250,6 @@ public class Audio {
         if (gameOverMusic.isPlaying()) {
             gameOverMusic.stop();
         }
-        gameOverMusic.dispose();
         gameOverMusic = null;
         log.info("Game over music stopped and disposed");
     }
@@ -282,17 +266,8 @@ public class Audio {
     public static void dispose() {
         stopEndlessMusic();
         stopGameOverMusic();
-
-        for (Music music : musicTracks.values()) {
-            if (music != null) music.dispose();
-        }
         musicTracks.clear();
-        
-        for (Sound sound : soundEffects.values()) {
-            if (sound != null) sound.dispose();
-        }
         soundEffects.clear();
-        
         initialized = false;
         log.info("Audio manager disposed");
     }

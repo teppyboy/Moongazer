@@ -210,10 +210,8 @@ public abstract class Dialogue extends Scene {
 
         if (step.getAudioAsset() != null && !step.getAudioAsset().isEmpty()) {
             try {
-                FileHandle audioFile = Assets.getAsset(step.getAudioAsset(), FileHandle.class);
-                currentDialogueSound = Gdx.audio.newSound(audioFile);
-                float volume = Settings.getSfxVolume() * Settings.getMasterVolume();
-                currentDialogueSound.play(volume);
+                currentDialogueSound = Assets.getSound(step.getAudioAsset());
+                currentDialogueSound.play(Settings.getSfxVolume() * Settings.getMasterVolume());
             } catch (Exception e) {
                 Gdx.app.error("Dialogue", "Failed to play dialogue audio: " + step.getAudioAsset(), e);
             }
@@ -338,7 +336,6 @@ public abstract class Dialogue extends Scene {
         container.setVisible(false);
         if (currentDialogueSound != null) {
             currentDialogueSound.stop();
-            currentDialogueSound.dispose();
             currentDialogueSound = null;
         }
         if (overlayTexture != null) {
@@ -346,7 +343,6 @@ public abstract class Dialogue extends Scene {
             overlayTexture = null;
         }
         if (dialogBackgroundTexture != null) {
-            dialogBackgroundTexture.dispose();
             dialogBackgroundTexture = null;
         }
         if (background != null) {

@@ -25,7 +25,7 @@ public class ChallengeGoalsPanel {
 
         panel.setFillParent(true);
         panel.top().right();
-        panel.padTop(70).padRight(50);
+        panel.padTop(70).padRight(5);
 
         Table contentTable = new Table();
         contentTable.defaults().pad(4);
