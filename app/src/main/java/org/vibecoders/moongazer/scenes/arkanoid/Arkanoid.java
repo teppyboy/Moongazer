@@ -336,6 +336,7 @@ public abstract class Arkanoid extends Scene {
         }
 
         paddle.update(delta, SIDE_PANEL_WIDTH, SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH);
+        paddle.cleanupBullets(WINDOW_HEIGHT);
 
         for (Ball ball : balls) {
             ball.update(delta);
@@ -592,6 +593,7 @@ public abstract class Arkanoid extends Scene {
         }
 
         handlePowerUpCollisions();
+        handleBulletCollisions();
         if (checkLevelComplete()) {
             onLevelComplete();
         }
@@ -648,6 +650,32 @@ public abstract class Arkanoid extends Scene {
         }
     }
 
+    private void handleBulletCollisions() {
+        List<Bullet> bullets = paddle.getBullets();
+
+        for (int i = bullets.size() - 1; i >= 0; i--) {
+            Bullet bullet = bullets.get(i);
+            Rectangle bulletBounds = bullet.getBounds();
+
+            for (Brick brick : bricks) {
+                if (!brick.isDestroyed() && Intersector.overlaps(bulletBounds, brick.getBounds())) {
+                    brick.hit();
+
+                    if (brick.isDestroyed()) {
+                        onBrickDestroyed(brick);
+
+                        if (brick.getPowerUpType() != Brick.PowerUpType.NONE) {
+                            spawnRandomPowerUp(brick);
+                        }
+                    }
+
+                    bullet.setActive(false);
+                    break;
+                }
+            }
+        }
+    }
+
     private void spawnRandomPowerUp(Brick brick) {
         PowerUpFactory factory = new ClassicPowerUpFactory();
         PowerUp powerUp = null;
@@ -677,7 +705,9 @@ public abstract class Arkanoid extends Scene {
                 case SUPER_BALL:
                     powerUp = factory.createSuperBall(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
                     break;
-                case LASER:
+                case BULLET:
+                    powerUp = factory.createBulletPaddle(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
+                    break;
                 case EXPLOSIVE:
                     log.warn("Power-up type {} not yet implemented", brick.getPowerUpType());
                     return;
@@ -686,18 +716,20 @@ public abstract class Arkanoid extends Scene {
             }
         } else {
             double rand = Math.random();
-            if (rand < 0.20) {
+            if (rand < 0.15) {
                 powerUp = factory.createExpandPaddle(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
-            } else if (rand < 0.40){
+            } else if (rand < 0.30){
                 powerUp = factory.createExtraLife(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
-            } else if (rand < 0.60){
+            } else if (rand < 0.45){
                 powerUp = factory.createFastBall(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
-            } else if (rand < 0.80){
+            } else if (rand < 0.60){
                 powerUp = factory.createSlowBall(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
-            } else if (rand < 0.90){
+            } else if (rand < 0.75){
                 powerUp = factory.createMultiBall(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
-            } else {
+            } else if (rand < 0.80){
                 powerUp = factory.createSuperBall(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
+            } else if (rand < 0.85){
+                powerUp = factory.createBulletPaddle(powerUpX, powerUpY, powerUpWidth, powerUpHeight);
             }
         }
 
@@ -708,8 +740,9 @@ public abstract class Arkanoid extends Scene {
 
     private boolean canPowerUpStack(String powerUpName) {
         if (powerUpName.equals("Expand Paddle") ||
-            powerUpName.equals("Multi Ball") ||
-            powerUpName.equals("Extra Life")) {
+                powerUpName.equals("Multi Ball") ||
+                powerUpName.equals("Extra Life") ||
+                powerUpName.equals("Bullet Paddle")) {
             return true;
         }
 
@@ -769,6 +802,11 @@ public abstract class Arkanoid extends Scene {
             shapeRenderer.rect(ballBounds.x - ballRadius, ballBounds.y - ballRadius, ballRadius * 2, ballRadius * 2);
             shapeRenderer.setColor(1, 1, 0, 1);
             shapeRenderer.circle(ballBounds.x, ballBounds.y, 2, 8);
+        }
+
+        for (Bullet bullet : paddle.getBullets()) {
+            Rectangle bulletBounds = bullet.getBounds();
+            shapeRenderer.rect(bulletBounds.x, bulletBounds.y, bulletBounds.width, bulletBounds.height);
         }
 
         Rectangle paddleBounds = paddle.getBounds();
