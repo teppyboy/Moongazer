@@ -6,7 +6,7 @@ import org.vibecoders.moongazer.scenes.arkanoid.Arkanoid;
 public class SuperBall extends PowerUp {
     public SuperBall(float x, float y, float width, float height) {
         super(x, y, width, height);
-        loadTexture("textures/arkanoid/perk5.png");
+        loadTexture("textures/arkanoid/perk1.png");
     }
 
     @Override

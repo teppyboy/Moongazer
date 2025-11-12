@@ -6,7 +6,7 @@ import org.vibecoders.moongazer.scenes.arkanoid.Arkanoid;
 public class ExpandPaddle extends PowerUp {
     public ExpandPaddle(float x, float y, float width, float height) {
         super(x, y, width, height);
-        loadTexture("textures/arkanoid/perk1.png");
+        loadTexture("textures/arkanoid/perk5.png");
     }
 
     @Override
@@ -23,7 +23,7 @@ public class ExpandPaddle extends PowerUp {
 
     @Override
     public int getDuration() {
-        return 5000;
+        return 10000;
     }
 
     @Override
