@@ -11,7 +11,6 @@ import org.vibecoders.moongazer.ui.UIScrollbar;
 
 public class StageInfoPanel {
     private Table panel;
-    private ScrollPane scrollPane;
     private Label description;
     private Label.LabelStyle labelStyle;
     private static final BitmapFont font = Assets.getFont("ui", 20);

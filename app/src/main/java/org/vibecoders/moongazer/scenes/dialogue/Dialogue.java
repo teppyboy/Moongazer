@@ -59,7 +59,6 @@ public abstract class Dialogue extends Scene {
     private TextureRegion dialogBg;
     private TextureRegion separator;
     private boolean started = false;
-    private boolean isEnding = false;
 
     public Dialogue(Game game) {
         super(game);
