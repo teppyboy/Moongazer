@@ -307,15 +307,7 @@ For all dependencies please referer to [build.gradle.kts](./app/build.gradle.kts
 
 ## License
 
-This project is developed for educational purposes only.
-
-**Academic Integrity:** This code is provided as a reference. Please follow your institution's academic integrity policies.
-
-**Asset Attribution:**
-- Character sprites and UI elements are inspired by Wuthering Waves (Kuro Games)
-- Background music tracks are from various sources
-- Some sound effects are from royalty-free libraries
-- All assets are used for educational purposes under fair use
+[GNU GPLv3](./LICENSE), Wuthering Waves assets belong to KURO GAMES.
 
 ---
 
