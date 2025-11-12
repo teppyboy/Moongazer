@@ -90,6 +90,13 @@ public class StoryArkanoid extends Arkanoid {
 
         gameWinMenu.setOnQuit(() -> {
             log.info("Quit clicked from win menu");
+            
+            // Save high score before quitting
+            if (score > 0) {
+                SaveGameManager.updateStoryHighScore(stageId, score);
+                log.info("High score saved before quit: {} for stage {}", score, stageId);
+            }
+            
             Gdx.app.exit();
         });
     }
@@ -278,6 +285,13 @@ public class StoryArkanoid extends Arkanoid {
     @Override
     protected void returnToMainMenu() {
         log.info("Returning to main menu from story mode");
+        
+        // Save high score before returning to main menu
+        if (score > 0) {
+            SaveGameManager.updateStoryHighScore(stageId, score);
+            log.info("High score saved: {} for stage {}", score, stageId);
+        }
+        
         if (onReturnToMainMenuCallback != null) {
             log.info("Calling returnToMainMenu callback");
             onReturnToMainMenuCallback.run();
@@ -373,6 +387,12 @@ public class StoryArkanoid extends Arkanoid {
 
     @Override
     public void dispose() {
+        // Save high score before disposing
+        if (score > 0 && stageId > 0) {
+            SaveGameManager.updateStoryHighScore(stageId, score);
+            log.info("High score saved on dispose: {} for stage {}", score, stageId);
+        }
+        
         super.dispose();
         if (gameWinMenu != null) {
             gameWinMenu.dispose();
