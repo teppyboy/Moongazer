@@ -179,7 +179,7 @@ public class Paddle extends MovableObject {
     public void moveRight(boolean move) {
         this.aiMoveRight = move;
     }
-}
+    
     public void setBulletEnabled(boolean enabled) {
         this.bulletEnabled = enabled;
         if (!enabled) {
