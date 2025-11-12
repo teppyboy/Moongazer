@@ -13,7 +13,7 @@ public class Brick extends GameObject {
 
     public enum PowerUpType {
         NONE, EXPAND_PADDLE, EXTRA_LIFE, FAST_BALL, SLOW_BALL,
-        MULTI_BALL, SUPER_BALL, LASER, EXPLOSIVE
+        MULTI_BALL, SUPER_BALL, BULLET, EXPLOSIVE
     }
 
     private BrickType type;
@@ -94,7 +94,7 @@ public class Brick extends GameObject {
                 case SUPER_BALL:
                     texture = Assets.getAsset("textures/arkanoid/bricks/superballbrick.png", Texture.class);
                     return;
-                case LASER:
+                case BULLET:
                     texture = Assets.getAsset("textures/arkanoid/bricks/laserbrick.png", Texture.class);
                     return;
                 case EXPLOSIVE:
