@@ -93,7 +93,7 @@ public class ArkanoidEndless extends Arkanoid {
                 Math.min(2 + (currentWave / 8), 3),   // Expand Paddle: 2-3
                 Math.min(1 + (currentWave / 10), 2),  // Fast Ball: 1-2
                 Math.min(1 + (currentWave / 10), 2),  // Slow Ball: 1-2
-                Math.min(3 + (currentWave / 12), 2)   // Bullet Paddle: 3-2
+                Math.min(1 + (currentWave / 12), 3)   // Bullet Paddle: 1-3
         };
         
         int powerUpTotal = 0;
