@@ -95,14 +95,58 @@ public abstract class Story extends Scene {
     }
     
     protected void onStoryComplete() {
-        log.info("Stage " + stageNumber + " complete! Returning to story mode selection");
+        log.info("Stage " + stageNumber + " complete!");
         stopStageMusic();
-        Audio.menuMusicPlay();
-        if (game.transition == null && game.storyModeScene != null) {
-            game.transition = new Transition(game, this, game.storyModeScene, State.STORY_MODE, 500);
+
+        // Check if there's a next stage
+        if (stageNumber < 5) {
+            // Proceed to next stage
+            transitionToNextStage();
+        } else {
+            // Final stage completed, return to story mode selection
+            log.info("All stages complete! Returning to story mode selection");
+            Audio.menuMusicPlay();
+            if (game.transition == null && game.storyModeScene != null) {
+                game.transition = new Transition(game, this, game.storyModeScene, State.STORY_MODE, 500);
+            }
         }
     }
-    
+
+    /**
+     * Transition to the next stage in the story
+     */
+    protected void transitionToNextStage() {
+        int nextStageNumber = stageNumber + 1;
+        log.info("Transitioning to stage {}", nextStageNumber);
+
+        Scene nextStage = createStageScene(nextStageNumber);
+        if (nextStage != null && game.transition == null) {
+            game.transition = new Transition(game, this, nextStage, State.STORY_STAGE, 500);
+        } else {
+            log.error("Failed to create stage {} scene, returning to story mode", nextStageNumber);
+            Audio.menuMusicPlay();
+            if (game.transition == null && game.storyModeScene != null) {
+                game.transition = new Transition(game, this, game.storyModeScene, State.STORY_MODE, 500);
+            }
+        }
+    }
+
+    /**
+     * Create a stage scene based on stage number
+     */
+    private Scene createStageScene(int stageNum) {
+        switch (stageNum) {
+            case 1: return new Stage1(game);
+            case 2: return new Stage2(game);
+            case 3: return new Stage3(game);
+            case 4: return new Stage4(game);
+            case 5: return new Stage5(game);
+            default:
+                log.error("Invalid stage number: {}", stageNum);
+                return null;
+        }
+    }
+
     @Override
     public void render(SpriteBatch batch) {
         switch (currentPhase) {
