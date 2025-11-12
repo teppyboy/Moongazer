@@ -233,6 +233,8 @@ Moongazer/
 
 ---
 
+For all dependencies please referer to [build.gradle.kts](./app/build.gradle.kts)
+
 ## Testing
 
 The project includes comprehensive unit tests for core game mechanics:
@@ -289,21 +291,6 @@ The project includes comprehensive unit tests for core game mechanics:
 *Please report any bugs or issues on the GitHub Issues page*
 
 ---
-
-## Technologies Used
-
-Main technologies
-
-| Technology  | Version  | Purpose                  |
-| ----------- | -------- | ------------------------ |
-| Java        | 25+      | Core language            |
-| libGDX      | 1.13.5   | GUI framework            |
-| Gradle      | 9.0.0    | Build tool               |
-| JUnit       | latest   | Testing framework        |
-| sqlite-jdbc | 3.47.1.0 | Stores user data locally |
----
-
-For all dependencies please referer to [build.gradle.kts](./app/build.gradle.kts) file.
 
 ## License
 
