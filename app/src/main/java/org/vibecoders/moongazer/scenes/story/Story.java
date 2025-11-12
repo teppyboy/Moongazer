@@ -53,7 +53,29 @@ public abstract class Story extends Scene {
     }
     
     protected void initGameplay() {
-        gameplay = new Stage1Arkanoid(game, 3);
+        // Create appropriate StageArkanoid based on stage number
+        switch (stageNumber) {
+            case 1:
+                gameplay = new Stage1Arkanoid(game, 3);
+                break;
+            case 2:
+                gameplay = new Stage2Arkanoid(game, 3);
+                break;
+            case 3:
+                gameplay = new Stage3Arkanoid(game, 3);
+                break;
+            case 4:
+                gameplay = new Stage4Arkanoid(game, 3);
+                break;
+            case 5:
+                gameplay = new Stage5Arkanoid(game, 3);
+                break;
+            default:
+                log.error("Invalid stage number: {}", stageNumber);
+                gameplay = new Stage1Arkanoid(game, 3);
+                break;
+        }
+        
         gameplay.setOnReturnToMainMenu(() -> {
             log.info("Stage " + stageNumber + " quit! Returning to main menu");
             stopStageMusic();

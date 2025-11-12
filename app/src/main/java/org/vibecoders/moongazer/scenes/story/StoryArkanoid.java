@@ -254,6 +254,12 @@ public class StoryArkanoid extends Arkanoid {
     protected void onGameOver() {
         log.info("Story game over!");
         SaveGameManager.updateStoryHighScore(stageId, score);
+
+        gameInputEnabled = false;
+        if (gameOverMenu != null) {
+            gameOverMenu.show(score);
+        }
+
         if (onGameOverCallback != null) {
             onGameOverCallback.run();
         }
