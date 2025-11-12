@@ -945,6 +945,21 @@ public abstract class Arkanoid extends Scene {
         fontUI30.draw(batch, maxComboValue, maxComboValueX, WINDOW_HEIGHT - 330 - layout.height);
         fontUI30.setColor(originalMaxComboColor);
 
+        // Display [AUTO MODE] text if AI is enabled with blinking effect
+        if (paddleAI.isEnabled()) {
+            String autoModeText = "[AI MODE]";
+            // Create blinking effect by oscillating alpha
+            float blinkAlpha = (TimeUtils.millis() / 500) % 2 == 0 ? 0.4f : 1.0f;
+            Color aiColor = new Color(0.7f, 0.7f, 0.7f, blinkAlpha); // Gray color with blinking alpha
+            Color originalFontColor = font.getColor().cpy();
+            font.setColor(aiColor);
+            layout.setText(font, autoModeText);
+            float autoModeX = (SIDE_PANEL_WIDTH - layout.width) / 2f;
+            float autoModeY = WINDOW_HEIGHT - 330 - maxComboValueHeight - layout.height - 30;
+            font.draw(batch, autoModeText, autoModeX, autoModeY);
+            font.setColor(originalFontColor);
+        }
+
         String livesText = " x " + lives;
         layout.setText(fontUI30, livesText);
         float heartAndTextWidth = HEART_ICON_SIZE + 5f + layout.width;
