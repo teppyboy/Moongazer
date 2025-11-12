@@ -79,34 +79,27 @@ public class SettingsScene extends Scene {
         section.setBackground(tintedBg);
         section.add(new Label("Keybinds", labelStyle)).colspan(2).expandX().left().padLeft(20).padTop(15).padBottom(10);
         section.row();
-        String[] players = { "Player 1", "Player 2" };
-        String[] prefixes = { "p1", "p2" };
-        String[] actions = { "_left", "_right" };
+        String[] actions = { "p1_left", "p1_right" };
         String[] labels = { "    Move Left", "    Move Right" };
 
-        for (int p = 0; p < players.length; p++) {
-            section.add(new Label("  " + players[p], labelStyle)).colspan(2).left()
-                    .padLeft(60);
-            section.row();
-            for (int a = 0; a < actions.length; a++) {
-                section.add(new Label(labels[a], labelStyle)).left().padLeft(80);
-                String action = prefixes[p] + actions[a];
-                UITextButton button = new UITextButton(getKeyName(Settings.getKeybind(action)), font);
-                button.button.addListener(new ClickListener() {
-                    @Override
-                    public void clicked(InputEvent event, float x, float y) {
-                        if (!isEditingKeybind) {
-                            isEditingKeybind = true;
-                            currentEditingButton = button;
-                            currentKeybindAction = action;
-                            ((TextButton) (button.button)).setText("Press Key...");
-                        }
+        for (int a = 0; a < actions.length; a++) {
+            section.add(new Label(labels[a], labelStyle)).left().padLeft(80);
+            String action = actions[a];
+            UITextButton button = new UITextButton(getKeyName(Settings.getKeybind(action)), font);
+            button.button.addListener(new ClickListener() {
+                @Override
+                public void clicked(InputEvent event, float x, float y) {
+                    if (!isEditingKeybind) {
+                        isEditingKeybind = true;
+                        currentEditingButton = button;
+                        currentKeybindAction = action;
+                        ((TextButton) (button.button)).setText("Press Key...");
                     }
-                });
-                keybindButtons.put(action, button);
-                section.add(button.button).width(240).height(60).right().padRight(40);
-                section.row();
-            }
+                }
+            });
+            keybindButtons.put(action, button);
+            section.add(button.button).width(240).height(60).right().padRight(40);
+            section.row();
         }
 
         mainPanel.add(section).width(700).padBottom(20);

@@ -77,6 +77,7 @@ public abstract class Arkanoid extends Scene {
     private InputAdapter gameInputAdapter;
     protected boolean gameInputEnabled = true;
     private boolean escKeyDownInGame = false;
+    protected PaddleAI paddleAI;
 
     public Arkanoid(Game game) {
         super(game);
@@ -90,6 +91,7 @@ public abstract class Arkanoid extends Scene {
         heartTexture = Assets.getAsset("textures/arkanoid/heart.png", Texture.class);
         shapeRenderer = new ShapeRenderer();
         gameFrameBuffer = new FrameBuffer(Pixmap.Format.RGBA8888, WINDOW_WIDTH, WINDOW_HEIGHT, false);
+        paddleAI = new ArkanoidAI();
         setupInputHandling();
         pauseMenu = new PauseMenu();
         setupPauseMenuCallbacks();
@@ -321,9 +323,18 @@ public abstract class Arkanoid extends Scene {
             showHitboxes = !showHitboxes;
             log.info("Hitbox rendering: {}", showHitboxes ? "ON" : "OFF");
         }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.F1)) {
+            paddleAI.setEnabled(!paddleAI.isEnabled());
+            log.info("AI mode: {}", paddleAI.isEnabled() ? "ENABLED" : "DISABLED");
+        }
     }
 
     protected void updateGameplay(float delta) {
+        // Update AI before paddle
+        if (paddleAI.isEnabled()) {
+            paddleAI.update(paddle, balls, activePowerUps);
+        }
+
         paddle.update(delta, SIDE_PANEL_WIDTH, SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH);
         paddle.cleanupBullets(WINDOW_HEIGHT);
 
