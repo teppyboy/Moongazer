@@ -14,6 +14,9 @@ public class SaveGameManager {
     private static final String DB_FILE = "userdata.db";
     private static Connection connection;
 
+    /**
+     * Data class representing a score entry.
+     */
     public static class ScoreEntry {
         public int id;
         public int score;
@@ -34,6 +37,9 @@ public class SaveGameManager {
         }
     }
 
+    /**
+     * Data class representing a story game save.
+     */
     public static class StoryGameSave {
         public int stageId;
         public int currentScore;
@@ -55,6 +61,9 @@ public class SaveGameManager {
         }
     }
 
+    /**
+     * Data class representing a save slot.
+     */
     public static class SaveSlot {
         public int slotId;
         public String slotName;
@@ -81,6 +90,9 @@ public class SaveGameManager {
         }
     }
 
+    /**
+     * Initializes the SaveGameManager by setting up the database connection and creating necessary tables.
+     */
     public static void initialize() {
         try {
             String dbPath = Gdx.files.local(DB_FILE).file().getAbsolutePath();
@@ -93,6 +105,10 @@ public class SaveGameManager {
         }
     }
 
+    /**
+     * Creates necessary database tables if they do not exist.
+     * @throws SQLException
+     */
     private static void createTables() throws SQLException {
         String createHighScoreTable = """
             CREATE TABLE IF NOT EXISTS high_score (
@@ -161,6 +177,10 @@ public class SaveGameManager {
         }
     }
 
+    /**
+     * Gets the current high score.
+     * @return The high score.
+     */
     public static int getHighScore() {
         if (connection == null) {
             log.warn("Database not initialized, returning 0 for high score");
@@ -180,6 +200,10 @@ public class SaveGameManager {
         return 0;
     }
 
+    /**
+     * Gets the wave associated with the high score.
+     * @return The wave number.
+     */
     public static int getHighScoreWave() {
         if (connection == null) {
             log.warn("Database not initialized, returning 0 for high score wave");
@@ -197,6 +221,12 @@ public class SaveGameManager {
         return 0;
     }
 
+    /**
+     * Updates the high score if the new score is higher than the current high score.
+     * @param score The new score.
+     * @param wave The wave number associated with the new score.
+     * @return True if the high score was updated, false otherwise.
+     */
     public static boolean updateHighScore(int score, int wave) {
         if (connection == null) {
             log.warn("Database not initialized, cannot update high score");
@@ -225,6 +255,11 @@ public class SaveGameManager {
         return false;
     }
 
+    /**
+     * Saves an endless mode score entry.
+     * @param score The score achieved.
+     * @param wave The wave number reached.
+     */
     public static void saveEndlessScore(int score, int wave) {
         if (connection == null) {
             log.warn("Database not initialized, cannot save endless score");
@@ -245,6 +280,10 @@ public class SaveGameManager {
         }
     }
 
+    /**
+     * Retrieves all endless mode scores sorted by score in descending order.
+     * @return A list of ScoreEntry objects.
+     */
     public static List<ScoreEntry> getAllEndlessScores() {
         List<ScoreEntry> scores = new ArrayList<>();
         if (connection == null) {
@@ -274,6 +313,11 @@ public class SaveGameManager {
         return scores;
     }
 
+    /**
+     * Retrieves the top N endless mode scores sorted by score in descending order.
+     * @param limit The maximum number of scores to retrieve.
+     * @return A list of ScoreEntry objects.
+     */
     public static List<ScoreEntry> getTopEndlessScores(int limit) {
         List<ScoreEntry> scores = new ArrayList<>();
         if (connection == null) {
@@ -305,6 +349,10 @@ public class SaveGameManager {
         return scores;
     }
 
+    /**
+     * Gets the total number of endless mode games played.
+     * @return The total number of games.
+     */
     public static int getTotalGamesPlayed() {
         if (connection == null) {
             log.warn("Database not initialized, returning 0 for total games");
@@ -322,6 +370,15 @@ public class SaveGameManager {
         return 0;
     }
 
+    /**
+     * Saves the current state of a story mode game.
+     * @param stageId The stage ID.
+     * @param currentScore The current score.
+     * @param highScore The high score for the stage.
+     * @param lives The number of lives remaining.
+     * @param bricksDestroyed The number of bricks destroyed.
+     * @param gameStateJson The serialized game state in JSON format.
+     */
     public static void saveStoryGame(int stageId, int currentScore, int highScore,
                                      int lives, int bricksDestroyed, String gameStateJson) {
         if (connection == null) {
@@ -348,6 +405,11 @@ public class SaveGameManager {
         }
     }
 
+    /**
+     * Loads a saved story mode game state.
+     * @param stageId The stage ID.
+     * @return A StoryGameSave object containing the saved state, or null if not found.
+     */
     public static StoryGameSave loadStoryGame(int stageId) {
         if (connection == null) {
             log.warn("Database not initialized, cannot load story game");
@@ -381,6 +443,10 @@ public class SaveGameManager {
         return null;
     }
 
+    /**
+     * Retrieves all saved story mode games.
+     * @return A list of StoryGameSave objects.
+     */
     public static List<StoryGameSave> getAllStoryGameSaves() {
         List<StoryGameSave> saves = new ArrayList<>();
         if (connection == null) {
@@ -414,6 +480,10 @@ public class SaveGameManager {
         return saves;
     }
 
+    /** Checks if a save game exists for the given stage ID.
+     * @param stageId The stage ID.
+     * @return True if a save game exists, false otherwise.
+     */
     public static boolean hasSaveGame(int stageId) {
         if (connection == null) {
             log.warn("Database not initialized");
@@ -432,6 +502,10 @@ public class SaveGameManager {
         return false;
     }
 
+    /**
+     * Deletes a saved story mode game for the given stage ID.
+     * @param stageId The stage ID.
+     */
     public static void deleteStoryGameSave(int stageId) {
         if (connection == null) {
             log.warn("Database not initialized, cannot delete story game save");
@@ -447,6 +521,11 @@ public class SaveGameManager {
         }
     }
 
+    /**
+     * Gets the high score for a specific story mode stage.
+     * @param stageId The stage ID.
+     * @return The high score for the stage.
+     */
     public static int getStoryHighScore(int stageId) {
         if (connection == null) {
             log.warn("Database not initialized, returning 0 for story high score");
@@ -465,6 +544,12 @@ public class SaveGameManager {
         return 0;
     }
 
+    /**
+     * Updates the high score for a specific story mode stage if the new score is higher.
+     * @param stageId The stage ID.
+     * @param score The new score.
+     * @return True if the high score was updated, false otherwise.
+     */
     public static boolean updateStoryHighScore(int stageId, int score) {
         if (connection == null) {
             log.warn("Database not initialized, cannot update story high score");
@@ -490,7 +575,10 @@ public class SaveGameManager {
         return false;
     }
 
-    // Save Slot Management Methods
+    /**
+     * Retrieves all save slots.
+     * @return A list of SaveSlot objects.
+     */
     public static List<SaveSlot> getAllSaveSlots() {
         List<SaveSlot> slots = new ArrayList<>();
         if (connection == null) {
@@ -526,6 +614,11 @@ public class SaveGameManager {
         return slots;
     }
 
+    /**
+     * Retrieves a specific save slot by its ID.
+     * @param slotId The slot ID.
+     * @return A SaveSlot object, or null if not found.
+     */
     public static SaveSlot getSaveSlot(int slotId) {
         if (connection == null) {
             log.warn("Database not initialized");
@@ -559,6 +652,17 @@ public class SaveGameManager {
         return null;
     }
 
+    /**
+     * Creates a new save slot.
+     * @param slotName The name of the save slot.
+     * @param stageId The current stage ID.
+     * @param currentScore The current score.
+     * @param lives The number of lives remaining.
+     * @param bricksDestroyed The number of bricks destroyed.
+     * @param gameStateJson The serialized game state in JSON format.
+     * @param progressJson The serialized progress in JSON format.
+     * @return The ID of the newly created save slot, or -1 on failure.
+     */
     public static int createSaveSlot(String slotName, int stageId, int currentScore,
                                       int lives, int bricksDestroyed, String gameStateJson,
                                       String progressJson) {
@@ -594,6 +698,18 @@ public class SaveGameManager {
         return -1;
     }
 
+    /**
+     * Updates an existing save slot.
+     * @param slotId The ID of the save slot to update.
+     * @param slotName The name of the save slot.
+     * @param stageId The current stage ID.
+     * @param currentScore The current score.
+     * @param lives The number of lives remaining.
+     * @param bricksDestroyed The number of bricks destroyed.
+     * @param gameStateJson The serialized game state in JSON format.
+     * @param progressJson The serialized progress in JSON format.
+     * @return True if the save slot was updated, false otherwise.
+     */
     public static boolean updateSaveSlot(int slotId, String slotName, int stageId,
                                         int currentScore, int lives, int bricksDestroyed,
                                         String gameStateJson, String progressJson) {
@@ -628,6 +744,11 @@ public class SaveGameManager {
         return false;
     }
 
+    /**
+     * Deletes a save slot by its ID.
+     * @param slotId The ID of the save slot to delete.
+     * @return True if the save slot was deleted, false otherwise.
+     */
     public static boolean deleteSaveSlot(int slotId) {
         if (connection == null) {
             log.warn("Database not initialized, cannot delete save slot");
@@ -647,6 +768,9 @@ public class SaveGameManager {
         return false;
     }
 
+    /**
+     * Disposes the SaveGameManager by closing the database connection.
+     */
     public static void dispose() {
         if (connection != null) {
             try {

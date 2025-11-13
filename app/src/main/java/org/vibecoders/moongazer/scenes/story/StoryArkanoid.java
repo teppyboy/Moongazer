@@ -21,6 +21,13 @@ public class StoryArkanoid extends Arkanoid {
     protected int startingLives;
     protected int stageId = 0;
 
+    /**
+     * Constructs a story mode Arkanoid game with specified rows and starting lives.
+     *
+     * @param game the main game instance
+     * @param rows the number of brick rows (used for required bricks calculation)
+     * @param startingLives the number of starting lives
+     */
     public StoryArkanoid(Game game, int rows, int startingLives) {
         super(game);
         this.requiredBricks = rows;
@@ -28,6 +35,11 @@ public class StoryArkanoid extends Arkanoid {
         this.lives = startingLives;
     }
 
+    /**
+     * Sets the stage ID for save/load functionality.
+     *
+     * @param stageId the stage ID (1-5)
+     */
     public void setStageId(int stageId) {
         this.stageId = stageId;
     }
@@ -57,6 +69,9 @@ public class StoryArkanoid extends Arkanoid {
         }
     }
 
+    /**
+     * Initializes the story mode Arkanoid game.
+     */
     @Override
     protected void init() {
         super.init();
@@ -101,6 +116,9 @@ public class StoryArkanoid extends Arkanoid {
         });
     }
 
+    /**
+     * Opens the save game menu and serializes the current game state.
+     */
     private void openSaveMenu() {
         try {
             String gameStateJson = serializeGameState();
@@ -132,6 +150,11 @@ public class StoryArkanoid extends Arkanoid {
         }
     }
 
+    /**
+     * Loads the game state from a save slot or old save system.
+     *
+     * @return true if the game was loaded successfully, false otherwise
+     */
     public boolean loadGame() {
         try {
             // Check if we're loading from a save slot
@@ -167,6 +190,11 @@ public class StoryArkanoid extends Arkanoid {
         }
     }
 
+    /**
+     * Serializes the current game state to a JSON string.
+     *
+     * @return the serialized game state as a JSON string
+     */
     private String serializeGameState() {
         GameState state = new GameState();
         state.paddle = new GameState.PaddleState();
@@ -206,6 +234,11 @@ public class StoryArkanoid extends Arkanoid {
         return json.toJson(state);
     }
 
+    /**
+     * Deserializes the game state from a JSON string.
+     *
+     * @param gameStateJson the serialized game state as a JSON string
+     */
     private void deserializeGameState(String gameStateJson) {
         Json json = new Json();
         GameState state = json.fromJson(GameState.class, gameStateJson);
@@ -236,15 +269,36 @@ public class StoryArkanoid extends Arkanoid {
         }
     }
 
+    /**
+     * Sets the callback to be invoked when the level is completed.
+     *
+     * @param callback the callback to invoke on level completion
+     */
     public void setOnLevelComplete(Runnable callback) {
         this.onLevelCompleteCallback = callback;
     }
+
+    /**
+     * Sets the callback to be invoked when the game is over.
+     *
+     * @param callback the callback to invoke on game over
+     */
     public void setOnGameOver(Runnable callback) {
         this.onGameOverCallback = callback;
     }
+
+    /**
+     * Sets the callback to be invoked when returning to the main menu.
+     *
+     * @param callback the callback to invoke on return to main menu
+     */
     public void setOnReturnToMainMenu(Runnable callback) {
         this.onReturnToMainMenuCallback = callback;
     }
+
+    /**
+     * Handles level completion logic.
+     */
     @Override
     protected void onLevelComplete() {
         log.info("Story level complete!");
@@ -257,6 +311,9 @@ public class StoryArkanoid extends Arkanoid {
         // Show win menu with stats (snapshot will be captured in render method)
         gameWinMenu.show(score, maxCombo, lives);
     }
+    /**
+     * Handles game over logic.
+     */
     @Override
     protected void onGameOver() {
         log.info("Story game over!");
@@ -271,10 +328,18 @@ public class StoryArkanoid extends Arkanoid {
             onGameOverCallback.run();
         }
     }
+
+    /**
+     * Handles pause button press.
+     */
     @Override
     protected void onPausePressed() {
         pauseMenu.pause();
     }
+
+    /**
+     * Restarts the game by resetting score, lives, and bricks destroyed.
+     */
     @Override
     protected void restartGame() {
         score = 0;
@@ -282,6 +347,10 @@ public class StoryArkanoid extends Arkanoid {
         bricksDestroyed = 0;
         initGameplay();
     }
+
+    /**
+     * Returns to the main menu, saving high score if applicable.
+     */
     @Override
     protected void returnToMainMenu() {
         log.info("Returning to main menu from story mode");
@@ -300,6 +369,12 @@ public class StoryArkanoid extends Arkanoid {
             Gdx.app.exit();
         }
     }
+
+    /**
+     * Renders the game, handling pause, game over, and win menus.
+     *
+     * @param batch the SpriteBatch used for rendering
+     */
     @Override
     public void render(SpriteBatch batch) {
         // Handle input and game updates
@@ -385,6 +460,9 @@ public class StoryArkanoid extends Arkanoid {
         }
     }
 
+    /**
+     * Disposes resources used by the story mode Arkanoid game.
+     */
     @Override
     public void dispose() {
         // Save high score before disposing

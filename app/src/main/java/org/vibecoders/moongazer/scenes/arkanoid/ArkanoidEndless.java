@@ -16,10 +16,18 @@ public class ArkanoidEndless extends Arkanoid {
     private int currentWave = 1;
     private float unbreakableChance = 0.1f;
 
+    /**
+     * Constructs a new endless mode Arkanoid game.
+     *
+     * @param game the main game instance
+     */
     public ArkanoidEndless(Game game) {
         super(game);
     }
 
+    /**
+     * Initializes endless mode including background, music, and first wave.
+     */
     @Override
     protected void init() {
         super.init();
@@ -32,6 +40,9 @@ public class ArkanoidEndless extends Arkanoid {
         startWave(currentWave);
     }
 
+    /**
+     * Sets up pause menu callbacks with score saving functionality for endless mode.
+     */
     @Override
     protected void setupPauseMenuCallbacks() {
         // Call parent to set up basic callbacks
@@ -56,6 +67,9 @@ public class ArkanoidEndless extends Arkanoid {
         });
     }
 
+    /**
+     * Sets up game over menu callbacks with music transitions for endless mode.
+     */
     @Override
     protected void setupGameOverMenuCallbacks() {
         gameOverMenu.setOnPlayAgain(() -> {
@@ -86,6 +100,11 @@ public class ArkanoidEndless extends Arkanoid {
         });
     }
 
+    /**
+     * Starts a new wave with increased difficulty.
+     *
+     * @param wave the wave number to start
+     */
     private void startWave(int wave) {
         bricksDestroyed = 0;
         int rows = Math.min(5 + (wave / 2), 10);
@@ -95,6 +114,14 @@ public class ArkanoidEndless extends Arkanoid {
                 wave, rows, (int)(unbreakableChance * 100));
     }
 
+    /**
+     * Gets the brick type based on difficulty level.
+     * Increases chance of unbreakable bricks with each wave.
+     *
+     * @param row the row index
+     * @param col the column index
+     * @return the brick type
+     */
     @Override
     protected Brick.BrickType getBrickType(int row, int col) {
         return (Math.random() < unbreakableChance)
@@ -102,6 +129,13 @@ public class ArkanoidEndless extends Arkanoid {
                 : Brick.BrickType.BREAKABLE;
     }
 
+    /**
+     * Creates a brick grid with dynamic distribution based on the current wave.
+     * Increases unbreakable bricks and power-ups as waves progress.
+     *
+     * @param rows number of rows
+     * @param cols number of columns
+     */
     @Override
     protected void createBrickGrid(int rows, int cols) {
         bricks.clear();
@@ -327,6 +361,10 @@ public class ArkanoidEndless extends Arkanoid {
         }
     }
 
+    /**
+     * Called when a level is completed.
+     * Advances to the next wave with bonus points.
+     */
     @Override
     protected void onLevelComplete() {
         int previousWave = currentWave;
@@ -337,6 +375,10 @@ public class ArkanoidEndless extends Arkanoid {
         startWave(currentWave);
     }
 
+    /**
+     * Called when the game is over.
+     * Saves score and shows game over menu.
+     */
     @Override
     protected void onGameOver() {
         log.info("Game Over! Final Score: {} (Wave: {})", score, currentWave);
@@ -348,12 +390,18 @@ public class ArkanoidEndless extends Arkanoid {
         gameOverMenu.show(score);
     }
 
+    /**
+     * Called when the pause button is pressed.
+     */
     @Override
     protected void onPausePressed() {
         log.info("Pause requested");
         pauseMenu.pause();
     }
 
+    /**
+     * Restarts the game from wave 1.
+     */
     @Override
     protected void restartGame() {
         score = 0;
@@ -367,6 +415,9 @@ public class ArkanoidEndless extends Arkanoid {
         startWave(currentWave);
     }
 
+    /**
+     * Returns to the main menu by transitioning scenes and managing music.
+     */
     @Override
     protected void returnToMainMenu() {
         log.info("Returning to main menu from endless mode");

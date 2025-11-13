@@ -21,6 +21,13 @@ public abstract class Story extends Scene {
     protected StoryArkanoid gameplay;
     private final int stageNumber;
     
+    /**
+     * Constructs a new story scene for the specified stage.
+     * Stops menu music and starts stage-specific music.
+     *
+     * @param game the main game instance
+     * @param stageNumber the stage number (1-5)
+     */
     public Story(Game game, int stageNumber) {
         super(game);
         this.stageNumber = stageNumber;
@@ -29,9 +36,21 @@ public abstract class Story extends Scene {
         startIntro();
     }
     
+    /**
+     * Initializes the intro dialogue for this stage.
+     * Must be implemented by subclasses.
+     */
     protected abstract void initIntroDialogue();
+
+    /**
+     * Initializes the outro dialogue for this stage.
+     * Must be implemented by subclasses.
+     */
     protected abstract void initOutroDialogue();
     
+    /**
+     * Plays the music for the current stage.
+     */
     private void playStageMusic() {
         switch (stageNumber) {
             case 1: Audio.stage1MusicPlay(); break;
@@ -42,6 +61,9 @@ public abstract class Story extends Scene {
         }
     }
     
+    /**
+     * Stops the music for the current stage.
+     */
     private void stopStageMusic() {
         switch (stageNumber) {
             case 1: Audio.stage1MusicStop(); break;
@@ -52,6 +74,10 @@ public abstract class Story extends Scene {
         }
     }
     
+    /**
+     * Initializes the gameplay (Arkanoid) for the current stage.
+     * Sets up callbacks and loads save game if applicable.
+     */
     protected void initGameplay() {
         // Create appropriate StageArkanoid based on stage number
         switch (stageNumber) {
@@ -92,6 +118,9 @@ public abstract class Story extends Scene {
         }
     }
     
+    /**
+     * Starts the intro dialogue phase.
+     */
     protected void startIntro() {
         currentPhase = StoryPhase.INTRO_DIALOGUE;
         initIntroDialogue();
@@ -117,7 +146,10 @@ public abstract class Story extends Scene {
         });
         introDialogue.start();
     }
-    
+
+    /**
+     * Completes the story and returns to main menu.
+     */
     protected void onStoryComplete() {
         log.info("Stage " + stageNumber + " complete!");
         stopStageMusic();
@@ -171,6 +203,11 @@ public abstract class Story extends Scene {
         }
     }
 
+    /**
+     * Renders the current phase of the story.
+     *
+     * @param batch the sprite batch for rendering
+     */
     @Override
     public void render(SpriteBatch batch) {
         switch (currentPhase) {
@@ -188,6 +225,9 @@ public abstract class Story extends Scene {
         }
     }
     
+    /**
+     * Disposes of all resources used by the story scene.
+     */
     @Override
     public void dispose() {
         if (introDialogue != null) introDialogue.dispose();

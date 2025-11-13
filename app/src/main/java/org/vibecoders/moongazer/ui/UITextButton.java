@@ -18,6 +18,13 @@ public class UITextButton extends UIButton {
     private static final Color downTint = new Color(0.8f, 0.8f, 0.8f, 1f);
     private static final Color overTint = new Color(1f, 1f, 1f, 1f);
 
+    /**
+     * Constructs a new text button with the specified text and font.
+     * The button automatically loads a default button texture with different tints for states.
+     *
+     * @param text the text to display on the button
+     * @param font the bitmap font to use for rendering the text
+     */
     public UITextButton(String text, BitmapFont font) {
         buttonTexture = Assets.getAsset("textures/ui/text_button.png", Texture.class);
         TextureRegionDrawable buttonDrawable = new TextureRegionDrawable(new TextureRegion(buttonTexture));
@@ -36,6 +43,12 @@ public class UITextButton extends UIButton {
         this.actor = this.button;
     }
 
+    /**
+     * Sets the action to be executed when the button is clicked.
+     * Plays a select sound effect before executing the action.
+     *
+     * @param action the runnable action to execute on click
+     */
     public void onClick(Runnable action) {
         button.addListener(new ClickListener() {
             @Override

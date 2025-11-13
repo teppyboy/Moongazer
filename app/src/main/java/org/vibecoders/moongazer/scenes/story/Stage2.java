@@ -17,10 +17,19 @@ public class Stage2 extends Story {
     private static final String IUNOHIT = "audio/storysfx/IUNOHIT.mp3";
     private static final String IUNODIE = "audio/storysfx/IUNODIE.mp3";
 
+    /**
+     * Constructs Stage 2 of the story mode.
+     *
+     * @param game the main game instance
+     */
     public Stage2(Game game) {
         super(game, 2);
     }
     
+    /**
+     * Initializes the intro dialogue for Stage 2.
+     * Shows the return to the village and the mysterious disappearance of Iuno from everyone's memory.
+     */
     @Override
     protected void initIntroDialogue() {
         HashMap<String, List<DialogueStep>> branches = new HashMap<>();
@@ -72,6 +81,10 @@ public class Stage2 extends Story {
         introDialogue.setDialogueBranches(branches, "default");
     }
     
+    /**
+     * Initializes the outro dialogue for Stage 2.
+     * Shows Rover discovering Iuno's fading form and learning about the curse.
+     */
     @Override
     protected void initOutroDialogue() {
         HashMap<String, List<DialogueStep>> branches = new HashMap<>();

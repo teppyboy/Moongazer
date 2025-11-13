@@ -9,9 +9,21 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
 public class ChoiceBox extends Group {
     public interface Listener {
+        /**
+         * Called when a choice is selected.
+         *
+         * @param idx the index of the selected choice
+         */
         void onChoice(int idx);
     }
 
+    /**
+     * Constructs a choice box with multiple option buttons.
+     *
+     * @param font the font to use for button text
+     * @param options the array of option texts
+     * @param listener the listener to be notified when a choice is selected
+     */
     public ChoiceBox(BitmapFont font, String[] options, Listener listener) {
         TextButton.TextButtonStyle style = new TextButton.TextButtonStyle();
         style.font = font;

@@ -32,6 +32,13 @@ public class Paddle extends MovableObject {
     private static final float BULLET_COOLDOWN_TIME = 0.3f;
     private boolean spaceWasPressed = false;
 
+    /**
+     * Constructs a new Paddle object.
+     * @param x X position
+     * @param y Y position
+     * @param width Width of the paddle
+     * @param height Height of the paddle
+     */
     public Paddle(float x, float y, float width, float height) {
         super(x, y, width, height);
         this.targetX = x;
@@ -39,10 +46,21 @@ public class Paddle extends MovableObject {
         this.texture = Assets.getAsset("textures/arkanoid/paddle.png", Texture.class);
     }
 
+    /**
+     * Updates the paddle's state with full screen width.
+     * @param delta Time elapsed since last update
+     * @param screenWidth Width of the screen
+     */
     public void update(float delta, int screenWidth) {
         update(delta, 0, screenWidth);
     }
 
+    /**
+     * Updates the paddle's state with specified movement boundaries.
+     * @param delta Time elapsed since last update
+     * @param minX Minimum X position
+     * @param maxX Maximum X position
+     */
     public void update(float delta, float minX, float maxX) {
         boolean keyboardUsed = false;
         if (Gdx.input.isKeyPressed(Settings.getKeybind("p1_left")) || aiMoveLeft) {
@@ -70,6 +88,10 @@ public class Paddle extends MovableObject {
         }
     }
 
+    /**
+     * Updates all bullets fired by the paddle.
+     * @param delta Time elapsed since last update
+     */
     private void updateBullets(float delta) {
         if (bulletCooldown > 0) {
             bulletCooldown -= delta;
@@ -80,6 +102,9 @@ public class Paddle extends MovableObject {
         }
     }
 
+    /**
+     * Handles the shooting of bullets when space is pressed.
+     */
     private void handleBulletShooting() {
         boolean spacePressed = Gdx.input.isKeyPressed(Input.Keys.SPACE);
 
@@ -91,6 +116,9 @@ public class Paddle extends MovableObject {
         spaceWasPressed = spacePressed;
     }
 
+    /**
+     * Shoots two bullets from the paddle.
+     */
     private void shootBullet() {
         float leftX = bounds.x + bounds.width * 0.25f - 2;
         float rightX = bounds.x + bounds.width * 0.75f - 2;
@@ -100,6 +128,10 @@ public class Paddle extends MovableObject {
         bullets.add(new Bullet(rightX, bulletY, 5, 19));
     }
 
+    /**
+     * Updates the bounce effect animation when ball hits paddle.
+     * @param delta Time elapsed since last update
+     */
     private void updateBounceEffect(float delta) {
         if (targetYOffset > 0) {
             targetYOffset = Math.max(0, targetYOffset - BOUNCE_SPEED * delta);
@@ -109,12 +141,20 @@ public class Paddle extends MovableObject {
         bounds.y = originalY - currentYOffset;
     }
 
+    /**
+     * Triggers bounce effect when ball hits the paddle.
+     * @param ballVelocityY Vertical velocity of the ball
+     */
     public void onBallHit(float ballVelocityY) {
         float impactStrength = Math.abs(ballVelocityY) / 350f;
         impactStrength = MathUtils.clamp(impactStrength, 0.3f, 1.0f);
         targetYOffset = MAX_Y_OFFSET * impactStrength;
     }
 
+    /**
+     * Renders the paddle to the screen.
+     * @param batch SpriteBatch used for rendering
+     */
     public void render(SpriteBatch batch) {
         batch.draw(texture, bounds.x, bounds.y, bounds.width, bounds.height);
 
@@ -125,27 +165,50 @@ public class Paddle extends MovableObject {
         }
     }
 
+    /**
+     * Gets the bounding rectangle of the paddle.
+     * @return Rectangle representing the paddle's bounds
+     */
     public Rectangle getBounds() {
         return bounds;
     }
 
+    /**
+     * Gets the X coordinate of the paddle's center.
+     * @return Center X position
+     */
     public float getCenterX() {
         return bounds.x + bounds.width / 2;
     }
 
+    /**
+     * Gets the horizontal velocity of the paddle.
+     * @return X velocity
+     */
     public float getVelocityX() {
         return (targetX - bounds.x);
     }
 
+    /**
+     * Extends the paddle width by a specified amount.
+     * @param amount Amount to extend by
+     */
     public void extend(float amount) {
         bounds.width += amount;
         bounds.x -= amount / 2f;
     }
 
+    /**
+     * Extends the paddle width by default amount (100 pixels).
+     */
     public void extend() {
         extend(100f);
     }
 
+    /**
+     * Shrinks the paddle width by a specified amount.
+     * @param amount Amount to shrink by
+     */
     public void shrink(float amount) {
         bounds.width -= amount;
         bounds.x += amount / 2f;
@@ -154,18 +217,33 @@ public class Paddle extends MovableObject {
         }
     }
 
+    /**
+     * Shrinks the paddle width by default amount (100 pixels).
+     */
     public void shrink() {
         shrink(100f);
     }
 
+    /**
+     * Sets whether the paddle is sticky (catches balls).
+     * @param sticky true for sticky paddle, false otherwise
+     */
     public void setSticky(boolean sticky) {
         this.isSticky = sticky;
     }
 
+    /**
+     * Checks if the paddle is sticky.
+     * @return true if sticky, false otherwise
+     */
     public boolean isSticky() {
         return isSticky;
     }
 
+    /**
+     * Sets the original Y position for bounce effect calculations.
+     * @param y Original Y position
+     */
     public void setOriginalY(float y) {
         this.originalY = y;
         this.currentYOffset = 0f;
@@ -173,14 +251,26 @@ public class Paddle extends MovableObject {
         this.bounds.y = y;
     }
 
+    /**
+     * Controls AI movement to the left.
+     * @param move true to move left, false to stop
+     */
     public void moveLeft(boolean move) {
         this.aiMoveLeft = move;
     }
 
+    /**
+     * Controls AI movement to the right.
+     * @param move true to move right, false to stop
+     */
     public void moveRight(boolean move) {
         this.aiMoveRight = move;
     }
     
+    /**
+     * Enables or disables bullet shooting functionality.
+     * @param enabled true to enable bullets, false to disable
+     */
     public void setBulletEnabled(boolean enabled) {
         this.bulletEnabled = enabled;
         if (!enabled) {
@@ -188,14 +278,26 @@ public class Paddle extends MovableObject {
         }
     }
 
+    /**
+     * Checks if bullet shooting is enabled.
+     * @return true if bullets are enabled, false otherwise
+     */
     public boolean isBulletEnabled() {
         return bulletEnabled;
     }
 
+    /**
+     * Gets the list of active bullets.
+     * @return List of bullets
+     */
     public List<Bullet> getBullets() {
         return bullets;
     }
 
+    /**
+     * Removes bullets that are off screen or inactive.
+     * @param screenHeight Height of the screen for boundary checking
+     */
     public void cleanupBullets(float screenHeight) {
         bullets.removeIf(bullet -> bullet.isOffScreen(screenHeight) || !bullet.isActive());
     }

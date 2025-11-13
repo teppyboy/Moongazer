@@ -32,6 +32,11 @@ public class SettingsScene extends Scene {
     private UISlider musicSlider;
     private UISlider sfxSlider;
 
+    /**
+     * Constructor for the SettingsScene.
+     *
+     * @param game The main game instance.
+     */
     public SettingsScene(Game game) {
         super(game);
         root.setFillParent(true);
@@ -166,17 +171,35 @@ public class SettingsScene extends Scene {
         });
     }
 
+    /**
+     * Returns the name of the key corresponding to the given keycode.
+     *
+     * @param keycode The keycode to get the name for.
+     * @return The name of the key.
+     */
     private String getKeyName(int keycode) {
         String keyName = Input.Keys.toString(keycode);
         return keyName != null ? keyName.toUpperCase() : "Unknown";
     }
 
+    /**
+     * Checks if a keybind is already used by another action.
+     *
+     * @param keycode      The keycode to check.
+     * @param currentAction The action currently being edited.
+     * @return True if the keybind is already used, false otherwise.
+     */
     private boolean isKeybindAlreadyUsed(int keycode, String currentAction) {
         return Settings.keybinds.entrySet().stream()
                 .anyMatch(entry -> !entry.getKey().equals(currentAction) &&
                         entry.getValue().equals(keycode));
     }
 
+    /**
+     * Renders the SettingsScene.
+     *
+     * @param batch The SpriteBatch used for rendering.
+     */
     @Override
     public void render(SpriteBatch batch) {
         game.mainMenuScene.render(batch);

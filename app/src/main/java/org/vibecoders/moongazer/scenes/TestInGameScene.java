@@ -11,10 +11,18 @@ public class TestInGameScene extends Scene {
     private float totalTime = 0;
     private boolean dialogStarted = false;
 
+    /**
+     * Constructor for TestInGameScene.
+     * @param game The main game instance.
+     */
     public TestInGameScene(Game game) {
         super(game);
     }
 
+    /**
+     * Renders the scene.
+     * @param batch The SpriteBatch used for rendering.
+     */
     public void render(SpriteBatch batch) {
         totalTime += Gdx.graphics.getDeltaTime();
         if (totalTime > 3f) {

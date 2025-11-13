@@ -56,10 +56,16 @@ public class GameOverMenu {
         }
     }
 
+    /**
+     * Constructs a new game over menu with all UI components.
+     */
     public GameOverMenu() {
         initUI();
     }
 
+    /**
+     * Initializes the UI components including buttons, fonts, and stage.
+     */
     private void initUI() {
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pixmap.setColor(0, 0, 0, 0.85f);
@@ -88,6 +94,11 @@ public class GameOverMenu {
         initKeyboardHandling();
     }
 
+    /**
+     * Creates button configurations for the game over menu.
+     *
+     * @return array of button configurations
+     */
     private ButtonConfig[] createButtonConfigs() {
         return new ButtonConfig[]{
                 new ButtonConfig("Play Again", () -> {
@@ -118,6 +129,15 @@ public class GameOverMenu {
         };
     }
 
+    /**
+     * Builds a single button with the specified configuration.
+     *
+     * @param config the button configuration
+     * @param index the button index
+     * @param centerX the x-coordinate for button center
+     * @param startY the starting y-coordinate
+     * @return the created button
+     */
     private UITextButton buildButton(ButtonConfig config, int index, int centerX, int startY) {
         UITextButton button = new UITextButton(config.label, buttonFont);
         button.setSize(BUTTON_WIDTH, BUTTON_HEIGHT);
@@ -127,6 +147,9 @@ public class GameOverMenu {
         return button;
     }
 
+    /**
+     * Initializes keyboard navigation and input handling for the menu.
+     */
     private void initKeyboardHandling() {
         for (int i = 0; i < buttons.length; i++) {
             final int index = i;
@@ -163,6 +186,11 @@ public class GameOverMenu {
         menuStage.setKeyboardFocus(menuTable);
     }
 
+    /**
+     * Handles keyboard input for menu navigation and selection.
+     *
+     * @param keycode the key code of the pressed key
+     */
     private void handleKeyDown(int keycode) {
         switch (keycode) {
             case Input.Keys.UP:
@@ -194,6 +222,12 @@ public class GameOverMenu {
         }
     }
 
+    /**
+     * Shows the game over menu with the final score.
+     * Compares with best score and starts fade-in animation.
+     *
+     * @param finalScore the final score achieved in the game
+     */
     public void show(int finalScore) {
         if (!isVisible) {
             this.totalScore = finalScore;
@@ -227,10 +261,21 @@ public class GameOverMenu {
         }
     }
 
+    /**
+     * Checks if the game over menu is currently visible.
+     *
+     * @return true if visible, false otherwise
+     */
     public boolean isVisible() {
         return isVisible;
     }
 
+    /**
+     * Renders the game over menu with scores and buttons.
+     *
+     * @param batch the sprite batch for rendering
+     * @param gameSnapshot the snapshot texture of the game state
+     */
     public void render(SpriteBatch batch, Texture gameSnapshot) {
         if (!isVisible) {
             return;
@@ -298,6 +343,11 @@ public class GameOverMenu {
         batch.begin();
     }
 
+    /**
+     * Updates the fade animation state.
+     *
+     * @param delta the time delta since last frame
+     */
     private void updateFade(float delta) {
         switch (fadeState) {
             case FADING_IN:
@@ -315,19 +365,36 @@ public class GameOverMenu {
         }
     }
 
-    // Setters for callbacks
+    /**
+     * Sets the callback to be executed when play again is selected.
+     *
+     * @param callback the callback runnable
+     */
     public void setOnPlayAgain(Runnable callback) {
         this.onPlayAgain = callback;
     }
 
+    /**
+     * Sets the callback to be executed when main menu is selected.
+     *
+     * @param callback the callback runnable
+     */
     public void setOnMainMenu(Runnable callback) {
         this.onMainMenu = callback;
     }
 
+    /**
+     * Sets the callback to be executed when quit is selected.
+     *
+     * @param callback the callback runnable
+     */
     public void setOnQuit(Runnable callback) {
         this.onQuit = callback;
     }
 
+    /**
+     * Disposes of all resources used by the game over menu.
+     */
     public void dispose() {
         if (darkOverlay != null) {
             darkOverlay.dispose();
@@ -337,4 +404,3 @@ public class GameOverMenu {
         }
     }
 }
-

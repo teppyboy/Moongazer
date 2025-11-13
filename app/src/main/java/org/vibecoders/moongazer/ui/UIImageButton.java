@@ -12,6 +12,12 @@ public class UIImageButton extends UIButton {
     private static final Color downTint = new Color(0.8f, 0.8f, 0.8f, 1f);
     private static final Color overTint = new Color(1f, 1f, 1f, 1f);
 
+    /**
+     * Constructs a new image button with the specified texture.
+     * The button automatically applies different tints for up, down, and over states.
+     *
+     * @param texturePath the path to the texture file
+     */
     public UIImageButton(String texturePath) {
         Texture texture = Assets.getAsset(texturePath, Texture.class);
         TextureRegionDrawable buttonDrawable = new TextureRegionDrawable(new TextureRegion(texture));

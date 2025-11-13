@@ -22,6 +22,10 @@ public class Audio {
     private static Music gameOverMusic = null;
     private static boolean gameOverMusicActive = false;
 
+    /**
+     * Initializes the audio manager by loading music tracks and sound effects.
+     * This method should be called once at the start of the application.
+     */
     public static void init() {
         if (initialized) return;
         initialized = true;
@@ -42,6 +46,11 @@ public class Audio {
         log.info("Audio manager initialized");
     }
 
+    /**
+     * Plays the specified music track if it is not already playing.
+     *
+     * @param trackName The name of the music track to play.
+     */
     private static void playMusic(String trackName) {
         Music music = musicTracks.get(trackName);
         if (music != null && !music.isPlaying()) {
@@ -51,6 +60,11 @@ public class Audio {
         }
     }
 
+    /**
+     * Stops the specified music track if it is currently playing.
+     *
+     * @param trackName The name of the music track to stop.
+     */
     private static void stopMusic(String trackName) {
         Music music = musicTracks.get(trackName);
         if (music != null && music.isPlaying()) {
@@ -58,6 +72,11 @@ public class Audio {
         }
     }
 
+    /**
+     * Plays the specified sound effect.
+     *
+     * @param sfxName The name of the sound effect to play.
+     */
     private static void playSfx(String sfxName) {
         Sound sfx = soundEffects.get(sfxName);
         if (sfx != null) {
@@ -86,6 +105,9 @@ public class Audio {
     public static void playSfxBrickHit() { playSfx("brickHit"); }
     public static void playSfxBallLoss() { playSfx("ballLoss"); }
 
+    /**
+     * Sets the volume for all currently playing music tracks based on settings.
+     */
     public static void musicSetVolume() {
         for (Music music : musicTracks.values()) {
             if (music != null && music.isPlaying()) {
@@ -94,6 +116,7 @@ public class Audio {
         }
     }
 
+    /** Initializes the endless mode music playlist by loading tracks from assets */
     public static void initEndlessMusic() {
         if (endlessMusicPlaylist != null) {
             log.info("Endless music playlist already initialized");
@@ -136,6 +159,9 @@ public class Audio {
         }
     }
 
+    /**
+     * Starts playing endless mode music in a looped playlist
+     */
     public static void startEndlessMusic() {
         if (endlessMusicPlaylist == null) initEndlessMusic();
         if (endlessMusicPlaylist == null || endlessMusicPlaylist.isEmpty()) {
@@ -149,6 +175,9 @@ public class Audio {
         log.info("Endless mode music started");
     }
 
+    /**
+     * Plays the current track in the endless music playlist and sets up the completion listener
+     */
     private static void playCurrentEndlessTrack() {
         if (endlessMusicPlaylist == null || endlessMusicPlaylist.isEmpty() || !endlessMusicActive) return;
         Music currentTrack = endlessMusicPlaylist.get(currentEndlessTrackIndex);
@@ -163,6 +192,9 @@ public class Audio {
         currentTrack.play();
     }
 
+    /**
+     * Updates the volume of the currently playing endless mode music track based on settings
+     */
     public static void updateEndlessMusicVolume() {
         if (endlessMusicPlaylist != null && endlessMusicActive && 
             currentEndlessTrackIndex >= 0 && currentEndlessTrackIndex < endlessMusicPlaylist.size()) {
@@ -190,6 +222,9 @@ public class Audio {
         log.info("Endless mode music stopped and disposed");
     }
 
+    /**
+     * Updates the volume of all music tracks based on settings
+     */
     public static void updateAllMusicVolume() {
         musicSetVolume();
         updateEndlessMusicVolume();
@@ -263,6 +298,10 @@ public class Audio {
         }
     }
 
+    /**
+     * Disposes all audio resources managed by the audio manager.
+     * This method should be called when the application is closing.
+     */
     public static void dispose() {
         stopEndlessMusic();
         stopGameOverMusic();

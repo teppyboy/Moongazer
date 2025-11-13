@@ -23,6 +23,14 @@ public class DialogueBoxTransparent extends Group {
     private static final float BOX_HEIGHT = 200f;
     private static final float TEXT_MARGIN = 20f;
 
+    /**
+     * Constructs a transparent dialogue box with typing effect.
+     *
+     * @param font the font to use for text rendering
+     * @param bgRegion the background texture region
+     * @param sepRegion the separator texture region
+     * @param width the width of the dialogue box
+     */
     public DialogueBoxTransparent(BitmapFont font, TextureRegion bgRegion, TextureRegion sepRegion, float width) {
         Image background = new Image(bgRegion);
         background.setSize(width, BOX_HEIGHT);
@@ -69,6 +77,12 @@ public class DialogueBoxTransparent extends Group {
         setSize(width, BOX_HEIGHT + 30);
     }
 
+    /**
+     * Sets the dialogue to be displayed with typing animation.
+     *
+     * @param speaker the name of the speaker
+     * @param text the dialogue text to display
+     */
     public void setDialogue(String speaker, String text) {
         nameLabel.setText(speaker);
         fullText = text;
@@ -77,10 +91,18 @@ public class DialogueBoxTransparent extends Group {
         textLabel.setText("");
     }
 
+    /**
+     * Checks if the typing animation is complete.
+     *
+     * @return true if all text has been displayed, false otherwise
+     */
     public boolean isDone() {
         return done;
     }
 
+    /**
+     * Skips the typing animation and displays all text immediately.
+     */
     public void skip() {
         if (fullText != null) {
             textLabel.setText(fullText);
@@ -88,6 +110,11 @@ public class DialogueBoxTransparent extends Group {
         }
     }
 
+    /**
+     * Updates the typing animation by displaying characters progressively.
+     *
+     * @param delta the time delta since last frame
+     */
     @Override
     public void act(float delta) {
         super.act(delta);

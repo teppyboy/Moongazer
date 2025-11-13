@@ -56,11 +56,20 @@ public class PauseMenu {
         }
     }
 
+    /**
+     * Constructs a new pause menu with all UI components.
+     */
     public PauseMenu() {
         initUI();
         initSettingsOverlay();
     }
 
+    /**
+     * Sets whether the game is in story mode.
+     * Rebuilds the menu to show/hide story-specific options like "Save Game".
+     *
+     * @param isStoryMode true if in story mode, false otherwise
+     */
     public void setStoryMode(boolean isStoryMode) {
         if (this.isStoryMode != isStoryMode) {
             this.isStoryMode = isStoryMode;
@@ -68,6 +77,9 @@ public class PauseMenu {
         }
     }
 
+    /**
+     * Initializes the settings overlay component.
+     */
     private void initSettingsOverlay() {
         settingsOverlay = new PauseMenuSettings();
         settingsOverlay.setOnClose(() -> {
@@ -75,6 +87,10 @@ public class PauseMenu {
             menuStage.setKeyboardFocus(menuTable);
         });
     }
+
+    /**
+     * Initializes the UI components including buttons and stage.
+     */
     private void initUI() {
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pixmap.setColor(0, 0, 0, 0.7f);
@@ -101,6 +117,12 @@ public class PauseMenu {
         }
         initKeyboardHandling();
     }
+
+    /**
+     * Creates button configurations based on current game mode.
+     *
+     * @return array of button configurations
+     */
     private ButtonConfig[] createButtonConfigs() {
         java.util.List<ButtonConfig> configs = new java.util.ArrayList<>();
 
@@ -156,6 +178,10 @@ public class PauseMenu {
         return configs.toArray(new ButtonConfig[0]);
     }
 
+    /**
+     * Rebuilds the menu with updated button configurations.
+     * Called when switching between story and endless modes.
+     */
     private void rebuildMenu() {
         if (buttons != null) {
             for (UITextButton button : buttons) {
@@ -178,6 +204,14 @@ public class PauseMenu {
         initKeyboardHandling();
     }
 
+    /**
+     * Builds a single button with the specified configuration.
+     *
+     * @param config the button configuration
+     * @param centerX the x-coordinate for button center
+     * @param yPosition the y-coordinate for button position
+     * @return the created button
+     */
     private UITextButton buildButton(ButtonConfig config, int centerX, int yPosition) {
         UITextButton button = new UITextButton(config.label, buttonFont);
         button.setSize(BUTTON_WIDTH, BUTTON_HEIGHT);
@@ -187,6 +221,9 @@ public class PauseMenu {
         return button;
     }
 
+    /**
+     * Initializes keyboard navigation and input handling for the menu.
+     */
     private void initKeyboardHandling() {
         for (int i = 0; i < buttons.length; i++) {
             final int index = i;
@@ -219,6 +256,12 @@ public class PauseMenu {
         });
         menuStage.setKeyboardFocus(menuTable);
     }
+
+    /**
+     * Handles keyboard input for menu navigation and selection.
+     *
+     * @param keycode the key code of the pressed key
+     */
     private void handleKeyDown(int keycode) {
         switch (keycode) {
             case Input.Keys.UP:
@@ -253,6 +296,9 @@ public class PauseMenu {
         }
     }
 
+    /**
+     * Displays the pause menu with fade-in animation.
+     */
     public void pause() {
         if (!isPaused) {
             isPaused = true;
@@ -267,12 +313,19 @@ public class PauseMenu {
         }
     }
 
+    /**
+     * Initiates the resume process with fade-out animation.
+     */
     public void resume() {
         if (isPaused && fadeState != FadeState.FADING_OUT) {
             pendingResume = true;
         }
     }
 
+    /**
+     * Immediately closes the pause menu without animation.
+     * Restores the input processor via the onResume callback.
+     */
     public void forceClose() {
         if (isPaused) {
             isPaused = false;
@@ -292,6 +345,9 @@ public class PauseMenu {
         }
     }
 
+    /**
+     * Processes the resume operation and starts fade-out animation.
+     */
     private void processResume() {
         if (!isPaused || fadeState == FadeState.FADING_OUT) {
             return;
@@ -301,9 +357,22 @@ public class PauseMenu {
         fadeState = FadeState.FADING_OUT;
         log.info("Game resuming (fading out)");
     }
+
+    /**
+     * Checks if the game is currently paused.
+     *
+     * @return true if paused, false otherwise
+     */
     public boolean isPaused() {
         return isPaused;
     }
+
+    /**
+     * Renders the pause menu with the game snapshot background.
+     *
+     * @param batch the sprite batch for rendering
+     * @param gameSnapshot the snapshot texture of the game state
+     */
     public void render(SpriteBatch batch, Texture gameSnapshot) {
         if (!isPaused)
             return;
@@ -355,6 +424,12 @@ public class PauseMenu {
         menuStage.draw();
         batch.begin();
     }
+
+    /**
+     * Updates the fade animation state.
+     *
+     * @param delta the time delta since last frame
+     */
     private void updateFade(float delta) {
         switch (fadeState) {
             case FADING_IN:
@@ -380,6 +455,9 @@ public class PauseMenu {
         }
     }
 
+    /**
+     * Completes the fade-out animation and fully resumes the game.
+     */
     private void completeFadeOut() {
         fadeAlpha = 0f;
         fadeState = FadeState.HIDDEN;
@@ -393,21 +471,55 @@ public class PauseMenu {
         }
         log.info("Game resumed");
     }
+
+    /**
+     * Sets the callback to be executed when resuming the game.
+     *
+     * @param onResume the callback runnable
+     */
     public void setOnResume(Runnable onResume) {
         this.onResume = onResume;
     }
+
+    /**
+     * Sets the callback to be executed when restarting the game.
+     *
+     * @param onRestart the callback runnable
+     */
     public void setOnRestart(Runnable onRestart) {
         this.onRestart = onRestart;
     }
+
+    /**
+     * Sets the callback to be executed when returning to main menu.
+     *
+     * @param onMainMenu the callback runnable
+     */
     public void setOnMainMenu(Runnable onMainMenu) {
         this.onMainMenu = onMainMenu;
     }
+
+    /**
+     * Sets the callback to be executed when quitting the game.
+     *
+     * @param onQuit the callback runnable
+     */
     public void setOnQuit(Runnable onQuit) {
         this.onQuit = onQuit;
     }
+
+    /**
+     * Sets the callback to be executed when saving the game.
+     *
+     * @param onSaveGame the callback runnable
+     */
     public void setOnSaveGame(Runnable onSaveGame) {
         this.onSaveGame = onSaveGame;
     }
+
+    /**
+     * Disposes of all resources used by the pause menu.
+     */
     public void dispose() {
         if (blurOverlay != null) {
             blurOverlay.dispose();

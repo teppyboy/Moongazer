@@ -18,10 +18,19 @@ public class Stage3 extends Story {
     private static final String ROVERHIT = "audio/storysfx/ROVERHIT.mp3";
     private static final String IUNOFIGHT2 = "audio/storysfx/IUNOFIGHT2.mp3";
 
+    /**
+     * Constructs Stage 3 of the story mode.
+     *
+     * @param game the main game instance
+     */
     public Stage3(Game game) {
         super(game, 3);
     }
     
+    /**
+     * Initializes the intro dialogue for Stage 3.
+     * Shows Rover seeking help from Lillibet at the Ancient Library to save Iuno.
+     */
     @Override
     protected void initIntroDialogue() {
         HashMap<String, List<DialogueStep>> branches = new HashMap<>();
@@ -73,6 +82,10 @@ public class Stage3 extends Story {
         introDialogue.setDialogueBranches(branches, "default");
     }
     
+    /**
+     * Initializes the outro dialogue for Stage 3.
+     * Shows Rover's journey through the Realm of Chaos to find memory fragments.
+     */
     @Override
     protected void initOutroDialogue() {
         HashMap<String, List<DialogueStep>> branches = new HashMap<>();

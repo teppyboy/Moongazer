@@ -24,6 +24,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Scene for loading and saving game states.
+ */
 public class LoadScene extends Scene {
     public enum Mode {
         LOAD, SAVE
@@ -80,6 +83,9 @@ public class LoadScene extends Scene {
         buildUI();
     }
 
+    /**
+     * Builds the user interface for the load/save scene.
+     */
     private void buildUI() {
         root.setFillParent(true);
         BitmapFont font = Assets.getFont("ui", 24);
@@ -171,6 +177,9 @@ public class LoadScene extends Scene {
         });
     }
 
+    /**
+     * Creates the save/load slots in the UI.
+     */
     private void createSaveSlots(Table saveList, Drawable bg, BitmapFont font, Label.LabelStyle smallLabelStyle) {
         Label.LabelStyle slotLabelStyle = new Label.LabelStyle(font, Color.WHITE);
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -182,6 +191,9 @@ public class LoadScene extends Scene {
         }
     }
 
+    /**
+     * Creates the save mode slots in the UI.
+     */
     private void createSaveModeSlots(Table saveList, Drawable bg, BitmapFont font,
                                     Label.LabelStyle slotLabelStyle, Label.LabelStyle smallLabelStyle,
                                     SimpleDateFormat dateFormat) {
@@ -252,6 +264,9 @@ public class LoadScene extends Scene {
         }
     }
 
+    /**
+     * Creates the load mode slots in the UI.
+     */
     private void createLoadModeSlots(Table saveList, Drawable bg, BitmapFont font,
                                     Label.LabelStyle slotLabelStyle, Label.LabelStyle smallLabelStyle,
                                     SimpleDateFormat dateFormat) {
@@ -313,6 +328,9 @@ public class LoadScene extends Scene {
         }
     }
 
+    /**
+     * Creates a new save slot with the pending save data.
+     */
     private void createNewSave() {
         if (pendingSaveData == null) {
             log.warn("No pending save data");
@@ -338,6 +356,10 @@ public class LoadScene extends Scene {
         }
     }
 
+    /**
+     * Overwrites an existing save slot with the pending save data.
+     * @param slotId The ID of the save slot to overwrite.
+     */
     private void overwriteSave(int slotId) {
         if (pendingSaveData == null) {
             log.warn("No pending save data");
@@ -369,6 +391,10 @@ public class LoadScene extends Scene {
         }
     }
 
+    /**
+     * Loads a game from the specified save slot and starts the corresponding stage.
+     * @param slotId The ID of the save slot to load.
+     */
     private void loadGameAndStart(int slotId) {
         if (game.transition != null) {
             return;
@@ -423,11 +449,18 @@ public class LoadScene extends Scene {
         }
     }
 
+    /**
+     * Scrolls the scroll pane by the specified amount.
+     * @param amount The amount to scroll.
+     */
     private void scroll(float amount) {
         float newScroll = scrollPane.getScrollY() + amount;
         scrollPane.setScrollY(Math.max(0, Math.min(scrollPane.getMaxY(), newScroll)));
     }
 
+    /**
+     * Renders the load/save scene.
+     */
     @Override
     public void render(SpriteBatch batch) {
         float delta = Gdx.graphics.getDeltaTime();

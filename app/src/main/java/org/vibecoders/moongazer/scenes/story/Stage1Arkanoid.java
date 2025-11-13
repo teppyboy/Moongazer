@@ -8,18 +8,42 @@ import org.vibecoders.moongazer.managers.Assets;
 import static org.vibecoders.moongazer.Constants.*;
 
 public class Stage1Arkanoid extends StoryArkanoid {
+    /**
+     * Constructor for Stage 1 Arkanoid game scene.
+     *
+     * @param game          Reference to the main Game object.
+     * @param startingLives Number of lives the player starts with.
+     */
     public Stage1Arkanoid(Game game, int startingLives) {
         super(game, 0, startingLives);
         setStageId(1);
         setBackground(Assets.getAsset("textures/stage/Bg1.png", Texture.class));
     }
 
-
+    /**
+     * Creates a moon-shaped pattern of bricks for the level.
+     *
+     * The moon pattern consists of a combination of breakable and unbreakable bricks,
+     * arranged to resemble a crescent moon. Breakable bricks are assigned random levels
+     * and power-ups.
+     *
+     * Overrides the default brick grid creation method to implement the custom pattern.
+     *
+     * @param rows Number of rows (not used in this implementation).
+     * @param cols Number of columns (not used in this implementation).
+     */
     @Override
     protected void createBrickGrid(int rows, int cols) {
         createMoonPattern();
     }
 
+    /**
+     * Generates a moon-shaped pattern of bricks.
+     *
+     * This method clears any existing bricks and populates the brick list with a
+     * predefined moon pattern. The pattern includes both breakable and unbreakable bricks,
+     * with breakable bricks assigned random levels and power-ups.
+     */
     private void createMoonPattern() {
         bricks.clear();
         float centerX = SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH / 2f;
@@ -69,6 +93,11 @@ public class Stage1Arkanoid extends StoryArkanoid {
         }
     }
 
+    /**
+     * Generates a random power-up type based on predefined probabilities.
+     *
+     * @return A randomly selected PowerUpType.
+     */
     private Brick.PowerUpType getRandomPowerUp() {
         double rand = Math.random();
         if (rand < 0.70) {
@@ -88,6 +117,15 @@ public class Stage1Arkanoid extends StoryArkanoid {
         }
     }
 
+    /**
+     * Determines the brick type for a given position in the moon pattern.
+     *
+     * @param row        The row index of the brick.
+     * @param col        The column index of the brick.
+     * @param totalRows  Total number of rows in the pattern.
+     * @param totalCols  Total number of columns in the pattern.
+     * @return The BrickType (BREAKABLE or UNBREAKABLE) for the specified position.
+     */
     private Brick.BrickType getMoonBrickType(int row, int col, int totalRows, int totalCols) {
         float centerRow = totalRows / 2f;
         float centerCol = totalCols / 2f;

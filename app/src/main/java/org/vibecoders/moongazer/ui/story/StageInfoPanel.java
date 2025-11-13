@@ -15,11 +15,19 @@ public class StageInfoPanel {
     private Label.LabelStyle labelStyle;
     private static final BitmapFont font = Assets.getFont("ui", 20);
 
+    /**
+     * Constructs a stage info panel with scrollable description and adds it to the root table.
+     *
+     * @param root the root table to add this panel to
+     */
     public StageInfoPanel(Table root) {
         createPanel();
         root.addActor(panel);
     }
 
+    /**
+     * Creates the panel UI with scrollable text area and custom scrollbar.
+     */
     private void createPanel() {
         panel = new Table();
         panel.setSize(600, 150);
@@ -54,6 +62,11 @@ public class StageInfoPanel {
         panel.add(customScrollbar.getActor()).width(10).height(180).padLeft(5);
     }
 
+    /**
+     * Updates the stage information text.
+     *
+     * @param info the new information text to display
+     */
     public void updateInfo(String info) {
         description.setText("");
         description.setText(info);

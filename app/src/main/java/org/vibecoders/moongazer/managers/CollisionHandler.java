@@ -14,6 +14,17 @@ public class CollisionHandler {
     private static final float MIN_HORIZONTAL_VELOCITY_THRESHOLD = 50f;
     private static final float MIN_HORIZONTAL_RATIO = 0.3f;
 
+    /** Handles collisions of the ball with the game window walls.
+     *
+     * @param ball The ball to check for wall collisions.
+     * @param ballIndex The index of the ball in the balls list.
+     * @param balls The list of all balls in play.
+     * @param sidePanel The width of the side panel (left boundary).
+     * @param gameplayWidth The width of the gameplay area.
+     * @param windowHeight The height of the game window.
+     * @param onBallLostCallback Callback to execute when all balls are lost.
+     * @return True if the ball was lost (went below the bottom), false otherwise.
+     */
     public static boolean handleWallCollisions(Ball ball, int ballIndex, List<Ball> balls,
                                                float sidePanel, float gameplayWidth,
                                                float windowHeight, Runnable onBallLostCallback) {
@@ -44,6 +55,11 @@ public class CollisionHandler {
         return false;
     }
 
+    /** Updates the score and combo based on the brick hit.
+     *
+     * @param brick The brick that was hit.
+     * @param context The score context to update.
+     */
     public static void updateScoreAndCombo(Brick brick, ScoreContext context) {
         if (brick.getType() != Brick.BrickType.BREAKABLE) return;
 
@@ -63,6 +79,13 @@ public class CollisionHandler {
                   context.combo, multiplier, scoreGain, context.score);
     }
 
+    /** Handles collision of a super ball with a breakable brick.
+     *
+     * @param ball The ball involved in the collision.
+     * @param brick The brick involved in the collision.
+     * @param context The brick collision context.
+     * @return True if the collision was handled as a super ball hit, false otherwise.
+     */
     public static boolean handleSuperBallBrickCollision(Ball ball, Brick brick,
                                                        BrickCollisionContext context) {
         if (!ball.isSuperBall() || brick.getType() != Brick.BrickType.BREAKABLE) return false;
@@ -82,6 +105,15 @@ public class CollisionHandler {
         return true;
     }
 
+    /** Handles collision of a regular ball with a brick.
+     *
+     * @param ball The ball involved in the collision.
+     * @param brick The brick involved in the collision.
+     * @param ballX The x-coordinate of the ball's center.
+     * @param ballY The y-coordinate of the ball's center.
+     * @param ballRadius The radius of the ball.
+     * @param context The brick collision context.
+     */
     public static void handleRegularBrickCollision(Ball ball, Brick brick, float ballX,
                                                    float ballY, float ballRadius,
                                                    BrickCollisionContext context) {
@@ -128,6 +160,15 @@ public class CollisionHandler {
         }
     }
 
+    /** Handles collision of the ball with the paddle.
+     *
+     * @param ball The ball to check for paddle collision.
+     * @param ballX The x-coordinate of the ball's center.
+     * @param ballY The y-coordinate of the ball's center.
+     * @param ballRadius The radius of the ball.
+     * @param paddle The paddle to check for collision.
+     * @param bricksDestroyed The number of bricks destroyed (for speed scaling).
+     */
     public static void handlePaddleCollision(Ball ball, float ballX, float ballY,
                                             float ballRadius, Paddle paddle,
                                             int bricksDestroyed) {
@@ -151,6 +192,11 @@ public class CollisionHandler {
             finalSpeed * (float) Math.sin(angleInRadians));
     }
 
+    /** Adjusts the ball's velocity if it is too vertical to prevent getting stuck.
+     *
+     * @param ball The ball whose velocity needs adjustment.
+     * @param preserveHorizontalDirection Whether to preserve the current horizontal direction.
+     */
     private static void adjustBallVelocityIfTooVertical(Ball ball, boolean preserveHorizontalDirection) {
         if (Math.abs(ball.getVelocity().x) < MIN_HORIZONTAL_VELOCITY_THRESHOLD) {
             float currentVelX = ball.getVelocity().x;
@@ -164,7 +210,9 @@ public class CollisionHandler {
         }
     }
 
-    // Context classes to pass multiple parameters
+    /**
+     * Holds the score and combo context for the game.
+     */
     public static class ScoreContext {
         public int score;
         public int bestScore;
@@ -179,6 +227,9 @@ public class CollisionHandler {
         }
     }
 
+    /**
+     * Interface for handling brick collision events.
+     */
     public interface BrickCollisionContext {
         void setLastHitBrick(Brick brick);
         void resetCollisionCooldown();

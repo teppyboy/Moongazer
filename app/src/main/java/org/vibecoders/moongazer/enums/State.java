@@ -1,5 +1,8 @@
 package org.vibecoders.moongazer.enums;
 
+/**
+ * Enum representing the various states of the game.
+ */
 public enum State {
     INTRO,
     MAIN_MENU,

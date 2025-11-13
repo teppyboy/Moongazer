@@ -30,6 +30,16 @@ public class Assets {
     private static Texture textureWhite;
     private static Texture textureBlack;
 
+    /**
+     * Retrieves an asset of the specified type.
+     * <p>
+     * For unsupported types, it falls back to returning a FileHandle.
+     *
+     * @param <T>      the type of the asset
+     * @param fileName the file name of the asset
+     * @param type     the class type of the asset
+     * @return the loaded asset
+     */
     public static <T> T getAsset(String fileName, Class<T> type) {
         if (type == FileHandle.class) {
             if (!loadedFiles.containsKey(fileName)) {
@@ -50,6 +60,12 @@ public class Assets {
         }
     }
 
+    /**
+     * Retrieves a loaded Sound asset by its file name.
+     *
+     * @param fileName the file name of the sound asset
+     * @return the loaded Sound asset, or null if not found
+     */
     public static com.badlogic.gdx.audio.Sound getSound(String fileName) {
         if (loadedSounds.containsKey(fileName)) {
             return loadedSounds.get(fileName);
@@ -108,6 +124,12 @@ public class Assets {
         loadedFiles.put(fileName, fh);
     }
 
+    /**
+     * Initiates loading of all game assets asynchronously.
+     * <p>
+     * This method should be called once at the start of the game to load all
+     * necessary assets.
+     */
     public static void loadAll() {
         if (startLoadAll) {
             log.warn("loadAll() called multiple times!");
@@ -243,14 +265,27 @@ public class Assets {
         loadingThread.start();
     }
 
+    /**
+     * Checks if all assets have been loaded.
+     *
+     * @return true if all assets are loaded, false otherwise
+     */
     public static boolean isLoadedAll() {
         return loadedAll;
     }
 
+    /**
+     * Checks if the loading of all assets has started.
+     *
+     * @return true if loading has started, false otherwise
+     */
     public static boolean isStartLoadAll() {
         return startLoadAll;
     }
 
+    /**
+     * Blocks the calling thread until all assets are fully loaded.
+     */
     public static void waitUntilLoaded() {
         assetManager.finishLoading();
         if (loadingThread != null) {
@@ -266,10 +301,20 @@ public class Assets {
         }
     }
 
+    /**
+     * Returns the AssetManager instance.
+     *
+     * @return the AssetManager
+     */
     public static AssetManager getAssetManager() {
         return assetManager;
     }
 
+    /**
+     * Returns a 1x1 white texture.
+     *
+     * @return the white texture
+     */
     public static Texture getWhiteTexture() {
         if (textureWhite == null) {
             Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
@@ -281,6 +326,11 @@ public class Assets {
         return textureWhite;
     }
 
+    /**
+     * Returns a 1x1 black texture.
+     *
+     * @return the black texture
+     */
     public static Texture getBlackTexture() {
         if (textureBlack == null) {
             Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
@@ -292,6 +342,9 @@ public class Assets {
         return textureBlack;
     }
 
+    /**
+     * Disposes of all loaded assets and clears resources.
+     */
     public static void dispose() {
         for (var fontKey : loadedFonts) {
             if (assetManager.isLoaded(fontKey, BitmapFont.class)) {

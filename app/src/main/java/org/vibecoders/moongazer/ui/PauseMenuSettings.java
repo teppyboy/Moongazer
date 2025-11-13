@@ -38,10 +38,16 @@ public class PauseMenuSettings {
     private HashMap<Integer, Long> currentKeyDown = new HashMap<>();
     private Runnable onClose;
 
+    /**
+     * Constructs a new pause menu settings overlay.
+     */
     public PauseMenuSettings() {
         initUI();
     }
 
+    /**
+     * Initializes the UI components including volume sliders and back button.
+     */
     private void initUI() {
         titleFont = Assets.getFont("ui", 40);
         labelFont = Assets.getFont("ui", 24);
@@ -108,6 +114,9 @@ public class PauseMenuSettings {
         initKeyboardHandling();
     }
 
+    /**
+     * Initializes keyboard input handling for the settings overlay.
+     */
     private void initKeyboardHandling() {
         settingsStage.addListener(new InputListener() {
             @Override
@@ -126,6 +135,11 @@ public class PauseMenuSettings {
         settingsStage.setKeyboardFocus(root);
     }
 
+    /**
+     * Handles keyboard input for closing the settings overlay.
+     *
+     * @param keycode the key code of the pressed key
+     */
     private void handleKeyDown(int keycode) {
         if (keycode == Input.Keys.ESCAPE || keycode == Input.Keys.BACK) {
             Audio.playSfxReturn();
@@ -133,6 +147,9 @@ public class PauseMenuSettings {
         }
     }
 
+    /**
+     * Opens the settings overlay and sets it as the active input processor.
+     */
     public void open() {
         if (!isOpen) {
             isOpen = true;
@@ -143,6 +160,9 @@ public class PauseMenuSettings {
         }
     }
 
+    /**
+     * Closes the settings overlay and restores the previous input processor.
+     */
     public void close() {
         if (isOpen) {
             isOpen = false;
@@ -161,10 +181,21 @@ public class PauseMenuSettings {
         }
     }
 
+    /**
+     * Checks if the settings overlay is currently open.
+     *
+     * @return true if open, false otherwise
+     */
     public boolean isOpen() {
         return isOpen;
     }
 
+    /**
+     * Renders the settings overlay with the specified alpha transparency.
+     *
+     * @param batch the sprite batch for rendering
+     * @param parentAlpha the parent alpha value for transparency
+     */
     public void render(SpriteBatch batch, float parentAlpha) {
         if (!isOpen) return;
         float alpha = MathUtils.clamp(parentAlpha, 0f, 1f);
@@ -189,10 +220,18 @@ public class PauseMenuSettings {
         batch.begin();
     }
 
+    /**
+     * Sets the callback to be executed when the settings overlay is closed.
+     *
+     * @param onClose the callback runnable
+     */
     public void setOnClose(Runnable onClose) {
         this.onClose = onClose;
     }
 
+    /**
+     * Disposes of all resources used by the settings overlay.
+     */
     public void dispose() {
         if (settingsStage != null) {
             settingsStage.dispose();

@@ -8,17 +8,32 @@ import org.vibecoders.moongazer.managers.Assets;
 import static org.vibecoders.moongazer.Constants.*;
 
 public class Stage4Arkanoid extends StoryArkanoid {
+    /**
+     * Stage 4 Arkanoid level with a Fate Anchor brick pattern.
+     *
+     * @param game          Reference to the main Game object.
+     * @param startingLives Number of lives the player starts with.
+     */
     public Stage4Arkanoid(Game game, int startingLives) {
         super(game, 0, startingLives);
         setStageId(4);
         setBackground(Assets.getAsset("textures/stage/Bg4.png", Texture.class));
     }
 
+    /**
+     * Creates a Fate Anchor brick pattern in the gameplay area.
+     *
+     * @param rows Number of rows (not used in this pattern).
+     * @param cols Number of columns (not used in this pattern).
+     */
     @Override
     protected void createBrickGrid(int rows, int cols) {
         createFateAnchorPattern();
     }
 
+    /**
+     * Creates the Fate Anchor brick pattern.
+     */
     private void createFateAnchorPattern() {
         bricks.clear();
         float centerX = SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH / 2f;
@@ -68,6 +83,11 @@ public class Stage4Arkanoid extends StoryArkanoid {
         }
     }
 
+    /**
+     * Returns a random power-up type based on defined probabilities.
+     *
+     * @return A randomly selected Brick.PowerUpType.
+     */
     private Brick.PowerUpType getRandomPowerUp() {
         double rand = Math.random();
         if (rand < 0.70) {
@@ -87,6 +107,15 @@ public class Stage4Arkanoid extends StoryArkanoid {
         }
     }
 
+    /**
+     * Determines the brick type for the Fate Anchor pattern.
+     *
+     * @param row        The row index of the brick.
+     * @param col        The column index of the brick.
+     * @param totalRows  Total number of rows in the pattern.
+     * @param totalCols  Total number of columns in the pattern.
+     * @return The Brick.BrickType for the specified position.
+     */
     private Brick.BrickType getAnchorBrickType(int row, int col, int totalRows, int totalCols) {
         // Make the vertical line (stem) unbreakable
         int centerCol = totalCols / 2;

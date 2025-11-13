@@ -100,6 +100,9 @@ public abstract class Arkanoid extends Scene {
         init();
     }
 
+    /**
+     * Initializes the Arkanoid gameplay scene, loading assets, setting up input handling,
+     */
     protected void init() {
         font = Assets.getFont("ui", 18);
         fontUI30 = Assets.getFont("ui", 30);
@@ -120,6 +123,9 @@ public abstract class Arkanoid extends Scene {
         log.info("Arkanoid gameplay initialized");
     }
 
+    /**
+     * Sets up input handling for the Arkanoid gameplay scene, including pause functionality.
+     */
     private void setupInputHandling() {
         gameInputAdapter = new InputAdapter() {
             @Override
@@ -154,6 +160,9 @@ public abstract class Arkanoid extends Scene {
         Gdx.input.setInputProcessor(inputMultiplexer);
     }
 
+    /**
+     * Handles the pause action when the pause key is pressed.
+     */
     protected void setupPauseMenuCallbacks() {
         pauseMenu.setOnResume(() -> {
             log.info("Resuming game from pause menu");
@@ -183,6 +192,9 @@ public abstract class Arkanoid extends Scene {
         });
     }
 
+    /**
+     * Sets up callbacks for the game over menu actions.
+     */
     protected void setupGameOverMenuCallbacks() {
         gameOverMenu.setOnPlayAgain(() -> {
             log.info("Playing again from game over menu");
@@ -204,6 +216,9 @@ public abstract class Arkanoid extends Scene {
         });
     }
 
+    /**
+     * Restarts the game by resetting all relevant state variables and reinitializing gameplay.
+     */
     protected void restartGame() {
         score = 0;
         lives = 3;
@@ -215,12 +230,21 @@ public abstract class Arkanoid extends Scene {
         initGameplay();
     }
 
+    /**
+     * Restores the input processor to the gameplay input multiplexer.
+     */
     protected void restoreInputProcessor() {
         Gdx.input.setInputProcessor(inputMultiplexer);
     }
 
+    /**
+     * Handles the pause action when the pause key is pressed.
+     */
     protected abstract void returnToMainMenu();
 
+    /**
+     * Handles the pause action when the pause key is pressed.
+     */
     protected void initGameplay() {
         float paddleX = SIDE_PANEL_WIDTH + (GAMEPLAY_AREA_WIDTH - PADDLE_WIDTH) / 2f;
         float paddleY = 50f;
@@ -235,6 +259,12 @@ public abstract class Arkanoid extends Scene {
         activePowerUpEffects = new ArrayList<>();
     }
 
+    /**
+     * Creates a grid of bricks for the level.
+     *
+     * @param rows Number of rows of bricks.
+     * @param cols Number of columns of bricks.
+     */
     protected void createBrickGrid(int rows, int cols) {
         bricks.clear();
         float availableWidth = GAMEPLAY_AREA_WIDTH;
@@ -253,14 +283,31 @@ public abstract class Arkanoid extends Scene {
         }
     }
 
+    /**
+     * Determines the type of brick to create based on its row and column.
+     *
+     * @param row The row index of the brick.
+     * @param col The column index of the brick.
+     * @return The BrickType for the specified position.
+     */
     protected Brick.BrickType getBrickType(int row, int col) {
         return (row % 3 == 0) ? Brick.BrickType.UNBREAKABLE : Brick.BrickType.BREAKABLE;
     }
 
+    /**
+     * Sets the background texture for the gameplay scene.
+     *
+     * @param texture The Texture to set as the background.
+     */
     protected void setBackground(Texture texture) {
         this.backgroundTexture = texture;
     }
 
+    /**
+     * Renders the Arkanoid gameplay scene, including gameplay elements, UI, and pause/game over menus.
+     *
+     * @param batch The SpriteBatch used for rendering.
+     */
     @Override
     public void render(SpriteBatch batch) {
         if (!pauseMenu.isPaused() && !gameOverMenu.isVisible() &&
@@ -332,6 +379,11 @@ public abstract class Arkanoid extends Scene {
         }
     }
 
+    /**
+     * Handles player input for the Arkanoid gameplay scene.
+     *
+     * @param delta The time elapsed since the last frame.
+     */
     protected void handleInput(float delta) {
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             boolean anyLaunched = false;
@@ -355,6 +407,11 @@ public abstract class Arkanoid extends Scene {
         }
     }
 
+    /**
+     * Updates the Arkanoid gameplay elements, including paddle, balls, bricks, and power-ups.
+     *
+     * @param delta The time elapsed since the last frame.
+     */
     protected void updateGameplay(float delta) {
         // Update AI before paddle
         if (paddleAI.isEnabled()) {
@@ -440,6 +497,9 @@ public abstract class Arkanoid extends Scene {
         }
     }
 
+    /**
+     * Handles collisions between balls, bricks, paddle, power-ups, and bullets.
+     */
     protected void handleCollisions() {
         CollisionHandler.ScoreContext scoreContext = new CollisionHandler.ScoreContext(score, bestScore, combo, maxCombo);
 
@@ -530,6 +590,9 @@ public abstract class Arkanoid extends Scene {
         }
     }
 
+    /**
+     * Handles collisions between the paddle and active power-ups.
+     */
     private void handlePowerUpCollisions() {
         for (int i = activePowerUps.size() - 1; i >= 0; i--) {
             PowerUp powerUp = activePowerUps.get(i);
@@ -581,6 +644,9 @@ public abstract class Arkanoid extends Scene {
         }
     }
 
+    /**
+     * Handles collisions between bullets fired from the paddle and bricks.
+     */
     private void handleBulletCollisions() {
         List<Bullet> bullets = paddle.getBullets();
 
@@ -607,6 +673,9 @@ public abstract class Arkanoid extends Scene {
         }
     }
 
+    /**
+     * Triggers the display of the Iuno image for combo milestones.
+     */
     private void triggerIunoDisplay() {
         showIunoImage = true;
         iunoDisplayTimer = 0f;
@@ -616,6 +685,11 @@ public abstract class Arkanoid extends Scene {
         log.info("Combo milestone reached: {}x! Showing Iuno from {}", combo, iunoFromLeft ? "left" : "right");
     }
 
+    /**
+     * Updates the Iuno image display animation based on elapsed time.
+     *
+     * @param delta The time elapsed since the last frame.
+     */
     private void updateIunoDisplay(float delta) {
         if (!showIunoImage) return;
 
@@ -646,6 +720,11 @@ public abstract class Arkanoid extends Scene {
         }
     }
 
+    /**
+     * Renders the Iuno image display on the screen.
+     *
+     * @param batch The SpriteBatch used for rendering.
+     */
     private void renderIunoDisplay(SpriteBatch batch) {
         if (!showIunoImage || iunoAlpha <= 0f) return;
 
@@ -674,6 +753,11 @@ public abstract class Arkanoid extends Scene {
         batch.setColor(oldColor);
     }
 
+    /**
+     * Spawns a random power-up at the location of the destroyed brick.
+     *
+     * @param brick The Brick that was destroyed.
+     */
     private void spawnRandomPowerUp(Brick brick) {
         PowerUpFactory factory = new ClassicPowerUpFactory();
         PowerUp powerUp = null;
@@ -736,6 +820,12 @@ public abstract class Arkanoid extends Scene {
         }
     }
 
+    /**
+     * Determines if a power-up can stack with currently active power-up effects.
+     *
+     * @param powerUpName The name of the power-up to check.
+     * @return True if the power-up can stack, false otherwise.
+     */
     private boolean canPowerUpStack(String powerUpName) {
         if (powerUpName.equals("Expand Paddle") ||
                 powerUpName.equals("Multi Ball") ||
@@ -757,6 +847,11 @@ public abstract class Arkanoid extends Scene {
         return true;
     }
 
+    /**
+     * Renders the Arkanoid gameplay elements, including background, paddle, balls, bricks, and power-ups.
+     *
+     * @param batch The SpriteBatch used for rendering.
+     */
     protected void renderGameplay(SpriteBatch batch) {
         if (backgroundTexture != null) {
             batch.setColor(Color.WHITE);
@@ -785,6 +880,11 @@ public abstract class Arkanoid extends Scene {
         }
     }
 
+    /**
+     * Renders hitboxes for debugging purposes.
+     *
+     * @param batch The SpriteBatch used for rendering.
+     */
     protected void renderHitboxes(SpriteBatch batch) {
         batch.end();
         shapeRenderer.setProjectionMatrix(batch.getProjectionMatrix());
@@ -829,6 +929,15 @@ public abstract class Arkanoid extends Scene {
         batch.begin();
     }
 
+    /**
+     * Draws a semi-transparent UI box with a border.
+     *
+     * @param batch  The SpriteBatch used for rendering.
+     * @param x      The x-coordinate of the box.
+     * @param y      The y-coordinate of the box.
+     * @param width  The width of the box.
+     * @param height The height of the box.
+     */
     private void drawUIBox(SpriteBatch batch, float x, float y, float width, float height) {
         batch.end();
         shapeRenderer.setProjectionMatrix(batch.getProjectionMatrix());
@@ -846,6 +955,11 @@ public abstract class Arkanoid extends Scene {
         batch.begin();
     }
 
+    /**
+     * Renders the UI elements, including score, best score, combo, and max combo.
+     *
+     * @param batch The SpriteBatch used for rendering.
+     */
     protected void renderUI(SpriteBatch batch) {
         batch.setColor(1f, 1f, 1f, 1f);
         fontUI30.setColor(Color.WHITE);
@@ -978,6 +1092,12 @@ public abstract class Arkanoid extends Scene {
         renderActivePowerups(batch, layout);
     }
 
+    /**
+     * Renders the active power-up effects on the right side panel.
+     *
+     * @param batch  The SpriteBatch used for rendering.
+     * @param layout The GlyphLayout used for text measurement.
+     */
     private void renderActivePowerups(SpriteBatch batch, com.badlogic.gdx.graphics.g2d.GlyphLayout layout) {
         float startY = WINDOW_HEIGHT - 100;
         float iconSize = 32;
@@ -1022,16 +1142,29 @@ public abstract class Arkanoid extends Scene {
         }
     }
 
+    /**
+     * Checks if the level is complete (all breakable bricks destroyed).
+     *
+     * @return True if the level is complete, false otherwise.
+     */
     protected boolean checkLevelComplete() {
         if (bricksDestroyed == 0) return false;
         return bricks.stream().noneMatch(brick -> brick.getType() == Brick.BrickType.BREAKABLE && !brick.isDestroyed());
     }
 
+    /**
+     * Called when a brick is destroyed to update the destroyed bricks count.
+     *
+     * @param brick The Brick that was destroyed.
+     */
     protected void onBrickDestroyed(Brick brick) {
         bricksDestroyed++;
         log.debug("Brick destroyed! Total bricks destroyed: {}", bricksDestroyed);
     }
 
+    /**
+     * Handles the event when a ball is lost (falls below the paddle).
+     */
     protected void onBallLost() {
         lives--;
         Audio.playSfxBallLoss();
@@ -1061,6 +1194,9 @@ public abstract class Arkanoid extends Scene {
         }
     }
 
+    /**
+     * Clears all active power-up effects when a life is lost.
+     */
     private void clearAllActivePowerups() {
         if (activePowerUpEffects.isEmpty()) {
             return;
@@ -1077,12 +1213,24 @@ public abstract class Arkanoid extends Scene {
         activePowerUps.clear();
     }
 
+    /**
+     * Called when the level is complete (all breakable bricks destroyed).
+     */
     protected abstract void onLevelComplete();
 
+    /**
+     * Called when the game is over (no lives remaining).
+     */
     protected abstract void onGameOver();
 
+    /**
+     * Called when the pause button is pressed.
+     */
     protected abstract void onPausePressed();
 
+    /**
+     * Disposes of resources used by the Arkanoid game.
+     */
     @Override
     public void dispose() {
         if (shapeRenderer != null) {
@@ -1105,22 +1253,47 @@ public abstract class Arkanoid extends Scene {
         }
     }
 
+    /**
+     * Gets the paddle instance.
+     *
+     * @return The Paddle object.
+     */
     public Paddle getPaddle() {
         return paddle;
     }
 
+    /**
+     * Gets the last brick that was hit by a ball.
+     *
+     * @return The last hit Brick object.
+     */
     public Brick getLastHitBrick() {
         return lastHitBrick;
     }
 
+    /**
+     * Gets the main ball instance.
+     *
+     * @return The main Ball object, or null if no balls are present.
+     */
     public Ball getBall() {
         return balls.isEmpty() ? null : balls.get(0);
     }
 
+    /**
+     * Gets the list of all active balls in the game.
+     *
+     * @return The list of Ball objects.
+     */
     public List<Ball> getBalls() {
         return balls;
     }
 
+    /**
+     * Spawns additional balls based on the main ball's properties.
+     *
+     * @param count The number of additional balls to spawn.
+     */
     public void spawnBalls(int count) {
         if (balls.isEmpty()) return;
 

@@ -20,6 +20,12 @@ public class ArkanoidAI implements PaddleAI {
 
     private boolean enabled = false;
 
+    /**
+     * Updates the AI logic to control the paddle automatically.
+     * @param paddle The paddle to control
+     * @param balls List of balls currently in play
+     * @param powerUps List of active power-ups falling
+     */
     @Override
     public void update(Paddle paddle, List<Ball> balls, List<PowerUp> powerUps) {
         if (!enabled) {
@@ -46,6 +52,12 @@ public class ArkanoidAI implements PaddleAI {
         }
     }
 
+    /**
+     * Finds the most urgent ball that needs to be hit by the paddle.
+     * @param balls List of balls to evaluate
+     * @param paddle The paddle to calculate distances from
+     * @return The ball with highest priority, or null if no urgent ball found
+     */
     private Ball findMostUrgentBall(List<Ball> balls, Paddle paddle) {
         if (balls == null || balls.isEmpty()) {
             return null;
@@ -92,6 +104,12 @@ public class ArkanoidAI implements PaddleAI {
         return mostUrgent;
     }
 
+    /**
+     * Finds the best power-up to collect based on proximity and position.
+     * @param powerUps List of power-ups to evaluate
+     * @param paddle The paddle to calculate distances from
+     * @return The best power-up to collect, or null if none found
+     */
     private PowerUp findBestPowerUp(List<PowerUp> powerUps, Paddle paddle) {
         if (powerUps == null || powerUps.isEmpty()) {
             return null;
@@ -118,6 +136,13 @@ public class ArkanoidAI implements PaddleAI {
         return best;
     }
 
+    /**
+     * Determines whether to prioritize collecting a power-up over hitting a ball.
+     * @param powerUp The power-up to consider
+     * @param ball The ball to compare priority with
+     * @param paddle The paddle position for calculations
+     * @return true if power-up should be prioritized, false otherwise
+     */
     private boolean shouldPrioritizePowerUp(PowerUp powerUp, Ball ball, Paddle paddle) {
         if (powerUp == null) {
             return false;
@@ -153,6 +178,11 @@ public class ArkanoidAI implements PaddleAI {
         return false;
     }
 
+    /**
+     * Moves the paddle to intercept and hit the ball.
+     * @param paddle The paddle to move
+     * @param ball The ball to hit
+     */
     private void moveToHitBall(Paddle paddle, Ball ball) {
         float paddleX = paddle.getBounds().x + paddle.getBounds().width / 2;
         float paddleY = paddle.getBounds().y;
@@ -195,6 +225,13 @@ public class ArkanoidAI implements PaddleAI {
         }
     }
 
+    /**
+     * Predicts the ball's X position after bouncing off walls.
+     * @param ballX Current X position of the ball
+     * @param dx Horizontal velocity of the ball
+     * @param timeToReach Time until ball reaches paddle height
+     * @return Predicted X position of the ball
+     */
     private double predictBallXWithBounce(float ballX, float dx, double timeToReach) {
         double predictedX = ballX + dx * timeToReach;
         float leftWall = SIDE_PANEL_WIDTH;
@@ -212,6 +249,11 @@ public class ArkanoidAI implements PaddleAI {
         return predictedX;
     }
 
+    /**
+     * Moves the paddle to collect a falling power-up.
+     * @param paddle The paddle to move
+     * @param powerUp The power-up to collect
+     */
     private void moveToCollectPowerUp(Paddle paddle, PowerUp powerUp) {
         float paddleX = paddle.getBounds().x + paddle.getBounds().width / 2;
         float powerUpX = powerUp.x + powerUp.width / 2;
@@ -230,12 +272,20 @@ public class ArkanoidAI implements PaddleAI {
         }
     }
 
+    /**
+     * Enables or disables the AI control.
+     * @param enabled true to enable AI, false to disable
+     */
     @Override
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
         log.info("ArkanoidAI {}", enabled ? "ENABLED" : "DISABLED");
     }
 
+    /**
+     * Checks if the AI is currently enabled.
+     * @return true if AI is enabled, false otherwise
+     */
     @Override
     public boolean isEnabled() {
         return enabled;

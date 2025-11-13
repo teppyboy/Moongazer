@@ -14,10 +14,20 @@ public class Stage1 extends Story {
     private static final String ROVERLIBER = "audio/storysfx/ROVERLIBER.mp3";
     private static final String IUNOFIGHT = "audio/storysfx/IUNOFIGHT.mp3";
     private static final String IUNOLIBERSFX = "audio/storysfx/IUNOLIBERSFX.mp3";
+
+    /**
+     * Constructs Stage 1 of the story mode.
+     *
+     * @param game the main game instance
+     */
     public Stage1(Game game) {
         super(game, 1);
     }
     
+    /**
+     * Initializes the intro dialogue for Stage 1.
+     * Shows the confrontation with The False Sovereign.
+     */
     @Override
     protected void initIntroDialogue() {
         HashMap<String, List<DialogueStep>> branches = new HashMap<>();
@@ -49,6 +59,10 @@ public class Stage1 extends Story {
         introDialogue.setDialogueBranches(branches, "default");
     }
     
+    /**
+     * Initializes the outro dialogue for Stage 1.
+     * Shows the aftermath of the battle and Iuno's ritual.
+     */
     @Override
     protected void initOutroDialogue() {
         HashMap<String, List<DialogueStep>> branches = new HashMap<>();

@@ -14,11 +14,21 @@ public class ChallengeGoalsPanel {
     private Label.LabelStyle labelStyle;
     private static final BitmapFont font = Assets.getFont("ui", 24);
 
+    /**
+     * Constructs a challenge goals panel and adds it to the root table.
+     * Displays the requirements to earn stars based on remaining lives.
+     *
+     * @param root the root table to add this panel to
+     */
     public ChallengeGoalsPanel(Table root) {
         createPanel();
         root.addActor(panel);
     }
 
+    /**
+     * Creates the panel with challenge goal information.
+     * Shows star requirements: 1 life = 1 star, 2 lives = 2 stars, 3 lives = 3 stars.
+     */
     private void createPanel() {
         panel = new Table();
         labelStyle = new Label.LabelStyle(font, Color.WHITE);

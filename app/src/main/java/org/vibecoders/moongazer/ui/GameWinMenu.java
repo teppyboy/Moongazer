@@ -67,10 +67,16 @@ public class GameWinMenu {
         }
     }
 
+    /**
+     * Constructs a new game win menu with all UI components.
+     */
     public GameWinMenu() {
         initUI();
     }
 
+    /**
+     * Initializes the UI components including buttons, fonts, and stage.
+     */
     private void initUI() {
         // Create dark overlay
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
@@ -107,6 +113,11 @@ public class GameWinMenu {
         initKeyboardHandling();
     }
 
+    /**
+     * Creates button configurations for the game win menu.
+     *
+     * @return array of button configurations
+     */
     private ButtonConfig[] createButtonConfigs() {
         return new ButtonConfig[]{
                 new ButtonConfig("Continue", () -> {
@@ -137,6 +148,15 @@ public class GameWinMenu {
         };
     }
 
+    /**
+     * Builds a single button with the specified configuration.
+     *
+     * @param config the button configuration
+     * @param index the button index
+     * @param centerX the x-coordinate for button center
+     * @param startY the starting y-coordinate
+     * @return the created button
+     */
     private UITextButton buildButton(ButtonConfig config, int index, int centerX, int startY) {
         UITextButton button = new UITextButton(config.label, buttonFont);
         button.setSize(BUTTON_WIDTH, BUTTON_HEIGHT);
@@ -146,6 +166,9 @@ public class GameWinMenu {
         return button;
     }
 
+    /**
+     * Initializes keyboard navigation and input handling for the menu.
+     */
     private void initKeyboardHandling() {
         for (int i = 0; i < buttons.length; i++) {
             final int index = i;
@@ -182,6 +205,11 @@ public class GameWinMenu {
         menuStage.setKeyboardFocus(menuTable);
     }
 
+    /**
+     * Handles keyboard input for menu navigation and selection.
+     *
+     * @param keycode the key code of the pressed key
+     */
     private void handleKeyDown(int keycode) {
         switch (keycode) {
             case Input.Keys.UP:
@@ -214,7 +242,8 @@ public class GameWinMenu {
     }
 
     /**
-     * Show the game win menu with stats
+     * Show the game win menu with stats.
+     *
      * @param finalScore Total score achieved
      * @param maxCombo Maximum combo achieved
      * @param remainingLives Lives remaining (used to calculate stars)
@@ -240,15 +269,18 @@ public class GameWinMenu {
     }
 
     /**
-     * Calculate stars based on remaining lives
+     * Calculate stars based on remaining lives.
      * 3 lives = 3 stars, 2 lives = 2 stars, 1 life = 1 star, 0 lives = 0 stars
+     *
+     * @param lives the number of remaining lives
+     * @return the number of stars earned (0-3)
      */
     private int calculateStars(int lives) {
         return Math.max(0, Math.min(3, lives));
     }
 
     /**
-     * Hide the game win menu
+     * Hides the game win menu.
      */
     private void hide() {
         if (isVisible) {
@@ -261,10 +293,21 @@ public class GameWinMenu {
         }
     }
 
+    /**
+     * Checks if the game win menu is currently visible.
+     *
+     * @return true if visible, false otherwise
+     */
     public boolean isVisible() {
         return isVisible;
     }
 
+    /**
+     * Renders the game win menu with stats, stars, and buttons.
+     *
+     * @param batch the sprite batch for rendering
+     * @param gameSnapshot the snapshot texture of the game state
+     */
     public void render(SpriteBatch batch, Texture gameSnapshot) {
         if (!isVisible) {
             return;
@@ -340,7 +383,9 @@ public class GameWinMenu {
     }
 
     /**
-     * Draw stars based on starsEarned
+     * Draws stars based on starsEarned with golden color for earned stars.
+     *
+     * @param batch the sprite batch for rendering
      */
     private void drawStars(SpriteBatch batch) {
         if (starTexture == null) {
@@ -372,6 +417,11 @@ public class GameWinMenu {
         batch.setColor(originalColor);
     }
 
+    /**
+     * Updates the fade animation state.
+     *
+     * @param delta the time delta since last frame
+     */
     private void updateFade(float delta) {
         switch (fadeState) {
             case FADING_IN:
@@ -389,19 +439,36 @@ public class GameWinMenu {
         }
     }
 
-    // Setters for callbacks
+    /**
+     * Sets the callback to be executed when continue is selected.
+     *
+     * @param callback the callback runnable
+     */
     public void setOnContinue(Runnable callback) {
         this.onContinue = callback;
     }
 
+    /**
+     * Sets the callback to be executed when main menu is selected.
+     *
+     * @param callback the callback runnable
+     */
     public void setOnMainMenu(Runnable callback) {
         this.onMainMenu = callback;
     }
 
+    /**
+     * Sets the callback to be executed when quit is selected.
+     *
+     * @param callback the callback runnable
+     */
     public void setOnQuit(Runnable callback) {
         this.onQuit = callback;
     }
 
+    /**
+     * Disposes of all resources used by the game win menu.
+     */
     public void dispose() {
         if (darkOverlay != null) {
             darkOverlay.dispose();

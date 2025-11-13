@@ -15,11 +15,19 @@ public class HighScorePanel {
 
     private Label highScoreValueLabel;
 
+    /**
+     * Constructs a high score panel and adds it to the root table.
+     *
+     * @param root the root table to add this panel to
+     */
     public HighScorePanel(Table root) {
         createPanel();
         root.addActor(panel);
     }
 
+    /**
+     * Creates the panel UI with the high score display.
+     */
     private void createPanel() {
         panel = new Table();
         labelStyle = new Label.LabelStyle(font, Color.WHITE);
@@ -51,6 +59,11 @@ public class HighScorePanel {
         panel.add(contentTable);
     }
 
+    /**
+     * Updates the displayed high score value.
+     *
+     * @param bestScore the best score to display, or 0 to show "None"
+     */
     public void updateHighScore(int bestScore) {
         if (highScoreValueLabel != null) {
             if (bestScore > 0) {
@@ -63,10 +76,20 @@ public class HighScorePanel {
         }
     }
 
+    /**
+     * Gets the panel table.
+     *
+     * @return the panel table
+     */
     public Table getPanel() {
         return panel;
     }
 
+    /**
+     * Sets the visibility of the panel.
+     *
+     * @param visible true to show the panel, false to hide it
+     */
     public void setVisible(boolean visible) {
         panel.setVisible(visible);
     }

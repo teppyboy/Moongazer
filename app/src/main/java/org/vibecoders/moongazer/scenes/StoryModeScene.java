@@ -66,6 +66,11 @@ public class StoryModeScene extends Scene {
         }
     }
 
+    /**
+     * Called when a stage is selected in the stage selection panel.
+     *
+     * @param stageData The data of the selected stage.
+     */
     private void onStageSelected(StageData stageData) {
         currentStageID = stageData.getStageId();
         infoPanel.updateInfo(stageData.getInfo());
@@ -76,12 +81,18 @@ public class StoryModeScene extends Scene {
         highScorePanel.updateHighScore(highScore);
     }
 
+    /**
+     * Sets up the background texture for the scene.
+     */
     private void setupBackground() {
         backgroundTexture = Assets.getAsset("textures/stage/background_story1.png", Texture.class);
         // Don't set background on root - we'll draw it manually in render() for parallax effect
         root.setFillParent(true);
     }
 
+    /**
+     * Creates the close button that returns to the main menu.
+     */
     private void createCloseButton() {
         backButton = new UICloseButton();
         backButton.setSize(40, 40);
@@ -95,6 +106,9 @@ public class StoryModeScene extends Scene {
         });
     }
 
+    /**
+     * Creates the play button that starts the selected stage.
+     */
     private void createPlayButton() {
         BitmapFont font = Assets.getFont("ui", 24);
         UITextButton playButton = new UITextButton("Go", font);
@@ -141,6 +155,11 @@ public class StoryModeScene extends Scene {
         });
     }
 
+    /**
+     * Creates the list of stage data for the story mode.
+     *
+     * @return A list of StageData objects representing each stage.
+     */
     private List<StageData> createStageData() {
         List<StageData> stages = new ArrayList<>();
 
@@ -162,6 +181,11 @@ public class StoryModeScene extends Scene {
         return stages;
     }
 
+    /**
+     * Renders the scene with a parallax background effect.
+     *
+     * @param batch The SpriteBatch used for rendering.
+     */
     @Override
     public void render(SpriteBatch batch) {
         // Apply parallax effect to background

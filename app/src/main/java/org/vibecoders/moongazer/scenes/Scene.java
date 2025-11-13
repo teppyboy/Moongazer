@@ -15,6 +15,10 @@ public abstract class Scene {
         this();
         this.game = game;
     }
+
+    /**
+     * Default constructor for Scene. Initializes the root Table and ensures all assets are loaded.
+     */
     public Scene() {
         root = new Table();
         if (!Assets.isLoadedAll() && Assets.isStartLoadAll()) {

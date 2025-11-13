@@ -14,6 +14,10 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 public class UISlider {
     public Slider slider;
 
+    /**
+     * Constructs a new slider with predefined textures for background and knob.
+     * The slider ranges from 0 to 1 with 0.01 step size and is initially set to 1.
+     */
     public UISlider() {
         Texture sliderBgTexture = Assets.getAsset("textures/ui/UI_SliderBg2.png", Texture.class);
         Texture sliderKnobTexture = Assets.getAsset("textures/ui/UI_SliderKnob.png", Texture.class);
@@ -30,26 +34,58 @@ public class UISlider {
         slider.setProgrammaticChangeEvents(true);
     }
 
+    /**
+     * Sets the current value of the slider.
+     *
+     * @param value the value to set (between 0 and 1)
+     */
     public void setValue(float value) {
         slider.setValue(value);
     }
 
+    /**
+     * Gets the current value of the slider.
+     *
+     * @return the current value (between 0 and 1)
+     */
     public float getValue() {
         return slider.getValue();
     }
 
+    /**
+     * Sets the size of the slider.
+     *
+     * @param width the width of the slider
+     * @param height the height of the slider
+     */
     public void setSize(float width, float height) {
         slider.setSize(width, height);
     }
 
+    /**
+     * Sets the position of the slider.
+     *
+     * @param x the x-coordinate
+     * @param y the y-coordinate
+     */
     public void setPosition(float x, float y) {
         slider.setPosition(x, y);
     }
 
+    /**
+     * Adds an event listener to the slider.
+     *
+     * @param listener the event listener to add
+     */
     public void addListener(EventListener listener) {
         slider.addListener(listener);
     }
 
+    /**
+     * Sets the action to be executed when the slider value changes.
+     *
+     * @param action the runnable action to execute on value change
+     */
     public void onChanged(Runnable action) {
         slider.addListener(new ChangeListener() {
             @Override

@@ -16,10 +16,19 @@ public class Stage5 extends Story {
     private static final String IUNODONE3 = "audio/storysfx/IUNODONE3.mp3";
     private static final String ROVERHM = "audio/storysfx/ROVERHM.mp3";
 
+    /**
+     * Constructs Stage 5 (final stage) of the story mode.
+     *
+     * @param game the main game instance
+     */
     public Stage5(Game game) {
         super(game, 5);
     }
     
+    /**
+     * Initializes the intro dialogue for Stage 5.
+     * Shows Rover's anxiety about whether Iuno has truly returned.
+     */
     @Override
     protected void initIntroDialogue() {
         HashMap<String, List<DialogueStep>> branches = new HashMap<>();
@@ -55,6 +64,10 @@ public class Stage5 extends Story {
         introDialogue.setDialogueBranches(branches, "default");
     }
     
+    /**
+     * Initializes the outro dialogue for Stage 5.
+     * Shows the happy reunion with Iuno, confirming she has been successfully restored to reality.
+     */
     @Override
     protected void initOutroDialogue() {
         HashMap<String, List<DialogueStep>> branches = new HashMap<>();

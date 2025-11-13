@@ -35,14 +35,40 @@ public class Brick extends GameObject {
     private float totalHitAnimTime = 0.6f;
     private float hitShakeIntensity = 3f;
 
+    /**
+     * Constructs a brick with specified type.
+     * @param x X position
+     * @param y Y position
+     * @param width Width of the brick
+     * @param height Height of the brick
+     * @param type Type of brick (BREAKABLE or UNBREAKABLE)
+     */
     public Brick(float x, float y, float width, float height, BrickType type) {
         this(x, y, width, height, type, type == BrickType.UNBREAKABLE ? -1 : 1, PowerUpType.NONE);
     }
 
+    /**
+     * Constructs a brick with specified type and durability.
+     * @param x X position
+     * @param y Y position
+     * @param width Width of the brick
+     * @param height Height of the brick
+     * @param type Type of brick
+     * @param durability Hit points before destruction
+     */
     public Brick(float x, float y, float width, float height, BrickType type, int durability) {
         this(x, y, width, height, type, durability, PowerUpType.NONE);
     }
 
+    /**
+     * Constructs a brick with specified type and power-up.
+     * @param x X position
+     * @param y Y position
+     * @param width Width of the brick
+     * @param height Height of the brick
+     * @param type Type of brick
+     * @param powerUpType Type of power-up dropped when destroyed
+     */
     public Brick(float x, float y, float width, float height, BrickType type, PowerUpType powerUpType) {
         this(x, y, width, height, type, type == BrickType.UNBREAKABLE ? -1 : 1, powerUpType);
     }
@@ -62,6 +88,16 @@ public class Brick extends GameObject {
         return new Brick(x, y, width, height, BrickType.BREAKABLE, level, powerUpType);
     }
 
+    /**
+     * Constructs a brick with full specifications.
+     * @param x X position
+     * @param y Y position
+     * @param width Width of the brick
+     * @param height Height of the brick
+     * @param type Type of brick
+     * @param durability Hit points before destruction
+     * @param powerUpType Type of power-up dropped
+     */
     public Brick(float x, float y, float width, float height, BrickType type, int durability, PowerUpType powerUpType) {
         super((int)x, (int)y, (int)width, (int)height);
         this.type = type;
@@ -73,6 +109,9 @@ public class Brick extends GameObject {
         loadTexture();
     }
 
+    /**
+     * Loads the appropriate texture based on brick type and properties.
+     */
     private void loadTexture() {
         if (powerUpType != PowerUpType.NONE && type == BrickType.BREAKABLE) {
             switch (powerUpType) {
@@ -120,6 +159,9 @@ public class Brick extends GameObject {
         }
     }
 
+    /**
+     * Handles a hit on the brick, reducing durability.
+     */
     public void hit() {
         Audio.playSfxBrickHit();
         if (durability == -1) return;
@@ -134,12 +176,18 @@ public class Brick extends GameObject {
         }
     }
 
+    /**
+     * Starts the disappearing animation for destroyed bricks.
+     */
     private void startDisappearing() {
         disappearing = true;
         disappearTimer = 0f;
         originalX = bounds.x;
     }
 
+    /**
+     * Starts the hit animation when brick is damaged but not destroyed.
+     */
     private void startHitAnimation() {
         if (!hitAnimating) {
             originalX = bounds.x;
@@ -149,6 +197,10 @@ public class Brick extends GameObject {
         alpha = 1f;
     }
 
+    /**
+     * Renders the brick to the screen.
+     * @param batch SpriteBatch used for rendering
+     */
     public void render(SpriteBatch batch) {
         if (texture != null && (disappearing || hitAnimating || !destroyed)) {
             float oldColor = batch.getPackedColor();
@@ -162,32 +214,60 @@ public class Brick extends GameObject {
         }
     }
 
+    /**
+     * Checks if the brick has been destroyed.
+     * @return true if destroyed, false otherwise
+     */
     public boolean isDestroyed() {
         return destroyed;
     }
 
+    /**
+     * Gets the type of the brick.
+     * @return Brick type
+     */
     public BrickType getType() {
         return type;
     }
 
+    /**
+     * Gets the power-up type this brick drops.
+     * @return Power-up type
+     */
     public PowerUpType getPowerUpType() {
         return powerUpType;
     }
 
+    /**
+     * Gets the current durability of the brick.
+     * @return Current durability (-1 for unbreakable)
+     */
     public int getDurability() {
         return durability;
     }
 
+    /**
+     * Gets the maximum durability of the brick.
+     * @return Maximum durability
+     */
     public int getMaxDurability() {
         return maxDurability;
     }
 
+    /**
+     * Gets the durability as a percentage of maximum.
+     * @return Durability percentage (0.0 to 1.0, or -1 for unbreakable)
+     */
     public float getDurabilityPercentage() {
         if (durability == -1) return -1f;
         if (maxDurability <= 0) return 0f;
         return (float) durability / maxDurability;
     }
 
+    /**
+     * Updates the brick's animation state.
+     * @param deltaTime Time elapsed since last update
+     */
     public void update(float deltaTime) {
         if (disappearing) {
             disappearTimer += deltaTime;
@@ -225,14 +305,26 @@ public class Brick extends GameObject {
         }
     }
 
+    /**
+     * Checks if the brick is currently playing disappearing animation.
+     * @return true if disappearing, false otherwise
+     */
     public boolean isDisappearing() {
         return disappearing;
     }
 
+    /**
+     * Checks if the brick is currently playing hit animation.
+     * @return true if animating, false otherwise
+     */
     public boolean isHitAnimating() {
         return hitAnimating;
     }
 
+    /**
+     * Gets the current alpha transparency value.
+     * @return Alpha value (0.0 to 1.0)
+     */
     public float getAlpha() {
         return alpha;
     }

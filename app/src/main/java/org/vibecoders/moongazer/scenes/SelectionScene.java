@@ -22,6 +22,10 @@ public class SelectionScene extends Scene {
     private UIImageButton endlessModeButton;
     private Texture backgroundTexture;
 
+    /**
+     * Scene where the player selects between Story Mode and Endless Mode.
+     * @param game The main game instance.
+     */
     SelectionScene(Game game) {
         super(game);
 

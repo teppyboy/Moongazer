@@ -38,6 +38,13 @@ public class UIScrollbar {
     private float scrollAccumulator = 0f;
     private float trackClickTargetY = 0;
 
+    /**
+     * Constructs a custom scrollbar with up/down arrow buttons and draggable indicator.
+     *
+     * @param scrollPane the scroll pane to control
+     * @param width      the width of the scrollbar
+     * @param height     the height of the scrollbar
+     */
     public UIScrollbar(ScrollPane scrollPane, float width, float height) {
         this.scrollPane = scrollPane;
         // this.scrollbarHeight = height;
@@ -202,7 +209,10 @@ public class UIScrollbar {
     }
 
     /**
-     * Calculate indicator height based on content ratio
+     * Calculate indicator height based on content ratio.
+     * The height is proportional to the visible content ratio with a minimum height.
+     *
+     * @return the calculated indicator height
      */
     private float calculateIndicatorHeight() {
         float maxScroll = scrollPane.getMaxY();
@@ -224,7 +234,9 @@ public class UIScrollbar {
     }
 
     /**
-     * Calculate indicator position from top
+     * Calculate indicator position from top based on current scroll position.
+     *
+     * @return the position of the indicator from the top of the track
      */
     private float calculateIndicatorPosition() {
         float maxScroll = scrollPane.getMaxY();
@@ -242,7 +254,10 @@ public class UIScrollbar {
     }
 
     /**
-     * Update method - call this in Scene's act() or render() to handle continuous scrolling
+     * Update method - call this in Scene's act() or render() to handle continuous scrolling.
+     * Updates the indicator position and handles button hold scrolling.
+     *
+     * @param delta the time delta since last frame
      */
     public void update(float delta) {
         // Update indicator position and size
@@ -293,7 +308,9 @@ public class UIScrollbar {
     }
 
     /**
-     * Check if indicator center has reached the target position
+     * Check if indicator center has reached the target position when scrolling from track click.
+     *
+     * @return true if the target position has been reached
      */
     private boolean hasReachedTarget() {
         float indicatorHeight = calculateIndicatorHeight();
@@ -307,12 +324,22 @@ public class UIScrollbar {
         }
     }
 
+    /**
+     * Scrolls the content upward by the specified amount.
+     *
+     * @param amount the amount to scroll up
+     */
     private void scrollUp(float amount) {
         float currentScroll = scrollPane.getScrollY();
         float newScroll = Math.max(0, currentScroll - amount);
         scrollPane.setScrollY(newScroll);
     }
 
+    /**
+     * Scrolls the content downward by the specified amount.
+     *
+     * @param amount the amount to scroll down
+     */
     private void scrollDown(float amount) {
         float currentScroll = scrollPane.getScrollY();
         float maxScroll = scrollPane.getMaxY();
@@ -320,6 +347,11 @@ public class UIScrollbar {
         scrollPane.setScrollY(newScroll);
     }
 
+    /**
+     * Gets the actor/table containing the scrollbar UI elements.
+     *
+     * @return the scrollbar container table
+     */
     public Table getActor() {
         return scrollbarContainer;
     }

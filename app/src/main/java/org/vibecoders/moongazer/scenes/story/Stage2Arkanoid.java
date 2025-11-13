@@ -8,17 +8,42 @@ import org.vibecoders.moongazer.managers.Assets;
 import static org.vibecoders.moongazer.Constants.*;
 
 public class Stage2Arkanoid extends StoryArkanoid {
+    /**
+     * Constructor for Stage 2 Arkanoid game scene.
+     *
+     * @param game          Reference to the main Game object.
+     * @param startingLives Number of lives the player starts with.
+     */
     public Stage2Arkanoid(Game game, int startingLives) {
         super(game, 0, startingLives);
         setStageId(2);
         setBackground(Assets.getAsset("textures/stage/Bg2.png", Texture.class));
     }
 
+    /**
+     * Creates a heart-shaped pattern of bricks for the level.
+     *
+     * The heart pattern consists of a combination of breakable and unbreakable bricks,
+     * arranged to resemble a heart shape. Breakable bricks are assigned random levels
+     * and power-ups.
+     *
+     * Overrides the default brick grid creation method to implement the custom pattern.
+     *
+     * @param rows Number of rows (not used in this implementation).
+     * @param cols Number of columns (not used in this implementation).
+     */
     @Override
     protected void createBrickGrid(int rows, int cols) {
         createHeartPattern();
     }
 
+    /**
+     * Generates a heart-shaped pattern of bricks.
+     *
+     * This method clears any existing bricks and populates the brick list with a
+     * predefined heart pattern. The pattern includes both breakable and unbreakable bricks,
+     * with breakable bricks assigned random levels and power-ups.
+     */
     private void createHeartPattern() {
         bricks.clear();
         float centerX = SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH / 2f;
@@ -68,6 +93,11 @@ public class Stage2Arkanoid extends StoryArkanoid {
         }
     }
 
+    /**
+     * Selects a random power-up type based on predefined probabilities.
+     *
+     * @return A randomly selected PowerUpType.
+     */
     private Brick.PowerUpType getRandomPowerUp() {
         double rand = Math.random();
         if (rand < 0.70) {
@@ -87,6 +117,17 @@ public class Stage2Arkanoid extends StoryArkanoid {
         }
     }
 
+    /**
+     * Determines the brick type for a given position in the heart pattern.
+     *
+     * Unbreakable bricks are placed in an outline pattern, while the rest are breakable.
+     *
+     * @param row        The row index of the brick.
+     * @param col        The column index of the brick.
+     * @param totalRows  Total number of rows in the pattern.
+     * @param totalCols  Total number of columns in the pattern.
+     * @return The BrickType for the specified position.
+     */
     private Brick.BrickType getHeartBrickType(int row, int col, int totalRows, int totalCols) {
         // Create unbreakable bricks in outline pattern
         if (row == 0 || row == totalRows - 1) {

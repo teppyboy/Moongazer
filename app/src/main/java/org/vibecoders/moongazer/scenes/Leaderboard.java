@@ -38,6 +38,9 @@ public class Leaderboard extends Scene {
         buildUI();
     }
 
+    /**
+     * Builds the user interface for the leaderboard scene.
+     */
     private void buildUI() {
         root.setFillParent(true);
         BitmapFont font = Assets.getFont("ui", 24);
@@ -124,6 +127,15 @@ public class Leaderboard extends Scene {
         });
     }
 
+    /**
+     * Creates the score list table populated with scores from the SaveGameManager.
+     *
+     * @param list       The table to populate with score entries.
+     * @param bg         The background drawable for the rows.
+     * @param font       The font to use for labels.
+     * @param smallStyle The label style for regular entries.
+     * @param goldStyle  The label style for top rank entries.
+     */
     private void createScoreList(Table list, Drawable bg, BitmapFont font,
                                  Label.LabelStyle smallStyle, Label.LabelStyle goldStyle) {
         list.clear();
@@ -197,12 +209,22 @@ public class Leaderboard extends Scene {
         }
     }
 
+    /**
+     * Scrolls the scroll pane by the specified amount.
+     *
+     * @param amount The amount to scroll. Positive values scroll down, negative values scroll up.
+     */
     private void scroll(float amount) {
         float currentScroll = scrollPane.getScrollY();
         float newScroll = Math.max(0, Math.min(scrollPane.getMaxY(), currentScroll + amount));
         scrollPane.setScrollY(newScroll);
     }
 
+    /**
+     * Renders the leaderboard scene.
+     *
+     * @param batch The SpriteBatch used for rendering.
+     */
     @Override
     public void render(SpriteBatch batch) {
         game.mainMenuScene.render(batch);

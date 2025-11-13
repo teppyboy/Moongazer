@@ -18,22 +18,48 @@ public abstract class UIButton {
         }
     };
 
+    /**
+     * Gets the actor associated with this button.
+     *
+     * @return the actor instance
+     */
     public Actor getActor() {
         return actor;
     }
 
+    /**
+     * Sets the position of the button.
+     *
+     * @param x the x-coordinate
+     * @param y the y-coordinate
+     */
     public void setPosition(int x, int y) {
         actor.setPosition(x, y);
     }
 
+    /**
+     * Sets the size of the button.
+     *
+     * @param width the width of the button
+     * @param height the height of the button
+     */
     public void setSize(int width, int height) {
         actor.setSize(width, height);
     }
 
+    /**
+     * Adds an event listener to the button.
+     *
+     * @param eventListener the event listener to add
+     */
     public void addEventListener(EventListener eventListener) {
         actor.addListener(eventListener);
     }
 
+    /**
+     * Programmatically triggers a click on this button.
+     * Fires both touchDown and touchUp events.
+     */
     public void click() {
         InputEvent down = eventPool.obtain();
         down.setType(InputEvent.Type.touchDown);
@@ -51,6 +77,9 @@ public abstract class UIButton {
         eventPool.free(up);
     }
 
+    /**
+     * Programmatically triggers a hover enter event on this button.
+     */
     public void hoverEnter() {
         InputEvent e = eventPool.obtain();
         e.setType(InputEvent.Type.enter);
@@ -59,6 +88,9 @@ public abstract class UIButton {
         eventPool.free(e);
     }
 
+    /**
+     * Programmatically triggers a hover exit event on this button.
+     */
     public void hoverExit() {
         InputEvent e = eventPool.obtain();
         e.setType(InputEvent.Type.exit);
@@ -67,6 +99,11 @@ public abstract class UIButton {
         eventPool.free(e);
     }
 
+    /**
+     * Sets the action to be executed when the button is clicked.
+     *
+     * @param action the runnable action to execute on click
+     */
     public void onClick(Runnable action) {
         button.addListener(new ClickListener() {
             @Override
@@ -76,6 +113,11 @@ public abstract class UIButton {
         });
     }
 
+    /**
+     * Sets the action to be executed when the mouse hovers over the button.
+     *
+     * @param action the runnable action to execute on hover enter
+     */
     public void onHoverEnter(Runnable action) {
         button.addListener(new ClickListener() {
             @Override
@@ -87,6 +129,11 @@ public abstract class UIButton {
         });
     }
 
+    /**
+     * Sets the action to be executed when the mouse leaves the button.
+     *
+     * @param action the runnable action to execute on hover exit
+     */
     public void onHoverExit(Runnable action) {
         button.addListener(new ClickListener() {
             @Override

@@ -35,6 +35,9 @@ public class Settings {
     public static void setMusicVolume(float volume) { musicVolume = Math.max(0, Math.min(1, volume)); }
     public static void setSfxVolume(float volume) { sfxVolume = Math.max(0, Math.min(1, volume)); }
 
+    /**
+     * Saves the current settings to a JSON file.
+     */
     public static void saveSettings() {
         try {
             SettingsData data = new SettingsData();
@@ -55,6 +58,9 @@ public class Settings {
         }
     }
 
+    /**
+     * Loads settings from a JSON file. If the file does not exist or is invalid, defaults are used.
+     */
     public static void loadSettings() {
         try {
             FileHandle file = Gdx.files.local(SETTINGS_FILE);

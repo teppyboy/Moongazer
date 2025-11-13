@@ -44,6 +44,10 @@ public class Game extends ApplicationAdapter {
     // Save slot ID for loading saves
     public int loadingSaveSlotId = -1;
 
+    /**
+     * Called when the application is first created. Initializes settings, save game manager, loads intro assets,
+     * and sets up the initial scene.
+     */
     @Override
     public void create() {
         log.info("Loading settings...");
@@ -64,6 +68,9 @@ public class Game extends ApplicationAdapter {
         gameScenes.add(introScene);
     }
 
+    /**
+     * Called every frame to render the current scene. Handles scene transitions and visibility.
+     */
     @Override
     public void render() {
         if (transition != null) {
@@ -129,6 +136,15 @@ public class Game extends ApplicationAdapter {
         stage.draw();
     }
 
+    /**
+     * Recreates a scene by disposing of the old one and creating a new instance.
+     *
+     * @param storyStageScene2 The old scene to be disposed of.
+     * @param constructor      A supplier that constructs the new scene.
+     * @param assign           A consumer that assigns the new scene to the appropriate field.
+     * @param <T>              The type of the scene.
+     * @return The newly created scene.
+     */
     public <T extends Scene> T recreateScene(
             Scene storyStageScene2,
             Supplier<T> constructor,
@@ -145,6 +161,9 @@ public class Game extends ApplicationAdapter {
         return newScene;
     }
 
+    /**
+     * Called when the application is destroyed. Saves settings, disposes of scenes and resources.
+     */
     @Override
     public void dispose() {
         Settings.saveSettings();

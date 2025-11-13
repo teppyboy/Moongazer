@@ -8,17 +8,32 @@ import org.vibecoders.moongazer.managers.Assets;
 import static org.vibecoders.moongazer.Constants.*;
 
 public class Stage5Arkanoid extends StoryArkanoid {
+    /**
+     * Stage 5 Arkanoid level with a sunflower brick pattern.
+     * Symbolizes hope and new beginnings.
+     *
+     * @param game          Reference to the main Game object.
+     * @param startingLives Number of lives the player starts with.
+     */
     public Stage5Arkanoid(Game game, int startingLives) {
         super(game, 0, startingLives);
         setStageId(5);
         setBackground(Assets.getAsset("textures/stage/Bg5.png", Texture.class));
     }
 
+    /**
+     * Creates a sunflower brick pattern.
+     * The pattern consists of breakable and unbreakable bricks arranged to resemble a sunflower.
+     */
     @Override
     protected void createBrickGrid(int rows, int cols) {
         createSunflowerPattern();
     }
 
+    /**
+     * Generates a sunflower pattern using bricks.
+     * The pattern is centered in the gameplay area and uses a mix of breakable and unbreakable bricks.
+     */
     private void createSunflowerPattern() {
         bricks.clear();
         float centerX = SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH / 2f;
@@ -68,6 +83,11 @@ public class Stage5Arkanoid extends StoryArkanoid {
         }
     }
 
+    /**
+     * Returns a random power-up type based on predefined probabilities.
+     *
+     * @return A randomly selected PowerUpType.
+     */
     private Brick.PowerUpType getRandomPowerUp() {
         double rand = Math.random();
         if (rand < 0.70) {
@@ -87,6 +107,16 @@ public class Stage5Arkanoid extends StoryArkanoid {
         }
     }
 
+    /**
+     * Determines the brick type (breakable or unbreakable) based on its position
+     * in the sunflower pattern.
+     *
+     * @param row        The row index of the brick.
+     * @param col        The column index of the brick.
+     * @param totalRows  Total number of rows in the pattern.
+     * @param totalCols  Total number of columns in the pattern.
+     * @return The BrickType for the given position.
+     */
     private Brick.BrickType getSunflowerBrickType(int row, int col, int totalRows, int totalCols) {
         float centerRow = totalRows / 2f;
         float centerCol = totalCols / 2f;

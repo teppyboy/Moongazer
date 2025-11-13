@@ -36,6 +36,9 @@ public class MainMenu extends Scene {
         initUI();
     }
 
+    /**
+     * Initialize the background video player.
+     */
     private void initVideo() {
         videoPlayer = VideoPlayerCreator.createVideoPlayer();
         videoFileHandle = Assets.getAsset("videos/main_menu_background.webm", FileHandle.class);
@@ -46,6 +49,9 @@ public class MainMenu extends Scene {
         }
     }
 
+    /**
+     * Initialize the UI components of the main menu.
+     */
     private void initUI() {
         titleTexture = Assets.getAsset("textures/main_menu/title.png", Texture.class);
         float targetTitleWidth = 500f;
@@ -124,6 +130,9 @@ public class MainMenu extends Scene {
         game.stage.addActor(root);
     }
 
+    /**
+     * Initialize keyboard handling for menu navigation.
+     */
     private void initKeyboardHandling() {
         for (int i = 0; i < buttons.length; i++) {
             final int index = i;
@@ -161,6 +170,9 @@ public class MainMenu extends Scene {
         });
     }
 
+    /**
+     * Start the background video playback once certain conditions are met.
+     */
     private void startVideoOnce() {
         if (videoPlayer == null || videoPrepared)
             return;
@@ -210,6 +222,9 @@ public class MainMenu extends Scene {
         }
     }
 
+    /**
+     * Render the main menu scene.
+     */
     @Override
     public void render(SpriteBatch batch) {
         // SDL way of handling key input XD

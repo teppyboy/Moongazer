@@ -8,17 +8,34 @@ import org.vibecoders.moongazer.managers.Assets;
 import static org.vibecoders.moongazer.Constants.*;
 
 public class Stage3Arkanoid extends StoryArkanoid {
+    /**
+     * Stage 3 Arkanoid level with a memory fragments brick pattern.
+     *
+     * @param game          Reference to the main Game object.
+     * @param startingLives Number of lives the player starts with.
+     */
     public Stage3Arkanoid(Game game, int startingLives) {
         super(game, 0, startingLives);
         setStageId(3);
         setBackground(Assets.getAsset("textures/stage/Bg3.png", Texture.class));
     }
 
+    /**
+     * Creates a brick grid with a memory fragments pattern.
+     *
+     * @param rows Number of rows (not used in this pattern).
+     * @param cols Number of columns (not used in this pattern).
+     */
     @Override
     protected void createBrickGrid(int rows, int cols) {
         createMemoryFragmentsPattern();
     }
 
+    /**
+     * Creates a memory fragments brick pattern.
+     * The pattern consists of 7 memory fragments arranged in a 10x10 grid.
+     * Each fragment is made up of breakable and unbreakable bricks.
+     */
     private void createMemoryFragmentsPattern() {
         bricks.clear();
         float centerX = SIDE_PANEL_WIDTH + GAMEPLAY_AREA_WIDTH / 2f;
@@ -68,6 +85,11 @@ public class Stage3Arkanoid extends StoryArkanoid {
         }
     }
 
+    /**
+     * Returns a random power-up type based on predefined probabilities.
+     *
+     * @return A randomly selected Brick.PowerUpType.
+     */
     private Brick.PowerUpType getRandomPowerUp() {
         double rand = Math.random();
         if (rand < 0.70) {
@@ -87,6 +109,14 @@ public class Stage3Arkanoid extends StoryArkanoid {
         }
     }
 
+    /**
+     * Determines the brick type for a given position in the memory fragment pattern.
+     * Certain positions are designated as unbreakable to form the fragment shapes.
+     *
+     * @param row The row index of the brick.
+     * @param col The column index of the brick.
+     * @return The Brick.BrickType for the specified position.
+     */
     private Brick.BrickType getFragmentBrickType(int row, int col) {
         // Make center brick of each fragment unbreakable
         if ((row % 3 == 1) && (col % 4 == 1)) {

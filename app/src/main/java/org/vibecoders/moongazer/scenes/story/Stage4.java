@@ -17,10 +17,19 @@ public class Stage4 extends Story {
     private static final String IUNODONE = "audio/storysfx/IUNODONE.mp3";
     private static final String ROVERLIBERSFX = "audio/storysfx/ROVERLIBERSFX.mp3";
 
+    /**
+     * Constructs Stage 4 of the story mode.
+     *
+     * @param game the main game instance
+     */
     public Stage4(Game game) {
         super(game, 4);
     }
     
+    /**
+     * Initializes the intro dialogue for Stage 4.
+     * Shows the confrontation with the Fate Arbiter who tries to prevent Rover from saving Iuno.
+     */
     @Override
     protected void initIntroDialogue() {
         HashMap<String, List<DialogueStep>> branches = new HashMap<>();
@@ -109,6 +118,10 @@ public class Stage4 extends Story {
         introDialogue.setDialogueBranches(branches, "default");
     }
     
+    /**
+     * Initializes the outro dialogue for Stage 4.
+     * Shows the battle's conclusion and the price of defying fate.
+     */
     @Override
     protected void initOutroDialogue() {
         HashMap<String, List<DialogueStep>> branches = new HashMap<>();

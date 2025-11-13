@@ -23,11 +23,19 @@ public class MapPanel {
     private Label title;
     private Image map;
 
+    /**
+     * Constructs a map panel and adds it to the root table.
+     *
+     * @param root the root table to add this panel to
+     */
     public MapPanel(Table root) {
         createPanel();
         root.addActor(panel);
     }
 
+    /**
+     * Creates the panel UI with the map image and title.
+     */
     private void createPanel() {
         panel = new Table();
         panel.setFillParent(true);
@@ -46,6 +54,12 @@ public class MapPanel {
         panel.addActor(title);
     }
 
+    /**
+     * Updates the map image and title.
+     *
+     * @param path  the path to the new map texture
+     * @param title the new title text
+     */
     public void updateMap(String path, String title) {
         if (map != null) {
             map.remove();
@@ -60,6 +74,11 @@ public class MapPanel {
         panel.addActor(map);
     }
 
+    /**
+     * Updates the title text and repositions it to center.
+     *
+     * @param newTitle the new title text
+     */
     private void updateTitle(String newTitle) {
         title.setText(newTitle);
         title.setPosition(x + MAP_WIDTH / 2f - title.getPrefWidth() / 2f, y + MAP_HEIGHT + 10);

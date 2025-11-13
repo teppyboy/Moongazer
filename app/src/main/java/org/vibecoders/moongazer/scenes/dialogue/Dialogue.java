@@ -114,6 +114,11 @@ public abstract class Dialogue extends Scene {
         game.stage.addActor(root);
     }
 
+    /**
+     * Creates a semi-transparent black texture for the dialogue background.
+     *
+     * @return TextureRegion representing the dialogue background.
+     */
     private TextureRegion createDialogBackground() {
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pixmap.setColor(0, 0, 0, 0.7f);
@@ -123,6 +128,9 @@ public abstract class Dialogue extends Scene {
         return new TextureRegion(dialogBackgroundTexture);
     }
 
+    /**
+     * Advances the dialogue to the next step or skips the current dialogue if it's still being displayed.
+     */
     private void nextOrSkip() {
         if (!dialogue.isDone()) {
             dialogue.skip();
@@ -131,6 +139,13 @@ public abstract class Dialogue extends Scene {
         showStep(currentBranch, ++currentStep);
     }
 
+    /**
+     * Loads a character actor based on the provided asset path.
+     * If the character is already loaded, it returns the existing actor.
+     *
+     * @param speakerAsset The asset path of the character texture.
+     * @return The CharacterActor instance.
+     */
     private CharacterActor loadCharacter(String speakerAsset) {
         if (!characters.containsKey(speakerAsset)) {
             TextureRegion texture = new TextureRegion(Assets.getAsset(speakerAsset, Texture.class));
@@ -143,16 +158,33 @@ public abstract class Dialogue extends Scene {
         return characters.get(speakerAsset);
     }
 
+    /**
+     * Sets the dialogue branches and the starting branch.
+     *
+     * @param dialogueBranches A map of dialogue branches.
+     * @param startBranch     The branch to start the dialogue from.
+     */
     public void setDialogueBranches(HashMap<String, List<DialogueStep>> dialogueBranches, String startBranch) {
         this.dialogueBranches = dialogueBranches;
         this.currentBranch = startBranch;
     }
 
+    /**
+     * Sets the dialogue branches with the default starting branch "default".
+     *
+     * @param dialogueBranches A map of dialogue branches.
+     */
     public void setDialogueBranches(HashMap<String, List<DialogueStep>> dialogueBranches) {
         this.dialogueBranches = dialogueBranches;
         this.currentBranch = "default";
     }
 
+    /**
+     * Displays the specified step in the given dialogue branch.
+     *
+     * @param branch    The dialogue branch to display.
+     * @param stepIndex The index of the step within the branch.
+     */
     protected void showStep(String branch, int stepIndex) {
         if (choice != null) {
             choice.remove();
@@ -298,14 +330,27 @@ public abstract class Dialogue extends Scene {
         }
     }
 
+    /**
+     * Sets a callback to be executed when the dialogue completes.
+     *
+     * @param onComplete A Runnable to execute on dialogue completion.
+     */
     public void setOnComplete(Runnable onComplete) {
         this.onComplete = onComplete;
     }
 
+    /**
+     * Sets a callback to be executed when the dialogue exits for any reason.
+     *
+     * @param onExit An ExitCallback to execute on dialogue exit.
+     */
     public void setOnExit(ExitCallback onExit) {
         this.onExit = onExit;
     }
 
+    /**
+     * Starts the dialogue sequence.
+     */
     public void start() {
         if (!started) {
             started = true;
@@ -314,6 +359,11 @@ public abstract class Dialogue extends Scene {
         }
     }
 
+    /**
+     * Renders the dialogue scene, handling fade-in effects.
+     *
+     * @param batch The SpriteBatch used for rendering.
+     */
     @Override
     public void render(SpriteBatch batch) {
         if (started && currentOpacity < 1f) {
@@ -332,6 +382,9 @@ public abstract class Dialogue extends Scene {
         }
     }
 
+    /**
+     * Disposes of the dialogue resources and clears the scene.
+     */
     public void dispose() {
         container.setVisible(false);
         if (currentDialogueSound != null) {
