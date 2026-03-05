@@ -109,14 +109,14 @@ public abstract class Arkanoid extends Scene {
         pixelTexture = Assets.getBlackTexture();
         heartTexture = Assets.getAsset("textures/arkanoid/heart.png", Texture.class);
         iunoTexture = Assets.getAsset("textures/vn_scene/iuno.png", Texture.class);
-        shapeRenderer = new ShapeRenderer();
+        shapeRenderer = new ShapeRenderer(5000, game.defaultShader);
         gameFrameBuffer = new FrameBuffer(Pixmap.Format.RGBA8888, WINDOW_WIDTH, WINDOW_HEIGHT, false);
         paddleAI = new ArkanoidAI();
         setupInputHandling();
-        pauseMenu = new PauseMenu();
+        pauseMenu = new PauseMenu(game);
         setupPauseMenuCallbacks();
 
-        gameOverMenu = new GameOverMenu();
+        gameOverMenu = new GameOverMenu(game);
         setupGameOverMenuCallbacks();
 
         initGameplay();

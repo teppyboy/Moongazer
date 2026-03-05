@@ -2,7 +2,9 @@ package org.vibecoders.moongazer;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -22,7 +24,9 @@ public class Game extends ApplicationAdapter {
     private static final Logger log = LoggerFactory.getLogger(Game.class);
     public State state = State.INTRO;
     public Transition transition = null;
-    SpriteBatch batch;
+    public SpriteBatch batch;
+    // Shaders
+    public ShaderProgram defaultShader;
     // UI stage
     public Stage stage;
     public Table root;
@@ -57,7 +61,19 @@ public class Game extends ApplicationAdapter {
         log.info("Loading intro assets...");
         Assets.loadIntroAndWait();
         log.info("Intro assets loaded successfully.");
-        batch = new SpriteBatch();
+        // Workaround for Apple Silicon GPUs
+        log.info("GL Version: " + Gdx.gl.glGetString(GL20.GL_VERSION));
+        log.info("GLSL Version: " + Gdx.gl.glGetString(GL20.GL_SHADING_LANGUAGE_VERSION));
+        log.info("GPU: " + Gdx.gl.glGetString(GL20.GL_RENDERER));
+        ShaderProgram.pedantic = false;
+        this.defaultShader = new ShaderProgram(
+            Gdx.files.internal("shaders/default.vert"),
+            Gdx.files.internal("shaders/default.frag")
+        );
+        if (!defaultShader.isCompiled()) {
+            throw new IllegalStateException("Shader error: " + defaultShader.getLog());
+        }
+        batch = new SpriteBatch(1000, defaultShader);
         stage = new Stage(new ScreenViewport(), batch);
         Gdx.input.setInputProcessor(stage);
         root = new Table();

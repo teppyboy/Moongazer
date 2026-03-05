@@ -80,7 +80,7 @@ public class StoryArkanoid extends Arkanoid {
         createBrickGrid(requiredBricks, 30);
 
         // Initialize game win menu
-        gameWinMenu = new GameWinMenu();
+        gameWinMenu = new GameWinMenu(game);
         setupGameWinMenuCallbacks();
 
         log.info("Story Arkanoid initialized with {} rows and {} lives", requiredBricks, startingLives);

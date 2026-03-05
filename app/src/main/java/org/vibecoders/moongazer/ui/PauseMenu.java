@@ -3,6 +3,7 @@ package org.vibecoders.moongazer.ui;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -11,9 +12,13 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.TimeUtils;
+import com.badlogic.gdx.utils.viewport.ScalingViewport;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.managers.Audio;
 import java.util.HashMap;
@@ -22,12 +27,17 @@ import static org.vibecoders.moongazer.Constants.*;
 
 public class PauseMenu {
     private static final Logger log = LoggerFactory.getLogger(PauseMenu.class);
-    private enum FadeState { HIDDEN, FADING_IN, VISIBLE, FADING_OUT }
+
+    private enum FadeState {
+        HIDDEN, FADING_IN, VISIBLE, FADING_OUT
+    }
+
     private static final float FADE_DURATION = 0.25f;
     private static final int BUTTON_WIDTH = 300;
     private static final int BUTTON_HEIGHT = 80;
     private static final int BUTTON_SPACING = 65;
     private boolean isPaused = false;
+    private Game game;
     private UITextButton[] buttons;
     private Table menuTable;
     private Stage menuStage;
@@ -50,6 +60,7 @@ public class PauseMenu {
     private static class ButtonConfig {
         final String label;
         final Runnable action;
+
         ButtonConfig(String label, Runnable action) {
             this.label = label;
             this.action = action;
@@ -59,7 +70,8 @@ public class PauseMenu {
     /**
      * Constructs a new pause menu with all UI components.
      */
-    public PauseMenu() {
+    public PauseMenu(Game game) {
+        this.game = game;
         initUI();
         initSettingsOverlay();
     }
@@ -81,7 +93,7 @@ public class PauseMenu {
      * Initializes the settings overlay component.
      */
     private void initSettingsOverlay() {
-        settingsOverlay = new PauseMenuSettings();
+        settingsOverlay = new PauseMenuSettings(game);
         settingsOverlay.setOnClose(() -> {
             Gdx.input.setInputProcessor(menuStage);
             menuStage.setKeyboardFocus(menuTable);
@@ -99,7 +111,10 @@ public class PauseMenu {
         pixmap.dispose();
         titleFont = Assets.getFont("ui", 40);
         buttonFont = Assets.getFont("ui", 24);
-        menuStage = new Stage();
+        menuStage = new Stage(
+                new ScalingViewport(Scaling.stretch, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(),
+                        new OrthographicCamera()),
+                game.batch);
         menuTable = new Table();
         menuTable.setFillParent(true);
         menuStage.addActor(menuTable);
@@ -207,8 +222,8 @@ public class PauseMenu {
     /**
      * Builds a single button with the specified configuration.
      *
-     * @param config the button configuration
-     * @param centerX the x-coordinate for button center
+     * @param config    the button configuration
+     * @param centerX   the x-coordinate for button center
      * @param yPosition the y-coordinate for button position
      * @return the created button
      */
@@ -248,6 +263,7 @@ public class PauseMenu {
                 currentKeyDown.put(keycode, TimeUtils.millis());
                 return true;
             }
+
             @Override
             public boolean keyUp(InputEvent event, int keycode) {
                 currentKeyDown.remove(keycode);
@@ -370,7 +386,7 @@ public class PauseMenu {
     /**
      * Renders the pause menu with the game snapshot background.
      *
-     * @param batch the sprite batch for rendering
+     * @param batch        the sprite batch for rendering
      * @param gameSnapshot the snapshot texture of the game state
      */
     public void render(SpriteBatch batch, Texture gameSnapshot) {

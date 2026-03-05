@@ -79,6 +79,12 @@ tasks.withType<JavaCompile>().configureEach {
     options.release.set(25)
 }
 
+tasks.named<JavaExec>("run") {
+    if (System.getProperty("os.name").lowercase().contains("mac")) {
+        jvmArgs("-XstartOnFirstThread")
+    }
+}
+
 tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()

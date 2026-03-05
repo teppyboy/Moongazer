@@ -3,6 +3,7 @@ package org.vibecoders.moongazer.ui;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -12,9 +13,13 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.TimeUtils;
+import com.badlogic.gdx.utils.viewport.ScalingViewport;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.managers.Audio;
 import java.util.HashMap;
@@ -29,6 +34,7 @@ public class GameOverMenu {
     private static final int BUTTON_HEIGHT = 80;
     private static final int BUTTON_SPACING = 65;
     private boolean isVisible = false;
+    private Game game;
     private UITextButton[] buttons;
     private Table menuTable;
     private Stage menuStage;
@@ -59,7 +65,8 @@ public class GameOverMenu {
     /**
      * Constructs a new game over menu with all UI components.
      */
-    public GameOverMenu() {
+    public GameOverMenu(Game game) {
+        this.game = game;
         initUI();
     }
 
@@ -76,7 +83,10 @@ public class GameOverMenu {
         scoreFont = Assets.getFont("ui", 32);
         buttonFont = Assets.getFont("ui", 24);
         glyphLayout = new GlyphLayout();
-        menuStage = new Stage();
+        menuStage = new Stage(
+                new ScalingViewport(Scaling.stretch, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(),
+                        new OrthographicCamera()),
+                game.batch);
         menuTable = new Table();
         menuTable.setFillParent(true);
         menuStage.addActor(menuTable);

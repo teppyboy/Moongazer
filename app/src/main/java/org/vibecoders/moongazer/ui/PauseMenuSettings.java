@@ -3,6 +3,7 @@ package org.vibecoders.moongazer.ui;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
@@ -12,9 +13,13 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.TimeUtils;
+import com.badlogic.gdx.utils.viewport.ScalingViewport;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vibecoders.moongazer.Game;
 import org.vibecoders.moongazer.Settings;
 import org.vibecoders.moongazer.managers.Assets;
 import org.vibecoders.moongazer.managers.Audio;
@@ -27,6 +32,7 @@ import static org.vibecoders.moongazer.Constants.*;
 public class PauseMenuSettings {
     private static final Logger log = LoggerFactory.getLogger(PauseMenuSettings.class);
     private boolean isOpen = false;
+    private Game game;
     private Stage settingsStage;
     private Table root;
     private BitmapFont titleFont;
@@ -41,7 +47,8 @@ public class PauseMenuSettings {
     /**
      * Constructs a new pause menu settings overlay.
      */
-    public PauseMenuSettings() {
+    public PauseMenuSettings(Game game) {
+        this.game = game;
         initUI();
     }
 
@@ -51,7 +58,10 @@ public class PauseMenuSettings {
     private void initUI() {
         titleFont = Assets.getFont("ui", 40);
         labelFont = Assets.getFont("ui", 24);
-        settingsStage = new Stage();
+        settingsStage = new Stage(
+                new ScalingViewport(Scaling.stretch, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(),
+                        new OrthographicCamera()),
+                game.batch);
         root = new Table();
         root.setFillParent(true);
         settingsStage.addActor(root);
